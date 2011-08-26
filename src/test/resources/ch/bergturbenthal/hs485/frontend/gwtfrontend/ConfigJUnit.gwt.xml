@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <!-- Inherit our applications main module.                      -->
+  <inherits name='ch.bergturbenthal.hs485.frontend.gwtfrontend.gwtfrontend'/>
+
+  <!-- Specify the path to any remote services.                   -->
+  <servlet path="/Config/greet" class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.GreetingServiceImpl" />
+
+</module>
