@@ -45,7 +45,7 @@ public class OutputDevice {
 
 	@Override
 	public String toString() {
-		return "OutputDevice [name=" + name + ", type=" + type + "]";
+		return "OutputDevice [deviceId=" + deviceId + ", name=" + name + ", type=" + type + "]";
 	}
 
 }
