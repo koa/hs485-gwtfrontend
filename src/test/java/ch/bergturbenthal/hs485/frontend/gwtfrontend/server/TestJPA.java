@@ -24,7 +24,7 @@ public class TestJPA {
 
 	@BeforeClass
 	public static void setupConnection() {
-		final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("JUnit");
+		final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("SpringJpaGettingStarted");
 		entityManagerFactory.getPersistenceUnitUtil();
 		em = entityManagerFactory.createEntityManager();
 

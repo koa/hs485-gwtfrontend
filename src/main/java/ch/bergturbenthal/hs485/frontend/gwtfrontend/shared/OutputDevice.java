@@ -1,5 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -8,17 +10,19 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "OUTPUTDEVICE")
-public class OutputDevice {
+public class OutputDevice implements Serializable {
 	public static enum Type {
 		DIMMER, SWITCH
 	}
 
+	private static final long	serialVersionUID	= 2108040144856847494L;
+
+	private int								deviceId;
+	private String						name;
+	private Type							type;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private int			deviceId;
-	private String	name;
-	private Type		type;
-
 	public int getDeviceId() {
 		return deviceId;
 	}
@@ -45,7 +49,7 @@ public class OutputDevice {
 
 	@Override
 	public String toString() {
-		return "OutputDevice [deviceId=" + deviceId + ", name=" + name + ", type=" + type + "]";
+		return "OutputDevice [deviceId=" + ", name=" + name + ", type=" + type + "]";
 	}
 
 }

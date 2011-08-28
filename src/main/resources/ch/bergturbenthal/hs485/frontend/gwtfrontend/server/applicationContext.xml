@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/data/repository http://www.springframework.org/schema/data/repository/spring-repository-1.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd">
 	<bean id="outputDeviceDao"
-		class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.JpaOutputDeviceDao">
-		<property name="entityManagerFactory" ref="entityManagerFactory" />
+		class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.JpaOutputDeviceImpl">
+		<!--<property name="entityManagerFactory" ref="entityManagerFactory" /> -->
 	</bean>
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
@@ -43,8 +48,12 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 		<property name="dataSource" ref="memDataSource" />
 	</bean>
-	<bean name="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.JpaOutputDeviceDaoTests"
-		class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.JpaOutputDeviceDaoTests">
-		<property name="dataSource" ref="memDataSource"></property>
-	</bean>
+	<jdbc:embedded-database id="embeddedDataSource"
+		type="HSQL">
+	</jdbc:embedded-database>
+	<jpa:repositories base-package="ch.bergturbenthal.hs485.frontend.gwtfrontend.shared"
+		entity-manager-factory-ref="entityManagerFactory"
+		transaction-manager-ref="transactionManager">
+		<jpa:repository id="outputDeviceRepository" />
+	</jpa:repositories>
 </beans>
