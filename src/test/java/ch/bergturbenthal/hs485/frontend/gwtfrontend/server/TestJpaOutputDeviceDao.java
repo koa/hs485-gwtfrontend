@@ -1,5 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
+import javax.persistence.PersistenceUnit;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice.Type;
 
 @RunWith(SpringJUnit4ClassRunner.class)
+@PersistenceUnit(unitName = "SpringJpaGettingStarted")
 @ContextConfiguration(locations = { "classpath:/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/testContext.xml" })
 // @Transactional
 public class TestJpaOutputDeviceDao {

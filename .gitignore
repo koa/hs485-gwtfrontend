@@ -1,3 +1,4 @@
 /target
 /.gwt
 /login.properties
+/src/main/webapp/WEB-INF/lib

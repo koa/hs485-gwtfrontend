@@ -18,7 +18,7 @@
 		<property name="persistenceUnitName" value="SpringJpaGettingStarted" />
 		<property name="loadTimeWeaver">
 			<bean
-				class="org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver" />
+				class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver" />
 		</property>
 	</bean>
 	
