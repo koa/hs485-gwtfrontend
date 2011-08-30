@@ -160,13 +160,13 @@ public class Config implements EntryPoint {
 	 * 
 	 */
 	private void reloadOutputDeviceList() {
-		configService.getOutputDevices(new AsyncCallback<List>() {
+		configService.getOutputDevices(new AsyncCallback<List<OutputDevice>>() {
 
 			public void onFailure(final Throwable caught) {
 				GWT.log("Error", caught);
 			}
 
-			public void onSuccess(final List result) {
+			public void onSuccess(final List<OutputDevice> result) {
 				outputDeviceList.clear();
 				outputDeviceList.addAll(result);
 				outputDeviceCellTable.setRowData(outputDeviceList);

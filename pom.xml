@@ -120,7 +120,6 @@
           <hostedWebapp>${webappDirectory}</hostedWebapp>
           <i18nMessagesBundle>ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages</i18nMessagesBundle>
           <logLevel>WARN</logLevel>
-          <extraJvmArgs>-javaagent:${project.build.directory}/spring-instrument-3.0.5.RELEASE.jar</extraJvmArgs>
         </configuration>
       </plugin>
 
@@ -142,6 +141,7 @@
         </configuration>
       </plugin>
       <!-- Copy Java-Agent for starting Surefire -->
+      <!-- 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -174,6 +174,7 @@
           <workingDirectory>${basedir}/target</workingDirectory>
         </configuration>
       </plugin>
+       -->
       <plugin>
         <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
         <groupId>au.com.alderaan</groupId>
@@ -233,6 +234,21 @@
                     <versionRange>[2.1,)</versionRange>
                     <goals>
                       <goal>copy</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>au.com.alderaan</groupId>
+                    <artifactId>
+                      eclipselink-staticweave-maven-plugin
+                    </artifactId>
+                    <versionRange>[1.0.1,)</versionRange>
+                    <goals>
+                      <goal>weave</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>
