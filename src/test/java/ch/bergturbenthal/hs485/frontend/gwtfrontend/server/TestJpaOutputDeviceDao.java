@@ -28,7 +28,7 @@ public class TestJpaOutputDeviceDao {
 		device.setType(Type.DIMMER);
 		// final int deviceId = device.getDeviceId();
 		// outputDeviceDao.save(device);
-		outputdeviceDao.save(device);
+		outputdeviceDao.insert(device);
 		// Assert.assertFalse(deviceId == device.getDeviceId());
 	}
 }

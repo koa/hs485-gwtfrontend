@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="target/gwtfrontend-0.0.1-SNAPSHOT/WEB-INF/classes" path="src/main/java"/>
-	<classpathentry kind="src" output="target/gwtfrontend-0.0.1-SNAPSHOT/WEB-INF/classes" path="src/main/resources"/>
+	<classpathentry kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="src/main/java"/>
+	<classpathentry kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="src/main/resources"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/resources"/>
 	<classpathentry kind="src" path="target/generated-sources/gwt"/>
@@ -13,5 +13,5 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
-	<classpathentry kind="output" path="target/gwtfrontend-0.0.1-SNAPSHOT/WEB-INF/classes"/>
+	<classpathentry kind="output" path="target/m2e-wtp/web-resources/WEB-INF/classes"/>
 </classpath>

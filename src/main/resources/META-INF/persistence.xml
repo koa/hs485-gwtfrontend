@@ -12,6 +12,10 @@
 			<property name="javax.persistence.jdbc.url" value="jdbc:hsqldb:/tmp/hsqldb"/>
 			<property name="javax.persistence.jdbc.user" value="sa"/>
 			<property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver"/>
+			<property name="eclipselink.logging.level.transaction" value="INFO"/>
+			<property name="eclipselink.logging.level.sql" value="INFO"/>
+			<property name="eclipselink.logging.level" value="INFO"/>
+			<property name="eclipselink.weaving" value="static"/>
 		</properties>
 	</persistence-unit>
 </persistence>

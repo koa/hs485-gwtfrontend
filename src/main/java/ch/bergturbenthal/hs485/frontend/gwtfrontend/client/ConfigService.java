@@ -23,5 +23,9 @@ public interface ConfigService extends RemoteService {
 		}
 	}
 
+	public void addOutputDevice(OutputDevice device);
+
 	public List<OutputDevice> getOutputDevices();
+
+	public void updateOutputDevice(OutputDevice device);
 }

@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
-	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+  xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+  xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd">
 	
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
@@ -16,10 +18,12 @@
 			</bean>
 		</property>
 		<property name="persistenceUnitName" value="SpringJpaGettingStarted" />
+    <!-- 
 		<property name="loadTimeWeaver">
 			<bean
-				class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver" />
+				class="org.springframework.context.weaving.DefaultContextLoadTimeWeaver" />
 		</property>
+     -->
 	</bean>
 	
 	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
@@ -27,5 +31,9 @@
 	</bean> 
 	
 	<jdbc:embedded-database id="dataSource" type="HSQL" />
+  <jpa:repositories base-package="ch.bergturbenthal.hs485.frontend.gwtfrontend.shared">
+  </jpa:repositories>
+  <bean
+    class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.JpaOutputDeviceImpl"/>
 
 </beans>

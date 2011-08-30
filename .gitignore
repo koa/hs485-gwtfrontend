@@ -2,3 +2,4 @@
 /.gwt
 /login.properties
 /src/main/webapp/WEB-INF/lib
+/src/main/webapp/Config

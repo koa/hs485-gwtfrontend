@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice.Type;
@@ -14,6 +15,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockPanel;
@@ -32,7 +34,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class Config implements EntryPoint {
 
-	private final Messages	messages	= GWT.create(Messages.class);
+	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
+	private final Messages						messages			= GWT.create(Messages.class);
+	private CellTable<OutputDevice>		outputDeviceCellTable;
+	private ArrayList<OutputDevice>		outputDeviceList;
 
 	private void addNameColumn(final CellTable<OutputDevice> cellTable) {
 		final Column<OutputDevice, String> nameColumn = new Column<OutputDevice, String>(new EditTextCell()) {
@@ -43,9 +48,9 @@ public class Config implements EntryPoint {
 		};
 		nameColumn.setFieldUpdater(new FieldUpdater<OutputDevice, String>() {
 
-			public void update(final int index, final OutputDevice object, final String value) {
-				object.setName(value);
-				cellTable.redraw();
+			public void update(final int index, final OutputDevice device, final String value) {
+				device.setName(value);
+				updateDevice(device);
 			}
 		});
 		cellTable.addColumn(nameColumn, "Name");
@@ -64,8 +69,9 @@ public class Config implements EntryPoint {
 		};
 		typeColumn.setFieldUpdater(new FieldUpdater<OutputDevice, String>() {
 
-			public void update(final int index, final OutputDevice object, final String value) {
-				object.setType(Type.valueOf(value));
+			public void update(final int index, final OutputDevice device, final String value) {
+				device.setType(Type.valueOf(value));
+				updateDevice(device);
 
 			}
 		});
@@ -97,15 +103,16 @@ public class Config implements EntryPoint {
 		final Grid grid = new Grid(3, 3);
 		dockPanel.add(grid, DockPanel.CENTER);
 
-		final CellTable<OutputDevice> cellTable = new CellTable<OutputDevice>();
-		grid.setWidget(1, 1, cellTable);
-		addNameColumn(cellTable);
-		addTypeColumn(cellTable);
+		outputDeviceCellTable = new CellTable<OutputDevice>();
+		grid.setWidget(1, 1, outputDeviceCellTable);
+		addNameColumn(outputDeviceCellTable);
+		addTypeColumn(outputDeviceCellTable);
 
-		final ArrayList<OutputDevice> values = new ArrayList<OutputDevice>();
+		outputDeviceList = new ArrayList<OutputDevice>();
+		reloadOutputDeviceList();
 		// cellTable.setRowData(values);
 
-		final Button newButton = new Button(messages.mntmFile_text());
+		final Button newButton = new Button(messages.addOutputDeviceEnry());
 		grid.setWidget(1, 2, newButton);
 		newButton.addClickHandler(new ClickHandler() {
 
@@ -113,8 +120,18 @@ public class Config implements EntryPoint {
 				final OutputDevice device = new OutputDevice();
 				device.setName("Hello");
 				device.setType(Type.DIMMER);
-				values.add(device);
-				cellTable.setRowData(values);
+				configService.addOutputDevice(device, new AsyncCallback<Void>() {
+
+					public void onFailure(final Throwable caught) {
+						GWT.log("Error", caught);
+					}
+
+					public void onSuccess(final Void result) {
+						reloadOutputDeviceList();
+					}
+				});
+				// outputDeviceList.add(device);
+				// outputDeviceCellTable.setRowData(outputDeviceList);
 			}
 		});
 
@@ -137,5 +154,39 @@ public class Config implements EntryPoint {
 		dialogVPanel.add(closeButton);
 		dialogBox.setWidget(dialogVPanel);
 
+	}
+
+	/**
+	 * 
+	 */
+	private void reloadOutputDeviceList() {
+		configService.getOutputDevices(new AsyncCallback<List>() {
+
+			public void onFailure(final Throwable caught) {
+				GWT.log("Error", caught);
+			}
+
+			public void onSuccess(final List result) {
+				outputDeviceList.clear();
+				outputDeviceList.addAll(result);
+				outputDeviceCellTable.setRowData(outputDeviceList);
+			}
+		});
+	}
+
+	/**
+	 * @param device
+	 */
+	private void updateDevice(final OutputDevice device) {
+		configService.updateOutputDevice(device, new AsyncCallback<Void>() {
+
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+			}
+
+			public void onSuccess(final Void result) {
+				reloadOutputDeviceList();
+			}
+		});
 	}
 }

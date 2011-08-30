@@ -17,11 +17,12 @@
 
   <properties>
     <!-- Convenience property to set the GWT version -->
-    <gwtVersion>2.1.0</gwtVersion>
+    <gwtVersion>2.3.0</gwtVersion>
     <!-- GWT needs at least java 1.5 -->
     <maven.compiler.source>1.5</maven.compiler.source>
     <maven.compiler.target>1.5</maven.compiler.target>
-    <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory>
+    <!-- <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory> -->
+    <webappDirectory>${project.build.directory}/m2e-wtp/web-resources</webappDirectory>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
   </properties>
 
@@ -29,13 +30,13 @@
     <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-servlet</artifactId>
-      <version>2.2.0</version>
+      <version>${gwtVersion}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>com.google.gwt</groupId>
       <artifactId>gwt-user</artifactId>
-      <version>2.2.0</version>
+      <version>${gwtVersion}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -58,6 +59,11 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-orm</artifactId>
+      <version>${org.springframework.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
       <version>${org.springframework.version}</version>
     </dependency>
     <dependency>
@@ -96,7 +102,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>gwt-maven-plugin</artifactId>
-        <version>2.2.0</version>
+        <version>${gwtVersion}</version>
         <executions>
           <execution>
             <goals>
@@ -113,6 +119,8 @@
           <runTarget>Config.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
           <i18nMessagesBundle>ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages</i18nMessagesBundle>
+          <logLevel>WARN</logLevel>
+          <extraJvmArgs>-javaagent:${project.build.directory}/spring-instrument-3.0.5.RELEASE.jar</extraJvmArgs>
         </configuration>
       </plugin>
 
@@ -165,6 +173,19 @@
           <argLine>-javaagent:${basedir}/target/spring-instrument-${org.springframework.version}.jar</argLine>
           <workingDirectory>${basedir}/target</workingDirectory>
         </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
+        <groupId>au.com.alderaan</groupId>
+        <version>1.0.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>weave</goal>
+            </goals>
+            <phase>process-classes</phase>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <pluginManagement>
