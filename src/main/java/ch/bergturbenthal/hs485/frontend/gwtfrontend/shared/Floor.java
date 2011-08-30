@@ -4,14 +4,11 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 /**
  * a Floor of a Building.
@@ -24,8 +21,6 @@ public class Floor implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						floorId;
 	private String						name;
-	@OneToMany(mappedBy = "floor", fetch = FetchType.LAZY)
-	private Collection<Room>	rooms;
 
 	public Integer getFloorId() {
 		return floorId;
@@ -33,10 +28,6 @@ public class Floor implements Serializable {
 
 	public String getName() {
 		return name;
-	}
-
-	public Collection<Room> getRooms() {
-		return rooms;
 	}
 
 	public void setFloorId(final Integer floorId) {
@@ -47,8 +38,21 @@ public class Floor implements Serializable {
 		this.name = name;
 	}
 
-	public void setRooms(final Collection<Room> rooms) {
-		this.rooms = rooms;
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Floor [");
+		if (floorId != null) {
+			builder.append("floorId=");
+			builder.append(floorId);
+			builder.append(", ");
+		}
+		if (name != null) {
+			builder.append("name=");
+			builder.append(name);
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

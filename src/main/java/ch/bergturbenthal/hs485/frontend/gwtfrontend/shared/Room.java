@@ -4,27 +4,22 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
 
 @Entity
 public class Room implements Serializable {
-	private static final long					serialVersionUID	= 5336242137115223089L;
+	private static final long	serialVersionUID	= 5336242137115223089L;
 	@ManyToOne
-	private Floor											floor;
-	private String										name;
-	@OneToMany(mappedBy = "room", fetch = FetchType.LAZY)
-	private Collection<OutputDevice>	outputDevices;
+	private Floor							floor;
+	private String						name;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer										roomId;
+	private Integer						roomId;
 
 	public Floor getFloor() {
 		return floor;
@@ -32,10 +27,6 @@ public class Room implements Serializable {
 
 	public String getName() {
 		return name;
-	}
-
-	public Collection<OutputDevice> getOutputDevices() {
-		return outputDevices;
 	}
 
 	public Integer getRoomId() {
@@ -50,12 +41,21 @@ public class Room implements Serializable {
 		this.name = name;
 	}
 
-	public void setOutputDevices(final Collection<OutputDevice> outputDevices) {
-		this.outputDevices = outputDevices;
-	}
-
 	public void setRoomId(final Integer roomId) {
 		this.roomId = roomId;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Room [floor=");
+		builder.append(floor);
+		builder.append(", name=");
+		builder.append(name);
+		builder.append(", roomId=");
+		builder.append(roomId);
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

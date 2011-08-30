@@ -16,6 +16,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 
+import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigService {
@@ -33,22 +34,11 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * (ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice)
 	 */
 	public void addOutputDevice(final OutputDevice device) {
-		transactionTemplate.execute(new TransactionCallback<Void>() {
-
-			public Void doInTransaction(final TransactionStatus status) {
-				dao.insert(device);
-				return null;
-			}
-		});
+		dao.insert(device);
 	}
 
 	public List<OutputDevice> getOutputDevices() {
-		try {
-			return dao.list();
-		} catch (final Throwable t) {
-			t.printStackTrace();
-			throw new RuntimeException(t);
-		}
+		return dao.list();
 	}
 
 	@Override
@@ -60,6 +50,26 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository = ctx.getBean(FloorRepository.class);
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
+	}
+
+	@Override
+	public String processCall(final String payload) throws SerializationException {
+		try {
+			return transactionTemplate.execute(new TransactionCallback<String>() {
+
+				public String doInTransaction(final TransactionStatus status) {
+					try {
+						return ConfigServiceImpl.super.processCall(payload);
+					} catch (final SerializationException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			});
+		} catch (final RuntimeException ex) {
+			if (ex.getCause() != null && ex.getCause() instanceof SerializationException)
+				throw (RuntimeException) ex.getCause();
+			throw ex;
+		}
 	}
 
 	/**

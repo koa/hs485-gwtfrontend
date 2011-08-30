@@ -2,7 +2,7 @@
 <persistence version="2.0"
 	xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
-	<persistence-unit name="SpringJpaGettingStarted" transaction-type="RESOURCE_LOCAL">
+	<persistence-unit name="SpringJpaGettingStarted">
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room</class>
@@ -10,11 +10,7 @@
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.ddl-generation.output-mode"
 				value="database" />
-			<property name="javax.persistence.jdbc.url" value="jdbc:hsqldb:/tmp/hsqldb"/>
-			<property name="javax.persistence.jdbc.user" value="sa"/>
-			<property name="javax.persistence.jdbc.driver" value="org.hsqldb.jdbcDriver"/>
-			<property name="eclipselink.logging.level.transaction" value="INFO"/>
-			<property name="eclipselink.logging.level.sql" value="INFO"/>
+			<property name="eclipselink.logging.level.sql" value="ALL"/>
 			<property name="eclipselink.logging.level" value="INFO"/>
 			<property name="eclipselink.weaving" value="static"/>
 		</properties>
