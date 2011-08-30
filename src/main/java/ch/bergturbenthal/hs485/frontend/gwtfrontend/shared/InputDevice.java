@@ -1,3 +1,6 @@
+/**
+ * 
+ */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
 
 import java.io.Serializable;
@@ -7,23 +10,23 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
+/**
+ * Input-Device
+ */
 @Entity
-@Table(name = "OUTPUTDEVICE")
-public class OutputDevice implements Serializable {
-	private static final long	serialVersionUID	= 2108040144856847494L;
-
+public class InputDevice implements Serializable {
+	private static final long	serialVersionUID	= 1L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer						deviceId;
+	private Integer						inputDeviceId;
 	private String						name;
 	@ManyToOne
 	private Room							room;
-	private OutputDeviceType	type;
+	private InputDeviceType		type;
 
-	public Integer getDeviceId() {
-		return deviceId;
+	public Integer getInputDeviceId() {
+		return inputDeviceId;
 	}
 
 	public String getName() {
@@ -34,12 +37,12 @@ public class OutputDevice implements Serializable {
 		return room;
 	}
 
-	public OutputDeviceType getType() {
+	public InputDeviceType getType() {
 		return type;
 	}
 
-	public void setDeviceId(final Integer deviceId) {
-		this.deviceId = deviceId;
+	public void setInputDeviceId(final Integer inputDeviceId) {
+		this.inputDeviceId = inputDeviceId;
 	}
 
 	public void setName(final String name) {
@@ -50,13 +53,8 @@ public class OutputDevice implements Serializable {
 		this.room = room;
 	}
 
-	public void setType(final OutputDeviceType type) {
+	public void setType(final InputDeviceType type) {
 		this.type = type;
-	}
-
-	@Override
-	public String toString() {
-		return "OutputDevice [deviceId=" + deviceId + ", name=" + name + ", type=" + type + "]";
 	}
 
 }

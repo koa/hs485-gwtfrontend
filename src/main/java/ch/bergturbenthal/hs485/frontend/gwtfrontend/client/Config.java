@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice.Type;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
 
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
@@ -58,7 +58,7 @@ public class Config implements EntryPoint {
 
 	private void addTypeColumn(final CellTable<OutputDevice> cellTable) {
 		final ArrayList<String> options = new ArrayList<String>();
-		for (final Type type : Type.values())
+		for (final OutputDeviceType type : OutputDeviceType.values())
 			options.add(type.name());
 
 		final Column<OutputDevice, String> typeColumn = new Column<OutputDevice, String>(new SelectionCell(options)) {
@@ -70,7 +70,7 @@ public class Config implements EntryPoint {
 		typeColumn.setFieldUpdater(new FieldUpdater<OutputDevice, String>() {
 
 			public void update(final int index, final OutputDevice device, final String value) {
-				device.setType(Type.valueOf(value));
+				device.setType(OutputDeviceType.valueOf(value));
 				updateDevice(device);
 
 			}
@@ -119,7 +119,7 @@ public class Config implements EntryPoint {
 			public void onClick(final ClickEvent event) {
 				final OutputDevice device = new OutputDevice();
 				device.setName("Hello");
-				device.setType(Type.DIMMER);
+				device.setType(OutputDeviceType.DIMMER);
 				configService.addOutputDevice(device, new AsyncCallback<Void>() {
 
 					public void onFailure(final Throwable caught) {

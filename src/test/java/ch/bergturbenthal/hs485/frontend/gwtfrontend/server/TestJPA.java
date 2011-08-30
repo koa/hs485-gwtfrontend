@@ -12,7 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice.Type;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
 
 public class TestJPA {
 	private static EntityManager	em;
@@ -45,7 +45,7 @@ public class TestJPA {
 	public void test() {
 		final OutputDevice device = new OutputDevice();
 		device.setName("Hello");
-		device.setType(Type.DIMMER);
+		device.setType(OutputDeviceType.DIMMER);
 		em.persist(device);
 	}
 

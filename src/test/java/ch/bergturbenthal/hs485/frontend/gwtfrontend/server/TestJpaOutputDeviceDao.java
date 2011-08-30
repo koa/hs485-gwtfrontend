@@ -10,7 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice.Type;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PersistenceUnit(unitName = "SpringJpaGettingStarted")
@@ -25,7 +25,7 @@ public class TestJpaOutputDeviceDao {
 	public void testSaveOutputDevice() {
 		final OutputDevice device = new OutputDevice();
 		device.setName("Hello World");
-		device.setType(Type.DIMMER);
+		device.setType(OutputDeviceType.DIMMER);
 		// final int deviceId = device.getDeviceId();
 		// outputDeviceDao.save(device);
 		outputdeviceDao.insert(device);
