@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+
+  <bean id="hs485" class="ch.eleveneye.hs485.dummy.HS485Dummy"></bean>
+  <bean id="hs485registry" class="ch.eleveneye.hs485.device.Registry">
+    <constructor-arg index="0" ref="hs485"
+      type="ch.eleveneye.hs485.api.HS485">
+    </constructor-arg>
+  </bean>
+</beans>

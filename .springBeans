@@ -10,6 +10,7 @@
 		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/testContext.xml</config>
 		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/infrastructure.xml</config>
 		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml</config>
+		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/hs485.xml</config>
 	</configs>
 	<configSets>
 	</configSets>

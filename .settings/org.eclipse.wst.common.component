@@ -7,6 +7,12 @@
         <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/target/generated-sources/gwt"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
+        <dependent-module archiveName="devices-0.0.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/HS485-Devices/HS485-Devices">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="comm-0.5.1-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/comm/comm">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
     <property name="java-output-path" value="/${module}/target/www/WEB-INF/classes"/>
         <property name="context-root" value="gwtfrontend"/>
   </wb-module>

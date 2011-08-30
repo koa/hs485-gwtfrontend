@@ -90,6 +90,11 @@
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>ch.eleveneye.hs485</groupId>
+      <artifactId>devices</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <build>

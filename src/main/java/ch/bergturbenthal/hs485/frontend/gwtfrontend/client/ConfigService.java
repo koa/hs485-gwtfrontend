@@ -1,7 +1,9 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
+import java.util.Collection;
 import java.util.List;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 
 import com.google.gwt.core.client.GWT;
@@ -26,6 +28,10 @@ public interface ConfigService extends RemoteService {
 	public void addOutputDevice(OutputDevice device);
 
 	public List<OutputDevice> getOutputDevices();
+
+	public Iterable<Floor> listAllFloors();
+
+	public void updateFloors(Collection<Floor> floors);
 
 	public void updateOutputDevice(OutputDevice device);
 }

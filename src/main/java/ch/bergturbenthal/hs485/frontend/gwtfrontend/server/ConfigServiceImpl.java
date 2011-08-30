@@ -1,5 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -14,7 +15,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
+import ch.eleveneye.hs485.device.Registry;
 
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -24,6 +27,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	private static final long		serialVersionUID	= 5816537750102063151L;
 	private BuildingDao					dao;
 	private FloorRepository			floorRepository;
+	private Registry						hs485registry;
 	private TransactionTemplate	transactionTemplate;
 
 	/*
@@ -50,6 +54,18 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository = ctx.getBean(FloorRepository.class);
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
+		hs485registry = ctx.getBean("hs485registry", Registry.class);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllFloors
+	 * ()
+	 */
+	public Iterable<Floor> listAllFloors() {
+		return floorRepository.findAll();
 	}
 
 	@Override
@@ -73,7 +89,13 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	}
 
 	/**
-	 * 
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.util.Collection)
+	 */
+	public void updateFloors(final Collection<Floor> floors) {
+		floorRepository.save(floors);
+	}
+
+	/**
 	 * 
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#addOutputDevice(ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice)
 	 */

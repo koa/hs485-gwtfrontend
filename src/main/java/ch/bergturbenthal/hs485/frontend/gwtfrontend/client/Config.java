@@ -15,6 +15,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
@@ -99,6 +100,17 @@ public class Config implements EntryPoint {
 
 		final MenuItem mntmFile = new MenuItem(messages.mntmFile_text(), false, menuBar_1);
 		menuBar.addItem(mntmFile);
+		final MenuBar menuBar_2 = new MenuBar(true);
+
+		final MenuItem settingsMenu = new MenuItem(messages.mntmNewMenu_text(), false, menuBar_2);
+
+		final MenuItem editFloorsItem = new MenuItem(messages.mntmNewItem_text(), false, new Command() {
+			public void execute() {
+				new FloorEditorDialog().show();
+			}
+		});
+		menuBar_2.addItem(editFloorsItem);
+		menuBar.addItem(settingsMenu);
 
 		final Grid grid = new Grid(3, 3);
 		dockPanel.add(grid, DockPanel.CENTER);
