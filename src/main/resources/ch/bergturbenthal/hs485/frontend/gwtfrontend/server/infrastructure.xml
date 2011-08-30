@@ -34,5 +34,7 @@
   </jpa:repositories>
   <bean
     class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.JpaOutputDeviceImpl"/>
-
+  <jpa:repositories
+    base-package="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository">
+  </jpa:repositories>
 </beans>

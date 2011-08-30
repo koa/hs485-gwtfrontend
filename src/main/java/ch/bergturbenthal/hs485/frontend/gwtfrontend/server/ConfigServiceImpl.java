@@ -12,7 +12,8 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.OutputDeviceDao;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -20,7 +21,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigService {
 
 	private static final long		serialVersionUID	= 5816537750102063151L;
-	private OutputDeviceDao			dao;
+	private BuildingDao					dao;
+	private FloorRepository			floorRepository;
 	private TransactionTemplate	transactionTemplate;
 
 	/*
@@ -42,7 +44,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 
 	public List<OutputDevice> getOutputDevices() {
 		try {
-			return dao.listOutputDevices();
+			return dao.list();
 		} catch (final Throwable t) {
 			t.printStackTrace();
 			throw new RuntimeException(t);
@@ -54,7 +56,8 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		super.init();
 		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
-		dao = ctx.getBean(OutputDeviceDao.class);
+		dao = ctx.getBean(BuildingDao.class);
+		floorRepository = ctx.getBean(FloorRepository.class);
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
 	}

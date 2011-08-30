@@ -4,7 +4,8 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
 	<persistence-unit name="SpringJpaGettingStarted" transaction-type="RESOURCE_LOCAL">
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice</class>
-		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor</class>
+		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room</class>
 		<properties>
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.ddl-generation.output-mode"
