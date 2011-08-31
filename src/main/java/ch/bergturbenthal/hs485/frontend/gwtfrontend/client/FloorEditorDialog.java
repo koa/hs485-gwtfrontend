@@ -4,11 +4,11 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.FloorEditor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -24,9 +24,10 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class FloorEditorDialog extends DialogBox {
 	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
 	private final FloorEditor					floorEditor;
+	private final Messages						messages			= GWT.create(Messages.class);
 
 	public FloorEditorDialog() {
-		setHTML("Edit Floors");
+		setHTML(messages.editFloors());
 
 		final VerticalPanel verticalPanel = new VerticalPanel();
 		setWidget(verticalPanel);
@@ -37,8 +38,9 @@ public class FloorEditorDialog extends DialogBox {
 		final HorizontalPanel horizontalSplitPanel = new HorizontalPanel();
 		horizontalSplitPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
 		verticalPanel.add(horizontalSplitPanel);
+		horizontalSplitPanel.setWidth("100%");
 
-		final Button cancelButton = new Button("Cancel");
+		final Button cancelButton = new Button(messages.cancelText());
 		cancelButton.addClickHandler(new ClickHandler() {
 
 			public void onClick(final ClickEvent event) {
@@ -47,19 +49,26 @@ public class FloorEditorDialog extends DialogBox {
 		});
 		horizontalSplitPanel.add(cancelButton);
 
-		final Button okButton = new Button("Ok");
+		final Button okButton = new Button(messages.okText());
 		okButton.addClickHandler(new ClickHandler() {
 			public void onClick(final ClickEvent event) {
-				final List<Floor> modifiedFloors = floorEditor.getModifiedFloors();
-				configService.updateFloors(modifiedFloors, new AsyncCallback<Void>() {
+				configService.updateFloors(floorEditor.getModifiedFloors(), new AsyncCallback<Void>() {
 
 					public void onFailure(final Throwable caught) {
-						// TODO Auto-generated method stub
-
+						reloadData();
 					}
 
 					public void onSuccess(final Void result) {
-						hide();
+						configService.removeFloors(floorEditor.getRemovedFloors(), new AsyncCallback<Void>() {
+
+							public void onFailure(final Throwable caught) {
+								reloadData();
+							}
+
+							public void onSuccess(final Void result) {
+								hide();
+							}
+						});
 					}
 				});
 			}
@@ -67,8 +76,10 @@ public class FloorEditorDialog extends DialogBox {
 		horizontalSplitPanel.add(okButton);
 	}
 
-	@Override
-	public void show() {
+	/**
+	 * 
+	 */
+	private void reloadData() {
 		configService.listAllFloors(new AsyncCallback<Iterable<Floor>>() {
 
 			public void onFailure(final Throwable caught) {
@@ -83,6 +94,11 @@ public class FloorEditorDialog extends DialogBox {
 				floorEditor.setData(floors);
 			}
 		});
+	}
+
+	@Override
+	public void show() {
+		reloadData();
 		super.show();
 	}
 }

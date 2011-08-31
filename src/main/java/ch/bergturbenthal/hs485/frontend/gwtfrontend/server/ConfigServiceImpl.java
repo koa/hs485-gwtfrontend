@@ -1,6 +1,5 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -89,9 +88,16 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	}
 
 	/**
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.util.Collection)
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#removeFloors(java.lang.Iterable)
 	 */
-	public void updateFloors(final Collection<Floor> floors) {
+	public void removeFloors(final Iterable<Floor> floors) {
+		floorRepository.delete(floors);
+	}
+
+	/**
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.lang.Iterable)
+	 */
+	public void updateFloors(final Iterable<Floor> floors) {
 		floorRepository.save(floors);
 	}
 

@@ -1,6 +1,5 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
-import java.util.Collection;
 import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
@@ -31,7 +30,19 @@ public interface ConfigService extends RemoteService {
 
 	public Iterable<Floor> listAllFloors();
 
-	public void updateFloors(Collection<Floor> floors);
+	/**
+	 * rmeove this Floors
+	 * 
+	 * @param floors
+	 */
+	public void removeFloors(Iterable<Floor> floors);
+
+	/**
+	 * Add or modifiy this floors
+	 * 
+	 * @param floors
+	 */
+	public void updateFloors(Iterable<Floor> floors);
 
 	public void updateOutputDevice(OutputDevice device);
 }
