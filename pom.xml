@@ -124,7 +124,7 @@
           <runTarget>Config.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
           <i18nMessagesBundle>ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages</i18nMessagesBundle>
-          <logLevel>WARN</logLevel>
+          <logLevel>INFO</logLevel>
         </configuration>
       </plugin>
 

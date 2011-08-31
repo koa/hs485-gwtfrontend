@@ -4,6 +4,7 @@ import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
@@ -28,14 +29,33 @@ public interface ConfigService extends RemoteService {
 
 	public List<OutputDevice> getOutputDevices();
 
+	/**
+	 * Gets all Available Floors
+	 * 
+	 * @return
+	 */
 	public Iterable<Floor> listAllFloors();
 
 	/**
-	 * rmeove this Floors
+	 * Gets all Available Rooms
+	 * 
+	 * @return
+	 */
+	public Iterable<Room> listAllRooms();
+
+	/**
+	 * remove this Floors
 	 * 
 	 * @param floors
 	 */
 	public void removeFloors(Iterable<Floor> floors);
+
+	/**
+	 * remove this Rooms
+	 * 
+	 * @param floors
+	 */
+	public void removeRooms(Iterable<Room> rooms);
 
 	/**
 	 * Add or modifiy this floors
@@ -45,4 +65,11 @@ public interface ConfigService extends RemoteService {
 	public void updateFloors(Iterable<Floor> floors);
 
 	public void updateOutputDevice(OutputDevice device);
+
+	/**
+	 * Add or modify this Rooms
+	 * 
+	 * @param rooms
+	 */
+	public void updateRooms(Iterable<Room> rooms);
 }

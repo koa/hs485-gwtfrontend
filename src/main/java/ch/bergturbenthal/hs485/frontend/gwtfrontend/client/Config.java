@@ -100,12 +100,19 @@ public class Config implements EntryPoint {
 
 		final MenuItem settingsMenu = new MenuItem(messages.mntmNewMenu_text(), false, menuBar_2);
 
-		final MenuItem editFloorsItem = new MenuItem(messages.mntmNewItem_text(), false, new Command() {
+		final MenuItem editFloorsItem = new MenuItem(messages.editFloorsItem(), false, new Command() {
 			public void execute() {
 				new FloorEditorDialog().show();
 			}
 		});
 		menuBar_2.addItem(editFloorsItem);
+
+		final MenuItem editRoomsItem = new MenuItem(messages.editRoomsItem(), false, new Command() {
+			public void execute() {
+				new RoomEditorDialog().show();
+			}
+		});
+		menuBar_2.addItem(editRoomsItem);
 		menuBar.addItem(settingsMenu);
 
 		final Grid grid = new Grid(3, 3);

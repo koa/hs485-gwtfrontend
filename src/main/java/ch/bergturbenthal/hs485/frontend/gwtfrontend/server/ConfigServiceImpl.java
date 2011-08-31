@@ -14,8 +14,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.RoomRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
 import ch.eleveneye.hs485.device.Registry;
 
 import com.google.gwt.user.client.rpc.SerializationException;
@@ -27,6 +29,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	private BuildingDao					dao;
 	private FloorRepository			floorRepository;
 	private Registry						hs485registry;
+	private RoomRepository			roomRepository;
 	private TransactionTemplate	transactionTemplate;
 
 	/*
@@ -51,6 +54,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
 		dao = ctx.getBean(BuildingDao.class);
 		floorRepository = ctx.getBean(FloorRepository.class);
+		roomRepository = ctx.getBean(RoomRepository.class);
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
 		hs485registry = ctx.getBean("hs485registry", Registry.class);
@@ -65,6 +69,17 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public Iterable<Floor> listAllFloors() {
 		return floorRepository.findAll();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllRooms
+	 * ()
+	 */
+	public Iterable<Room> listAllRooms() {
+		return roomRepository.findAll();
 	}
 
 	@Override
@@ -94,6 +109,17 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository.delete(floors);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#removeRooms
+	 * (java.lang.Iterable)
+	 */
+	public void removeRooms(final Iterable<Room> rooms) {
+		roomRepository.delete(rooms);
+	}
+
 	/**
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.lang.Iterable)
 	 */
@@ -112,5 +138,16 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 				return dao.update(device);
 			}
 		});
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateRooms
+	 * (java.lang.Iterable)
+	 */
+	public void updateRooms(final Iterable<Room> rooms) {
+		roomRepository.save(rooms);
 	}
 }
