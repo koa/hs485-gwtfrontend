@@ -26,7 +26,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
 /**
  * Servlet implementation class UploadServlet
  */
-public class UploadServlet extends HttpServlet {
+public class FileAccessServlet extends HttpServlet {
 	private static final long		serialVersionUID	= 1L;
 	private FileDataRepository	fileDataRepository;
 	private TransactionTemplate	transactionTemplate;
@@ -34,9 +34,17 @@ public class UploadServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
-	public UploadServlet() {
+	public FileAccessServlet() {
 		super();
 		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+		final FileData fileData = fileDataRepository.findOne(req.getParameter("filename"));
+		resp.setContentType(fileData.getMimeType());
+		resp.setContentLength(fileData.getFileDataContent().length);
+		resp.getOutputStream().write(fileData.getFileDataContent());
 	}
 
 	/**
@@ -83,7 +91,7 @@ public class UploadServlet extends HttpServlet {
 
 				public Void doInTransaction(final TransactionStatus status) {
 					try {
-						UploadServlet.super.service(arg0, arg1);
+						FileAccessServlet.super.service(arg0, arg1);
 						return null;
 					} catch (final ServletException e) {
 						throw new RuntimeException(e);

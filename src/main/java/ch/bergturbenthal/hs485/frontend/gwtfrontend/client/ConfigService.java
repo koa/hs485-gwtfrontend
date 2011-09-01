@@ -32,7 +32,7 @@ public interface ConfigService extends RemoteService {
 
 	public List<OutputDevice> getOutputDevices();
 
-	public List<String> listAllFiles();
+	public List<String> listFilesByMimeType(String mimeType);
 
 	/**
 	 * Gets all Available Floors

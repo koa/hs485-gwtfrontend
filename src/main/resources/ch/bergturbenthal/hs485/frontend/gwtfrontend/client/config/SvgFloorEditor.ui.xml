@@ -7,21 +7,33 @@
     }
   </ui:style>
   <g:SplitLayoutPanel width="1000" height="700">
-  	<g:west size="325.0">
-  		<g:VerticalPanel >
-  			<g:Cell >
-  				<g:ListBox visibleItemCount="1" ui:field="selectFloorListBox"/>
-  			</g:Cell>
-  			<g:HorizontalPanel>
-  				<g:Button ui:field="removeFloorButton" text="remove current Floor"/>
-  			</g:HorizontalPanel>
-  			<g:FileUpload ui:field="openFileInput"/>
-  			<g:Button ui:field="loadSvgButton" text="load SVG"/>
-  		</g:VerticalPanel>
-  	</g:west>
-  	<g:center>
-  		<g:HTMLPanel>
-  			<g:Label text="Hello SVG"/>
-  		</g:HTMLPanel>
-  	</g:center></g:SplitLayoutPanel>
+    <g:west size="325.0">
+      <g:VerticalPanel>
+        <g:HorizontalPanel/>
+        <g:Grid>
+        	<g:row>
+        		<g:customCell>
+        			<g:ListBox visibleItemCount="1" ui:field="selectFloorListBox" />
+        		</g:customCell>
+        	</g:row>
+        	<g:row>
+        		<g:customCell>
+        			<g:Button ui:field="removeFloorButton" text="remove current Floor" />
+        		</g:customCell>
+        	</g:row>
+        	<g:row>
+        		<g:customCell>
+        			<g:ListBox visibleItemCount="1" ui:field="selectFileListBox" />
+        		</g:customCell>
+        		<g:customCell>
+        			<g:Button ui:field="addFileButton">add File ...</g:Button>
+        		</g:customCell>
+        	</g:row>
+        </g:Grid>
+      </g:VerticalPanel>
+    </g:west>
+    <g:center>
+      <g:HTMLPanel ui:field="svgPanel"/>
+    </g:center>
+  </g:SplitLayoutPanel>
 </ui:UiBinder> 

@@ -24,13 +24,13 @@ public class FileUploader extends Composite {
 
 	private static FileUploaderUiBinder	uiBinder					= GWT.create(FileUploaderUiBinder.class);
 	@UiField
-	Button															button;
+	Button															cancelButton;
 
-	@UiField
-	Button															button_1;
 	private Runnable										finishedRunnable	= null;
 	@UiField
 	FormPanel														formPanel;
+	@UiField
+	Button															uploadButton;
 
 	/**
 	 * Because this class has a default constructor, it can be used as a binder
@@ -45,21 +45,21 @@ public class FileUploader extends Composite {
 		initWidget(uiBinder.createAndBindUi(this));
 	}
 
-	@UiHandler("button_1")
-	void onButton_1Click(final ClickEvent event) {
+	@UiHandler("cancelButton")
+	void onCancelButtonClick(final ClickEvent event) {
 		if (finishedRunnable != null)
 			finishedRunnable.run();
-	}
-
-	@UiHandler("button")
-	void onButtonClick(final ClickEvent event) {
-		formPanel.submit();
 	}
 
 	@UiHandler("formPanel")
 	void onFormPanelSubmitComplete(final SubmitCompleteEvent event) {
 		if (finishedRunnable != null)
 			finishedRunnable.run();
+	}
+
+	@UiHandler("uploadButton")
+	void onUploadButtonClick(final ClickEvent event) {
+		formPanel.submit();
 	}
 
 	public void setFinishedRunnable(final Runnable finishedRunnable) {

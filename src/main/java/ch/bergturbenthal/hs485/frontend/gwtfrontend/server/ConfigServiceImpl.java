@@ -80,17 +80,6 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllFiles
-	 * ()
-	 */
-	public List<String> listAllFiles() {
-		return fileDataRepository.listAllFiles();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
 	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllFloors
 	 * ()
 	 */
@@ -107,6 +96,17 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public Iterable<Room> listAllRooms() {
 		return roomRepository.findAll();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllFiles
+	 * ()
+	 */
+	public List<String> listFilesByMimeType(final String mimeType) {
+		return fileDataRepository.listFilesByMimeType(mimeType);
 	}
 
 	@Override
