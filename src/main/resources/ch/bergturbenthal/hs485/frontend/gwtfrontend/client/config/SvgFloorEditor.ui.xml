@@ -1,0 +1,27 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui">
+  <ui:style>
+    /* Add CSS here. See the GWT docs on UI Binder for more details */
+    .important {
+    	font-weight: bold;
+    }
+  </ui:style>
+  <g:SplitLayoutPanel width="1000" height="700">
+  	<g:west size="325.0">
+  		<g:VerticalPanel >
+  			<g:Cell >
+  				<g:ListBox visibleItemCount="1" ui:field="selectFloorListBox"/>
+  			</g:Cell>
+  			<g:HorizontalPanel>
+  				<g:Button ui:field="removeFloorButton" text="remove current Floor"/>
+  			</g:HorizontalPanel>
+  			<g:FileUpload ui:field="openFileInput"/>
+  			<g:Button ui:field="loadSvgButton" text="load SVG"/>
+  		</g:VerticalPanel>
+  	</g:west>
+  	<g:center>
+  		<g:HTMLPanel>
+  			<g:Label text="Hello SVG"/>
+  		</g:HTMLPanel>
+  	</g:center></g:SplitLayoutPanel>
+</ui:UiBinder> 

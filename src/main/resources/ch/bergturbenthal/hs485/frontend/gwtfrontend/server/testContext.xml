@@ -8,5 +8,5 @@
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd">
   <jdbc:embedded-database id="dataSource" type="HSQL" />
 
-	<import resource="infrastructure.xml" />
+	<import resource="db.xml" />
 </beans>

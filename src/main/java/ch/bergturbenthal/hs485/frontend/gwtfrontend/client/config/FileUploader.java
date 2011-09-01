@@ -8,30 +8,29 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FileUpload;
-import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.FormPanel;
+import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
  *
  */
-public class SvgFloorEditor extends Composite {
+public class FileUploader extends Composite {
 
-	interface SvgFloorEditorUiBinder extends UiBinder<Widget, SvgFloorEditor> {
+	interface FileUploaderUiBinder extends UiBinder<Widget, FileUploader> {
 	}
 
-	private static SvgFloorEditorUiBinder	uiBinder	= GWT.create(SvgFloorEditorUiBinder.class);
+	private static FileUploaderUiBinder	uiBinder					= GWT.create(FileUploaderUiBinder.class);
 	@UiField
-	Button																loadSvgButton;
+	Button															button;
+
 	@UiField
-	FileUpload														openFileInput;
+	Button															button_1;
+	private Runnable										finishedRunnable	= null;
 	@UiField
-	Button																removeFloorButton;
-	@UiField
-	ListBox																selectFloorListBox;
+	FormPanel														formPanel;
 
 	/**
 	 * Because this class has a default constructor, it can be used as a binder
@@ -42,18 +41,28 @@ public class SvgFloorEditor extends Composite {
 	 * depending on the widget that is used, it may be necessary to implement
 	 * HasHTML instead of HasText.
 	 */
-	public SvgFloorEditor() {
+	public FileUploader() {
 		initWidget(uiBinder.createAndBindUi(this));
 	}
 
-	public SvgFloorEditor(final String firstName) {
-		initWidget(uiBinder.createAndBindUi(this));
-
+	@UiHandler("button_1")
+	void onButton_1Click(final ClickEvent event) {
+		if (finishedRunnable != null)
+			finishedRunnable.run();
 	}
 
-	@UiHandler("loadSvgButton")
-	void onLoadSvgButtonClick(final ClickEvent event) {
-		final String filename = openFileInput.getFilename();
-		Window.open("file:///" + filename, null, null);
+	@UiHandler("button")
+	void onButtonClick(final ClickEvent event) {
+		formPanel.submit();
+	}
+
+	@UiHandler("formPanel")
+	void onFormPanelSubmitComplete(final SubmitCompleteEvent event) {
+		if (finishedRunnable != null)
+			finishedRunnable.run();
+	}
+
+	public void setFinishedRunnable(final Runnable finishedRunnable) {
+		this.finishedRunnable = finishedRunnable;
 	}
 }

@@ -2,6 +2,7 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.List;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
@@ -27,7 +28,11 @@ public interface ConfigService extends RemoteService {
 
 	public void addOutputDevice(OutputDevice device);
 
+	public FileData getFile(String filename);
+
 	public List<OutputDevice> getOutputDevices();
+
+	public List<String> listAllFiles();
 
 	/**
 	 * Gets all Available Floors

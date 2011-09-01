@@ -9,9 +9,17 @@
     <servlet-name>ConfigService</servlet-name>
     <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.ConfigServiceImpl</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>UploadServlet</servlet-name>
+    <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.UploadServlet</servlet-class>
+  </servlet>
   <servlet-mapping>
     <servlet-name>ConfigService</servlet-name>
     <url-pattern>/Config/ConfigService</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>UploadServlet</servlet-name>
+    <url-pattern>/Config/upload</url-pattern>
   </servlet-mapping>
   <!-- Default page to serve -->
   <welcome-file-list>

@@ -13,8 +13,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.RoomRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
@@ -27,6 +29,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 
 	private static final long		serialVersionUID	= 5816537750102063151L;
 	private BuildingDao					dao;
+	private FileDataRepository	fileDataRepository;
 	private FloorRepository			floorRepository;
 	private Registry						hs485registry;
 	private RoomRepository			roomRepository;
@@ -43,6 +46,17 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		dao.insert(device);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#getFile
+	 * (java.lang.String)
+	 */
+	public FileData getFile(final String filename) {
+		return fileDataRepository.findOne(filename);
+	}
+
 	public List<OutputDevice> getOutputDevices() {
 		return dao.list();
 	}
@@ -52,12 +66,25 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		super.init();
 		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
+		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
+		transactionTemplate = new TransactionTemplate(transactionManager);
+
 		dao = ctx.getBean(BuildingDao.class);
 		floorRepository = ctx.getBean(FloorRepository.class);
 		roomRepository = ctx.getBean(RoomRepository.class);
-		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
-		transactionTemplate = new TransactionTemplate(transactionManager);
+		fileDataRepository = ctx.getBean(FileDataRepository.class);
 		hs485registry = ctx.getBean("hs485registry", Registry.class);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllFiles
+	 * ()
+	 */
+	public List<String> listAllFiles() {
+		return fileDataRepository.listAllFiles();
 	}
 
 	/*
@@ -97,7 +124,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 			});
 		} catch (final RuntimeException ex) {
 			if (ex.getCause() != null && ex.getCause() instanceof SerializationException)
-				throw (RuntimeException) ex.getCause();
+				throw (SerializationException) ex.getCause();
 			throw ex;
 		}
 	}

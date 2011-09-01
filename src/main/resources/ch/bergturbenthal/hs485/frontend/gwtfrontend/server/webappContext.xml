@@ -3,7 +3,7 @@
   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
   xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-  <import resource="infrastructure.xml" />
+  <import resource="db.xml" />
   <import resource="hs485.xml" />
   <bean id="dataSource"
     class="org.springframework.jdbc.datasource.DriverManagerDataSource">    

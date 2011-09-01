@@ -9,7 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Lob;
+import javax.persistence.OneToOne;
 
 /**
  * a Floor of a Building.
@@ -22,8 +22,8 @@ public class Floor implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						floorId;
 	private String						name;
-	@Lob
-	private String						plan;
+	@OneToOne
+	private FileData					plan;
 
 	public Integer getFloorId() {
 		return floorId;
@@ -33,12 +33,20 @@ public class Floor implements Serializable {
 		return name;
 	}
 
+	public FileData getPlan() {
+		return plan;
+	}
+
 	public void setFloorId(final Integer floorId) {
 		this.floorId = floorId;
 	}
 
 	public void setName(final String name) {
 		this.name = name;
+	}
+
+	public void setPlan(final FileData plan) {
+		this.plan = plan;
 	}
 
 	@Override

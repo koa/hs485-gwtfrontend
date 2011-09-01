@@ -3,6 +3,7 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
 
@@ -113,9 +114,16 @@ public class Config implements EntryPoint {
 			}
 		});
 		menuBar_2.addItem(editRoomsItem);
+
+		final MenuItem editFilesItem = new MenuItem(messages.mntmNewItem_text_1(), false, new Command() {
+			public void execute() {
+				new FileUploadDialog().show();
+			}
+		});
+		menuBar_2.addItem(editFilesItem);
 		menuBar.addItem(settingsMenu);
 
-		final Grid grid = new Grid(3, 3);
+		final Grid grid = new Grid(2, 3);
 		dockPanel.add(grid, DockPanel.CENTER);
 
 		outputDeviceCellTable = new CellTable<OutputDevice>();
@@ -129,6 +137,10 @@ public class Config implements EntryPoint {
 
 		final Button newButton = new Button(messages.addOutputDeviceEnry());
 		grid.setWidget(1, 2, newButton);
+
+		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();
+		dockPanel.add(svgFloorEditor, DockPanel.SOUTH);
+		svgFloorEditor.setHeight("217px");
 		newButton.addClickHandler(new ClickHandler() {
 
 			public void onClick(final ClickEvent event) {
