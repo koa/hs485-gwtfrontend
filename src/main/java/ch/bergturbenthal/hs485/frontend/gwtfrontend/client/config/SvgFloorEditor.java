@@ -12,10 +12,12 @@ import org.vectomatic.dom.svg.OMSVGSVGElement;
 import org.vectomatic.dom.svg.OMSVGTransform;
 import org.vectomatic.dom.svg.OMSVGTransformList;
 import org.vectomatic.dom.svg.ui.SVGImage;
+import org.vectomatic.dom.svg.ui.SVGResource;
 import org.vectomatic.dom.svg.utils.OMSVGParser;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
 
 import com.google.gwt.core.client.GWT;
@@ -30,6 +32,8 @@ import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.resources.client.ResourceCallback;
+import com.google.gwt.resources.client.ResourceException;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -53,11 +57,16 @@ public class SvgFloorEditor extends Composite {
 
 	@UiField
 	Button																addFileButton;
+
+	private OMSVGGElement									bulbOff;
+	private OMSVGGElement									bulbOn;
 	private final ConfigServiceAsync			configService	= ConfigServiceAsync.Util.getInstance();
 	@UiField
 	Button																removeFloorButton;
+	private final Resources								resources			= GWT.create(Resources.class);
 	@UiField
 	ListBox																selectFileListBox;
+
 	@UiField
 	ListBox																selectFloorListBox;
 	private OMSVGSVGElement								svg;
@@ -68,6 +77,32 @@ public class SvgFloorEditor extends Composite {
 	public SvgFloorEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
 		reloadFileList();
+		try {
+			resources.bulb_on().getSvg(new ResourceCallback<SVGResource>() {
+
+				public void onError(final ResourceException e) {
+					// TODO Auto-generated method stub
+				}
+
+				public void onSuccess(final SVGResource resource) {
+					bulbOn = moveSvgToG(resource.getSvg());
+				}
+			});
+			resources.bulb_off().getSvg(new ResourceCallback<SVGResource>() {
+
+				public void onError(final ResourceException e) {
+					// TODO Auto-generated method stub
+
+				}
+
+				public void onSuccess(final SVGResource resource) {
+					bulbOff = moveSvgToG(resource.getSvg());
+
+				}
+			});
+		} catch (final ResourceException e) {
+			throw new RuntimeException("Cannot Load SVG", e);
+		}
 	}
 
 	private void drawSvg() {
@@ -87,6 +122,7 @@ public class SvgFloorEditor extends Composite {
 		while ((node = svgElement.getFirstChild()) != null)
 			backgroundGElement.appendChild(svgElement.removeChild(node));
 		rootGElement.appendChild(backgroundGElement);
+		rootGElement.appendChild(bulbOn.getElement());
 		svgElement.appendChild(rootGElement);
 
 		final OMSVGGElement xformGroup = rootG;
@@ -99,6 +135,21 @@ public class SvgFloorEditor extends Composite {
 
 		svgPanel.add(image);
 
+	}
+
+	/**
+	 * @param svg
+	 * @return
+	 */
+	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
+		SVGProcessor.normalizeIds(svg);
+		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
+		final Element svgElement = svg.getElement();
+		final Element newGElement = newG.getElement();
+		Node node;
+		while ((node = svgElement.getFirstChild()) != null)
+			newGElement.appendChild(svgElement.removeChild(node));
+		return newG;
 	}
 
 	@UiHandler("addFileButton")

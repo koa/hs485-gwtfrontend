@@ -12,6 +12,8 @@
   <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
   <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
 
+  <inherits name='com.google.gwt.user.theme.standard.StandardResources' />
+
   <!-- Other module inherits                                      -->
   <inherits name="com.google.gwt.i18n.I18N"/>
   <inherits name="org.vectomatic.libgwtsvg"/>
