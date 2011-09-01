@@ -16,6 +16,7 @@ import org.vectomatic.dom.svg.utils.OMSVGParser;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
@@ -128,6 +129,7 @@ public class SvgFloorEditor extends Composite {
 
 				public void onResponseReceived(final Request request, final Response response) {
 					svg = OMSVGParser.parse(response.getText());
+					SVGProcessor.normalizeIds(svg);
 					drawSvg();
 				}
 			});
