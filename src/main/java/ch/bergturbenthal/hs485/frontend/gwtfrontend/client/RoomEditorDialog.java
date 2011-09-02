@@ -4,8 +4,8 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.RoomEditor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;

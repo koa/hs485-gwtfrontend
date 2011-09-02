@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 

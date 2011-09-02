@@ -1,7 +1,8 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,21 +18,23 @@ public class OutputDevice implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						deviceId;
-	private String						name;
 	@ManyToOne
-	private Room							room;
+	private Floor							floor;
+	private String						name;
+	@Embedded
+	private PositionXY				position;
 	private OutputDeviceType	type;
 
 	public Integer getDeviceId() {
 		return deviceId;
 	}
 
-	public String getName() {
-		return name;
+	public Floor getFloor() {
+		return floor;
 	}
 
-	public Room getRoom() {
-		return room;
+	public String getName() {
+		return name;
 	}
 
 	public OutputDeviceType getType() {
@@ -42,12 +45,12 @@ public class OutputDevice implements Serializable {
 		this.deviceId = deviceId;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setFloor(final Floor floor) {
+		this.floor = floor;
 	}
 
-	public void setRoom(final Room room) {
-		this.room = room;
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	public void setType(final OutputDeviceType type) {

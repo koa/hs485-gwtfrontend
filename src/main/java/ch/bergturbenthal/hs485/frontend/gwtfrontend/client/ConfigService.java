@@ -2,10 +2,10 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.List;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;

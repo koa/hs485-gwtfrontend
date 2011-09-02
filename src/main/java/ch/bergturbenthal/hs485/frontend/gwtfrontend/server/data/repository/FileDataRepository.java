@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 
 /**
  *

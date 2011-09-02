@@ -20,10 +20,9 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileD
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.RoomRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PersistenceUnit(unitName = "SpringJpaGettingStarted")
@@ -46,17 +45,6 @@ public class TestBuildingData {
 		final List<String> files = fileDataRepository.listAllFiles();
 		Assert.assertEquals(1, files.size());
 		Assert.assertEquals("hello1", files.get(0));
-	}
-
-	@Test
-	public void testLoadOutputDeviceByRoom() {
-		final Room room = new Room();
-		final OutputDevice outputDevice = new OutputDevice();
-		outputDevice.setRoom(room);
-		final Room savedRoom = roomRepository.save(room);
-		outputDeviceRepository.save(outputDevice);
-		final List<OutputDevice> foundDevices = outputDeviceRepository.findByRoom(savedRoom);
-		Assert.assertEquals(1, foundDevices.size());
 	}
 
 	@Test

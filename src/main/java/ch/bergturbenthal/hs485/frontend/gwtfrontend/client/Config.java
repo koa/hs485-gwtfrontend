@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;

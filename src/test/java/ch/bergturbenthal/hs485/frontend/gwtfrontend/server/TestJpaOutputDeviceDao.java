@@ -9,8 +9,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @PersistenceUnit(unitName = "SpringJpaGettingStarted")

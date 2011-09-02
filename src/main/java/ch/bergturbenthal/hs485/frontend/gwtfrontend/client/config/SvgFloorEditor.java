@@ -3,8 +3,9 @@
  */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.vectomatic.dom.svg.OMSVGDefsElement;
 import org.vectomatic.dom.svg.OMSVGDocument;
@@ -53,6 +54,28 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class SvgFloorEditor extends Composite {
 
+	private static final class IconData {
+		private OMSVGGElement	icon;
+		private OMSVGRect			viewPort;
+
+		public OMSVGGElement getIcon() {
+			return icon;
+		}
+
+		public OMSVGRect getViewPort() {
+			return viewPort;
+		}
+
+		public void setIcon(final OMSVGGElement icon) {
+			this.icon = icon;
+		}
+
+		public void setViewPort(final OMSVGRect viewPort) {
+			this.viewPort = viewPort;
+		}
+
+	}
+
 	interface SvgFloorEditorUiBinder extends UiBinder<Widget, SvgFloorEditor> {
 	}
 
@@ -66,7 +89,7 @@ public class SvgFloorEditor extends Composite {
 	Button																addFileButton;
 
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
-	private final List<OMSVGGElement>			icons							= new ArrayList<OMSVGGElement>();
+	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
 	@UiField
 	Button																removeFloorButton;
 	private final Resources								resources					= GWT.create(Resources.class);
@@ -91,9 +114,7 @@ public class SvgFloorEditor extends Composite {
 				}
 
 				public void onSuccess(final SVGResource resource) {
-					final OMSVGGElement bulbOn = moveSvgToG(resource.getSvg());
-					bulbOn.setId(BULB_ON_ICON_ID);
-					icons.add(bulbOn);
+					appendIcon(resource.getSvg(), BULB_ON_ICON_ID);
 				}
 			});
 			resources.bulb_off().getSvg(new ResourceCallback<SVGResource>() {
@@ -104,9 +125,7 @@ public class SvgFloorEditor extends Composite {
 				}
 
 				public void onSuccess(final SVGResource resource) {
-					final OMSVGGElement bulbOff = moveSvgToG(resource.getSvg());
-					bulbOff.setId(BULB_OFF_ICON_ID);
-					icons.add(bulbOff);
+					appendIcon(resource.getSvg(), BULB_OFF_ICON_ID);
 				}
 			});
 		} catch (final ResourceException e) {
@@ -114,7 +133,18 @@ public class SvgFloorEditor extends Composite {
 		}
 	}
 
+	private void appendIcon(final OMSVGSVGElement svgDoc, final String iconId) {
+		final IconData icon = new IconData();
+		icon.setViewPort(svgDoc.getViewport());
+		final OMSVGGElement bulbOn = moveSvgToG(svgDoc);
+		bulbOn.setId(iconId);
+		icon.setIcon(bulbOn);
+		iconTemplates.put(iconId, icon);
+	}
+
 	private void drawSvg() {
+		if (svg == null)
+			return;
 		svgPanel.clear();
 		final OMSVGRect viewport = svg.getViewport();
 		final float xScale = svgPanel.getOffsetWidth() / viewport.getWidth();
@@ -135,8 +165,8 @@ public class SvgFloorEditor extends Composite {
 
 		final OMSVGGElement iconsGroup = currentDocument.createSVGGElement();
 		final OMSVGDefsElement iconDef = currentDocument.createSVGDefsElement();
-		for (final OMSVGGElement icon : icons)
-			iconDef.appendChild(icon);
+		for (final IconData icon : iconTemplates.values())
+			iconDef.appendChild(icon.getIcon());
 		iconsGroup.appendChild(iconDef);
 
 		final OMSVGUseElement useIcon = currentDocument.createSVGUseElement();

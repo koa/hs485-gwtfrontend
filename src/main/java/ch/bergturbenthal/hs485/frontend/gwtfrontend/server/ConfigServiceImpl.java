@@ -16,10 +16,10 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.RoomRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.FileData;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 import ch.eleveneye.hs485.device.Registry;
 
 import com.google.gwt.user.client.rpc.SerializationException;
@@ -156,7 +156,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 
 	/**
 	 * 
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#addOutputDevice(ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice)
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#addOutputDevice(ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice)
 	 */
 	public void updateOutputDevice(final OutputDevice device) {
 		transactionTemplate.execute(new TransactionCallback<OutputDevice>() {

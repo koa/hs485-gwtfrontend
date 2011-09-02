@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 /**
  *

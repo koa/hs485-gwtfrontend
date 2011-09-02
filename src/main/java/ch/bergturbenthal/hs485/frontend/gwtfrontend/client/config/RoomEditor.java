@@ -6,8 +6,8 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Room;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;

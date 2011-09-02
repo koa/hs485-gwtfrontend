@@ -6,7 +6,7 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 import java.util.ArrayList;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.FloorEditor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;

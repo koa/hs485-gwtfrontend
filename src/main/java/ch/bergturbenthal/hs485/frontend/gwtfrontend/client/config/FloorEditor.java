@@ -3,7 +3,7 @@
  */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
