@@ -37,6 +37,10 @@ public class OutputDevice implements Serializable {
 		return name;
 	}
 
+	public PositionXY getPosition() {
+		return position;
+	}
+
 	public OutputDeviceType getType() {
 		return type;
 	}
@@ -51,6 +55,10 @@ public class OutputDevice implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
+	}
+
+	public void setPosition(final PositionXY position) {
+		this.position = position;
 	}
 
 	public void setType(final OutputDeviceType type) {

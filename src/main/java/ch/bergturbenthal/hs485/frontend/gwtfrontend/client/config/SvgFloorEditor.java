@@ -3,6 +3,7 @@
  */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +24,20 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.MouseDownEvent;
+import com.google.gwt.event.dom.client.MouseDownHandler;
+import com.google.gwt.event.dom.client.MouseMoveEvent;
+import com.google.gwt.event.dom.client.MouseMoveHandler;
+import com.google.gwt.event.dom.client.MouseUpEvent;
+import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.http.client.Request;
@@ -89,15 +98,22 @@ public class SvgFloorEditor extends Composite {
 	Button																addFileButton;
 
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
+	private OMSVGUseElement								dragIcon;
+	private PositionXY										dragPosition;
+	private OMSVGRect											dragViewPort;
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
+	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
+
 	@UiField
 	Button																removeFloorButton;
 	private final Resources								resources					= GWT.create(Resources.class);
+
 	@UiField
 	ListBox																selectFileListBox;
 
 	@UiField
 	ListBox																selectFloorListBox;
+
 	private OMSVGSVGElement								svg;
 
 	@UiField
@@ -105,6 +121,15 @@ public class SvgFloorEditor extends Composite {
 
 	public SvgFloorEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
+
+		// Test-Data
+		final OutputDevice outputDevice = new OutputDevice();
+		outputDevice.setName("Wohnzimmer");
+		outputDevice.setPosition(new PositionXY());
+		outputDevice.getPosition().setX(300);
+		outputDevice.getPosition().setX(150);
+		outputDevices.add(outputDevice);
+
 		reloadFileList();
 		try {
 			resources.bulb_on().getSvg(new ResourceCallback<SVGResource>() {
@@ -149,7 +174,7 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGRect viewport = svg.getViewport();
 		final float xScale = svgPanel.getOffsetWidth() / viewport.getWidth();
 		final float yScale = svgPanel.getOffsetHeight() / viewport.getHeight();
-		final float minScale = Math.min(yScale, xScale);
+		final float scale = Math.min(yScale, xScale);
 
 		final OMSVGDocument currentDocument = OMSVGParser.currentDocument();
 		final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
@@ -163,18 +188,13 @@ public class SvgFloorEditor extends Composite {
 		scaleGElement.appendChild(backgroundGElement);
 		svgElement.appendChild(scaleGElement);
 
-		final OMSVGGElement iconsGroup = currentDocument.createSVGGElement();
 		final OMSVGDefsElement iconDef = currentDocument.createSVGDefsElement();
 		for (final IconData icon : iconTemplates.values())
 			iconDef.appendChild(icon.getIcon());
-		iconsGroup.appendChild(iconDef);
+		rootG.appendChild(iconDef);
 
-		final OMSVGUseElement useIcon = currentDocument.createSVGUseElement();
-		useIcon.getHref().setBaseVal("#" + BULB_ON_ICON_ID);
-		useIcon.getX().getBaseVal().setValue(100f);
-		useIcon.getY().getBaseVal().setValue(100f);
+		final OMSVGGElement iconsGroup = currentDocument.createSVGGElement();
 
-		iconsGroup.appendChild(useIcon);
 		rootG.appendChild(iconsGroup);
 
 		final OMSVGGElement xformGroup = rootG;
@@ -182,9 +202,68 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGTransformList xformList = xformGroup.getTransform().getBaseVal();
 		final OMSVGTransform xform = svg.createSVGTransform();
 		xformList.appendItem(xform);
-		xform.setScale(minScale, minScale);
+		xform.setScale(scale, scale);
+
+		for (final OutputDevice device : outputDevices) {
+			final OMSVGUseElement useIcon = currentDocument.createSVGUseElement();
+			final IconData iconData = iconTemplates.get(BULB_ON_ICON_ID);
+			useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
+
+			final OMSVGRect viewPort2 = iconData.getViewPort();
+			final PositionXY position = device.getPosition();
+			useIcon.getX().getBaseVal().setValue(position.getX() - viewPort2.getCenterX());
+			useIcon.getY().getBaseVal().setValue(position.getY() - viewPort2.getCenterY());
+			iconsGroup.appendChild(useIcon);
+			useIcon.addMouseDownHandler(new MouseDownHandler() {
+
+				public void onMouseDown(final MouseDownEvent event) {
+					dragPosition = position;
+					dragIcon = useIcon;
+					dragViewPort = iconData.getViewPort();
+					System.out.println(dragViewPort.getCenterX() + ":" + dragViewPort.getCenterY());
+				}
+			});
+			useIcon.addMouseUpHandler(new MouseUpHandler() {
+
+				public void onMouseUp(final MouseUpEvent event) {
+					dragPosition = null;
+					dragIcon = null;
+				}
+			});
+		}
+
 		final SVGImage image = new SVGImage(svg);
+		image.addMouseUpHandler(new MouseUpHandler() {
+
+			public void onMouseUp(final MouseUpEvent event) {
+				dragPosition = null;
+				dragIcon = null;
+			}
+		});
 		svgPanel.add(image);
+		image.addMouseMoveHandler(new MouseMoveHandler() {
+			private int			absoluteLeft	= image.getAbsoluteLeft();
+			private boolean	absoluteSet		= false;
+			private int			absoluteTop		= image.getAbsoluteTop();
+
+			public void onMouseMove(final MouseMoveEvent event) {
+				if (!absoluteSet) {
+					absoluteLeft = image.getAbsoluteLeft();
+					absoluteTop = image.getAbsoluteTop();
+					absoluteSet = true;
+				}
+				if (dragIcon == null || dragPosition == null)
+					return;
+
+				final int x = event.getClientX() - absoluteLeft;
+				final int y = event.getClientY() - absoluteTop;
+				dragPosition.setX(x / scale);
+				dragPosition.setY(y / scale);
+				dragIcon.getX().getBaseVal().setValue(dragPosition.getX() - dragViewPort.getCenterX());
+				dragIcon.getY().getBaseVal().setValue(dragPosition.getY() - dragViewPort.getCenterY());
+				// System.out.println(dragPosition.getX() + ":" + dragPosition.getY());
+			}
+		});
 
 	}
 
