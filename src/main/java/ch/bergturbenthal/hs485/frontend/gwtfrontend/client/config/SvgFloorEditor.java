@@ -3,14 +3,17 @@
  */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.vectomatic.dom.svg.OMSVGDefsElement;
 import org.vectomatic.dom.svg.OMSVGDocument;
 import org.vectomatic.dom.svg.OMSVGGElement;
 import org.vectomatic.dom.svg.OMSVGRect;
 import org.vectomatic.dom.svg.OMSVGSVGElement;
 import org.vectomatic.dom.svg.OMSVGTransform;
 import org.vectomatic.dom.svg.OMSVGTransformList;
+import org.vectomatic.dom.svg.OMSVGUseElement;
 import org.vectomatic.dom.svg.ui.SVGImage;
 import org.vectomatic.dom.svg.ui.SVGResource;
 import org.vectomatic.dom.svg.utils.OMSVGParser;
@@ -53,17 +56,20 @@ public class SvgFloorEditor extends Composite {
 	interface SvgFloorEditorUiBinder extends UiBinder<Widget, SvgFloorEditor> {
 	}
 
-	private static SvgFloorEditorUiBinder	uiBinder			= GWT.create(SvgFloorEditorUiBinder.class);
+	private static final String						BULB_OFF_ICON_ID	= "bulb_off_icon";
+
+	private static final String						BULB_ON_ICON_ID		= "bulb_on_icon";
+
+	private static SvgFloorEditorUiBinder	uiBinder					= GWT.create(SvgFloorEditorUiBinder.class);
 
 	@UiField
 	Button																addFileButton;
 
-	private OMSVGGElement									bulbOff;
-	private OMSVGGElement									bulbOn;
-	private final ConfigServiceAsync			configService	= ConfigServiceAsync.Util.getInstance();
+	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
+	private final List<OMSVGGElement>			icons							= new ArrayList<OMSVGGElement>();
 	@UiField
 	Button																removeFloorButton;
-	private final Resources								resources			= GWT.create(Resources.class);
+	private final Resources								resources					= GWT.create(Resources.class);
 	@UiField
 	ListBox																selectFileListBox;
 
@@ -85,7 +91,9 @@ public class SvgFloorEditor extends Composite {
 				}
 
 				public void onSuccess(final SVGResource resource) {
-					bulbOn = moveSvgToG(resource.getSvg());
+					final OMSVGGElement bulbOn = moveSvgToG(resource.getSvg());
+					bulbOn.setId(BULB_ON_ICON_ID);
+					icons.add(bulbOn);
 				}
 			});
 			resources.bulb_off().getSvg(new ResourceCallback<SVGResource>() {
@@ -96,8 +104,9 @@ public class SvgFloorEditor extends Composite {
 				}
 
 				public void onSuccess(final SVGResource resource) {
-					bulbOff = moveSvgToG(resource.getSvg());
-
+					final OMSVGGElement bulbOff = moveSvgToG(resource.getSvg());
+					bulbOff.setId(BULB_OFF_ICON_ID);
+					icons.add(bulbOff);
 				}
 			});
 		} catch (final ResourceException e) {
@@ -115,15 +124,28 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGDocument currentDocument = OMSVGParser.currentDocument();
 		final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
 		final OMSVGGElement rootG = currentDocument.createSVGGElement();
-		final Element rootGElement = rootG.getElement();
+		final Element scaleGElement = rootG.getElement();
 		final Element backgroundGElement = backgroundG.getElement();
 		final Element svgElement = svg.getElement();
 		Node node;
 		while ((node = svgElement.getFirstChild()) != null)
 			backgroundGElement.appendChild(svgElement.removeChild(node));
-		rootGElement.appendChild(backgroundGElement);
-		rootGElement.appendChild(bulbOn.getElement());
-		svgElement.appendChild(rootGElement);
+		scaleGElement.appendChild(backgroundGElement);
+		svgElement.appendChild(scaleGElement);
+
+		final OMSVGGElement iconsGroup = currentDocument.createSVGGElement();
+		final OMSVGDefsElement iconDef = currentDocument.createSVGDefsElement();
+		for (final OMSVGGElement icon : icons)
+			iconDef.appendChild(icon);
+		iconsGroup.appendChild(iconDef);
+
+		final OMSVGUseElement useIcon = currentDocument.createSVGUseElement();
+		useIcon.getHref().setBaseVal("#" + BULB_ON_ICON_ID);
+		useIcon.getX().getBaseVal().setValue(100f);
+		useIcon.getY().getBaseVal().setValue(100f);
+
+		iconsGroup.appendChild(useIcon);
+		rootG.appendChild(iconsGroup);
 
 		final OMSVGGElement xformGroup = rootG;
 
@@ -132,7 +154,6 @@ public class SvgFloorEditor extends Composite {
 		xformList.appendItem(xform);
 		xform.setScale(minScale, minScale);
 		final SVGImage image = new SVGImage(svg);
-
 		svgPanel.add(image);
 
 	}
