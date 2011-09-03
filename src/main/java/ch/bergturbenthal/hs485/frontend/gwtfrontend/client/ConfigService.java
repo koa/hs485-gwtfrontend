@@ -4,6 +4,7 @@ import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 
 import com.google.gwt.core.client.GWT;
@@ -27,6 +28,8 @@ public interface ConfigService extends RemoteService {
 
 	public FileData getFile(String filename);
 
+	public Iterable<InputDevice> getInputDevicesByFloor(Floor floor);
+
 	public Iterable<OutputDevice> getOutputDevices();
 
 	public Iterable<OutputDevice> getOutputDevicesByFloor(Floor floor);
@@ -47,6 +50,8 @@ public interface ConfigService extends RemoteService {
 	 */
 	public void removeFloors(Iterable<Floor> floors);
 
+	public void removeInputDevice(InputDevice device);
+
 	public void removeOutputDevice(OutputDevice device);
 
 	/**
@@ -55,6 +60,8 @@ public interface ConfigService extends RemoteService {
 	 * @param floors
 	 */
 	public void updateFloors(Iterable<Floor> floors);
+
+	public Iterable<InputDevice> updateInputDevices(Iterable<InputDevice> devices);
 
 	public Iterable<OutputDevice> updateOutputDevices(Iterable<OutputDevice> devices);
 

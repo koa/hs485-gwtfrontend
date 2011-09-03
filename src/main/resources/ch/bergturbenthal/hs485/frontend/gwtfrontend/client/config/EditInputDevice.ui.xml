@@ -1,6 +1,5 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
-<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
-  xmlns:g="urn:import:com.google.gwt.user.client.ui">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui">
   <ui:style>
     
   </ui:style>
@@ -24,12 +23,11 @@
   	<g:row>
   		<g:cell></g:cell>
   		<g:customCell>
-  			<g:HorizontalPanel horizontalAlignment="ALIGN_RIGHT" >
+  			<g:HorizontalPanel>
   				<g:Button ui:field="cancelButton">cancel</g:Button>
-  					<g:Button ui:field="saveButton">save</g:Button>
+  				<g:Button ui:field="saveButton">save</g:Button>
   			</g:HorizontalPanel>
   		</g:customCell>
   	</g:row>
-  	<g:row/>
   </g:Grid>
 </ui:UiBinder> 

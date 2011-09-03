@@ -14,9 +14,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.InputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.eleveneye.hs485.device.Registry;
 
@@ -29,6 +31,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	private FileDataRepository			fileDataRepository;
 	private FloorRepository					floorRepository;
 	private Registry								hs485registry;
+	private InputDeviceRepository		inputDeviceRepository;
 	private OutputDeviceRepository	outputDeviceRepository;
 	private TransactionTemplate			transactionTemplate;
 
@@ -54,6 +57,18 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		return fileDataRepository.findOne(filename);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#
+	 * getInputDevicesByFloor
+	 * (ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor)
+	 */
+	@Override
+	public Iterable<InputDevice> getInputDevicesByFloor(final Floor floor) {
+		return inputDeviceRepository.findByFloor(floor);
+	}
+
 	public Iterable<OutputDevice> getOutputDevices() {
 		return outputDeviceRepository.findAll();
 	}
@@ -71,6 +86,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
 		outputDeviceRepository = ctx.getBean(OutputDeviceRepository.class);
+		inputDeviceRepository = ctx.getBean(InputDeviceRepository.class);
 		floorRepository = ctx.getBean(FloorRepository.class);
 		fileDataRepository = ctx.getBean(FileDataRepository.class);
 		hs485registry = ctx.getBean("hs485registry", Registry.class);
@@ -138,6 +154,18 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository.delete(floors);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#
+	 * removeInputDevice
+	 * (ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice)
+	 */
+	@Override
+	public void removeInputDevice(final InputDevice device) {
+		inputDeviceRepository.delete(device);
+	}
+
 	@Override
 	public void removeOutputDevice(final OutputDevice device) {
 		outputDeviceRepository.delete(device);
@@ -150,6 +178,17 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		System.out.println("----------------------- update floors ----------------");
 		System.out.println(floors);
 		floorRepository.save(floors);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#
+	 * updateInputDevices(java.lang.Iterable)
+	 */
+	@Override
+	public Iterable<InputDevice> updateInputDevices(final Iterable<InputDevice> devices) {
+		return inputDeviceRepository.save(devices);
 	}
 
 	/**

@@ -30,6 +30,8 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
@@ -49,18 +51,12 @@ import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.RequestException;
-import com.google.gwt.http.client.Response;
 import com.google.gwt.resources.client.ResourceCallback;
 import com.google.gwt.resources.client.ResourceException;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -70,7 +66,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -123,7 +119,7 @@ public class SvgFloorEditor extends Composite {
 	@UiField
 	Button																addFloorButton;
 	@UiField
-	Button																addOutputDeviceButton;
+	VerticalPanel													addInputDeviceButton;
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
 
 	private Floor													currentFloor;
@@ -137,21 +133,26 @@ public class SvgFloorEditor extends Composite {
 
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
 
+	@UiField
+	Button																inputDeviceButton;
+	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
+
+	@UiField
+	Button																outputDeviceButton;
+
 	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
 
 	@UiField
 	Button																removeFloorButton;
-
 	private final Resources								resources					= GWT.create(Resources.class);
-
 	private float													scale;
+
 	@UiField
 	ListBox																selectFileListBox;
+
 	@UiField
 	ListBox																selectFloorListBox;
-
 	private OMSVGSVGElement								svg;
-
 	@UiField
 	HTMLPanel															svgPanel;
 
@@ -175,14 +176,12 @@ public class SvgFloorEditor extends Composite {
 					@Override
 					public void onError(final ResourceException e) {
 						// TODO Auto-generated method stub
-
 					}
 
 					@Override
 					public void onSuccess(final SVGResource resource) {
 						appendIcon(resource.getSvg(), entry.getKey());
-						showFloor(currentFloor);
-
+						// showFloor(currentFloor);
 					}
 				});
 		} catch (final ResourceException e) {
@@ -270,6 +269,64 @@ public class SvgFloorEditor extends Composite {
 
 	}
 
+	/**
+	 * @param device
+	 * @return
+	 */
+	private PopupPanel makePopupPanelForInputDevice(final InputDevice device) {
+		final PopupPanel popupPanel = new PopupPanel(true);
+		final MenuBar menuBar = new MenuBar(true);
+		popupPanel.add(menuBar);
+		menuBar.addItem("edit ...", new Command() {
+			@Override
+			public void execute() {
+				popupPanel.hide();
+				new EditInputDevice(device, new Runnable() {
+					@Override
+					public void run() {
+						configService.updateInputDevices(Arrays.asList(new InputDevice[] { device }), new AsyncCallback<Iterable<InputDevice>>() {
+
+							@Override
+							public void onFailure(final Throwable caught) {
+								// TODO Auto-generated method stub
+							}
+
+							@Override
+							public void onSuccess(final Iterable<InputDevice> result) {
+								updateIcons();
+							}
+						});
+
+					}
+				}).center();
+
+			}
+		});
+		menuBar.addItem(new MenuItem("remove", new Command() {
+			@Override
+			public void execute() {
+				popupPanel.hide();
+				if (Window.confirm("Are you sure to remove " + device.getName() + "?"))
+					configService.removeInputDevice(device, new AsyncCallback<Void>() {
+
+						@Override
+						public void onFailure(final Throwable caught) {
+							updateIcons();
+							// TODO Auto-generated method stub
+						}
+
+						@Override
+						public void onSuccess(final Void result) {
+							inputDevices.remove(device);
+							updateIcons();
+						}
+					});
+			}
+		}));
+		popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
+		return popupPanel;
+	}
+
 	private PopupPanel makePopupPanelForOutputDevice(final OutputDevice device) {
 		final PopupPanel popupPanel = new PopupPanel(true);
 		final MenuBar menuBar = new MenuBar(true);
@@ -282,7 +339,19 @@ public class SvgFloorEditor extends Composite {
 				new EditOutputDevice(device, new Runnable() {
 					@Override
 					public void run() {
-						updateIcons();
+						configService.updateOutputDevices(Arrays.asList(new OutputDevice[] { device }), new AsyncCallback<Iterable<OutputDevice>>() {
+
+							@Override
+							public void onFailure(final Throwable caught) {
+								// TODO Auto-generated method stub
+							}
+
+							@Override
+							public void onSuccess(final Iterable<OutputDevice> result) {
+								updateIcons();
+							}
+						});
+
 					}
 				}).center();
 			}
@@ -358,8 +427,21 @@ public class SvgFloorEditor extends Composite {
 		});
 	}
 
-	@UiHandler("addOutputDeviceButton")
-	void onAddOutputDeviceButtonClick(final ClickEvent event) {
+	@UiHandler("inputDeviceButton")
+	void onInputDeviceButtonClick(final ClickEvent event) {
+		final InputDevice inputDevice = new InputDevice();
+		inputDevice.setName("Switch " + inputDevices.size());
+		inputDevice.getFloorPlace().getPosition().setX(300f);
+		inputDevice.getFloorPlace().getPosition().setY(300f);
+		inputDevice.getFloorPlace().setFloor(currentFloor);
+		inputDevice.setType(InputDeviceType.SWITCH);
+		inputDevices.add(inputDevice);
+		updateInputDevicesOnServer();
+
+	}
+
+	@UiHandler("outputDeviceButton")
+	void onOutputDeviceButtonClick(final ClickEvent event) {
 		final OutputDevice outputDevice = new OutputDevice();
 		outputDevice.setName("Lamp " + outputDevices.size());
 		outputDevice.getFloorPlace().getPosition().setX(300f);
@@ -421,6 +503,63 @@ public class SvgFloorEditor extends Composite {
 	}
 
 	/**
+	 * @param iconId
+	 * @param position
+	 * @param popupPanel
+	 */
+	private void placeIconAt(final String iconId, final PositionXY position, final PopupPanel popupPanel) {
+		final OMSVGUseElement useIcon = OMSVGParser.currentDocument().createSVGUseElement();
+		final IconData iconData = iconTemplates.get(iconId);
+		useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
+
+		// final OMSVGRect viewPort2 = iconData.getViewPort();
+		useIcon.getX().getBaseVal().setValue(position.getX());
+		useIcon.getY().getBaseVal().setValue(position.getY());
+		iconsGroup.appendChild(useIcon);
+		useIcon.addMouseDownHandler(new MouseDownHandler() {
+
+			public void onMouseDown(final MouseDownEvent event) {
+				final int mouseButton = event.getNativeButton();
+				switch (mouseButton) {
+				case NativeEvent.BUTTON_LEFT:
+					dragPosition = position;
+					dragIcon = useIcon;
+					final int clientX = event.getClientX();
+					final int clientY = event.getClientY();
+					absoluteLeft = Math.round(clientX - dragPosition.getX() * scale);
+					absoluteTop = Math.round(clientY - dragPosition.getY() * scale);
+					break;
+				case NativeEvent.BUTTON_RIGHT:
+					popupPanel.setPopupPosition(event.getClientX(), event.getClientY());
+					popupPanel.show();
+					event.stopPropagation();
+					event.preventDefault();
+					break;
+
+				default:
+					break;
+				}
+			}
+		});
+		useIcon.addClickHandler(new ClickHandler() {
+
+			public void onClick(final ClickEvent event) {
+				System.out.println("Clicked: " + event.getNativeButton());
+			}
+		});
+		useIcon.addMouseUpHandler(new MouseUpHandler() {
+
+			public void onMouseUp(final MouseUpEvent event) {
+				if (dragIcon != null)
+					updateOutputDevicesOnServer();
+				dragPosition = null;
+				dragIcon = null;
+				System.out.println(outputDevices);
+			}
+		});
+	}
+
+	/**
 	 * 
 	 */
 	private void reloadFileList() {
@@ -478,42 +617,19 @@ public class SvgFloorEditor extends Composite {
 			element.removeChild(node);
 	}
 
-	private void showBackgroundFile(final String filename) {
-		try {
-			DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "wait");
-			final RequestBuilder requestBuilder = new RequestBuilder(RequestBuilder.GET, GWT.getModuleBaseURL() + "file?filename=" + filename);
-			requestBuilder.sendRequest(null, new RequestCallback() {
-
-				public void onError(final Request request, final Throwable exception) {
-					// TODO Auto-generated method stub
-					DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
-
-				}
-
-				public void onResponseReceived(final Request request, final Response response) {
-					svg = OMSVGParser.parse(response.getText());
-					SVGProcessor.normalizeIds(svg);
-					drawSvg();
-					DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
-				}
-			});
-		} catch (final RequestException e) {
-			DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
-			throw new RuntimeException(e);
-		}
-	}
-
 	private void showFloor(final Floor floor) {
 		currentFloor = floor;
 		addFileButton.setEnabled(currentFloor != null);
 		removeFloorButton.setEnabled(currentFloor != null);
 		selectFileListBox.setEnabled(currentFloor != null);
-		addOutputDeviceButton.setEnabled(currentFloor != null);
+		outputDeviceButton.setEnabled(currentFloor != null);
+		inputDeviceButton.setEnabled(currentFloor != null);
 		if (currentFloor == null)
 			return;
 		final FileData plan = currentFloor.getPlan();
 		if (plan == null)
 			return;
+		selectFileListBox.setSelectedIndex(0);
 		for (int i = 0; i < selectFileListBox.getItemCount(); i++)
 			if (currentFloor.getPlan().getFileName().equals(selectFileListBox.getValue(i)))
 				selectFileListBox.setSelectedIndex(i);
@@ -534,6 +650,22 @@ public class SvgFloorEditor extends Composite {
 				updateIcons();
 			}
 		});
+		configService.getInputDevicesByFloor(currentFloor, new AsyncCallback<Iterable<InputDevice>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<InputDevice> result) {
+				inputDevices.clear();
+				for (final InputDevice inputDevice : result)
+					inputDevices.add(inputDevice);
+				updateIcons();
+			}
+		});
 		svg = OMSVGParser.parse(plan.getFileDataContent());
 		SVGProcessor.normalizeIds(svg);
 		drawSvg();
@@ -544,8 +676,9 @@ public class SvgFloorEditor extends Composite {
 		if (iconsGroup == null)
 			return;
 		removeAllChildren(iconsGroup.getElement());
+		for (final InputDevice device : inputDevices)
+			placeIconAt(SWITCH_ON_ICON_ID, device.getFloorPlace().getPosition(), makePopupPanelForInputDevice(device));
 		for (final OutputDevice device : outputDevices) {
-			final OMSVGUseElement useIcon = OMSVGParser.currentDocument().createSVGUseElement();
 			final String iconId;
 			if (device.getType() == null)
 				iconId = BULB_OFF_ICON_ID;
@@ -564,67 +697,44 @@ public class SvgFloorEditor extends Composite {
 					iconId = BULB_OFF_ICON_ID;
 					break;
 				}
-			final IconData iconData = iconTemplates.get(iconId);
-			useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
-
-			// final OMSVGRect viewPort2 = iconData.getViewPort();
-			final PositionXY position = device.getFloorPlace().getPosition();
-			useIcon.getX().getBaseVal().setValue(position.getX());
-			useIcon.getY().getBaseVal().setValue(position.getY());
-			iconsGroup.appendChild(useIcon);
-			useIcon.addMouseDownHandler(new MouseDownHandler() {
-
-				public void onMouseDown(final MouseDownEvent event) {
-					final int mouseButton = event.getNativeButton();
-					switch (mouseButton) {
-					case NativeEvent.BUTTON_LEFT:
-						dragPosition = position;
-						dragIcon = useIcon;
-						final int clientX = event.getClientX();
-						final int clientY = event.getClientY();
-						absoluteLeft = Math.round(clientX - dragPosition.getX() * scale);
-						absoluteTop = Math.round(clientY - dragPosition.getY() * scale);
-						break;
-					case NativeEvent.BUTTON_RIGHT:
-						final PopupPanel popupPanel = makePopupPanelForOutputDevice(device);
-						popupPanel.setPopupPosition(event.getClientX(), event.getClientY());
-						popupPanel.show();
-						event.stopPropagation();
-						event.preventDefault();
-						break;
-
-					default:
-						break;
-					}
-				}
-			});
-			useIcon.addClickHandler(new ClickHandler() {
-
-				public void onClick(final ClickEvent event) {
-					System.out.println("Clicked: " + event.getNativeButton());
-				}
-			});
-			useIcon.addMouseUpHandler(new MouseUpHandler() {
-
-				public void onMouseUp(final MouseUpEvent event) {
-					if (dragIcon != null)
-						updateOutputDevicesOnServer();
-					dragPosition = null;
-					dragIcon = null;
-					System.out.println(outputDevices);
-				}
-			});
+			placeIconAt(iconId, device.getFloorPlace().getPosition(), makePopupPanelForOutputDevice(device));
 		}
 	}
 
+	/**
+	 * 
+	 */
+	private void updateInputDevicesOnServer() {
+		inputDeviceButton.setEnabled(false);
+		configService.updateInputDevices(inputDevices, new AsyncCallback<Iterable<InputDevice>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				inputDeviceButton.setEnabled(true);
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<InputDevice> result) {
+				inputDevices.clear();
+				for (final InputDevice inputDevice : result)
+					inputDevices.add(inputDevice);
+				updateIcons();
+				inputDeviceButton.setEnabled(true);
+			}
+		});
+		// TODO Auto-generated method stub
+
+	}
+
 	private void updateOutputDevicesOnServer() {
-		System.out.println(outputDevices);
-		addOutputDeviceButton.setEnabled(false);
+		outputDeviceButton.setEnabled(false);
 		configService.updateOutputDevices(outputDevices, new AsyncCallback<Iterable<OutputDevice>>() {
 
 			@Override
 			public void onFailure(final Throwable caught) {
-				addOutputDeviceButton.setEnabled(true);
+				outputDeviceButton.setEnabled(true);
 				// TODO Auto-generated method stub
 
 			}
@@ -635,7 +745,7 @@ public class SvgFloorEditor extends Composite {
 				for (final OutputDevice outputDevice : result)
 					outputDevices.add(outputDevice);
 				updateIcons();
-				addOutputDeviceButton.setEnabled(true);
+				outputDeviceButton.setEnabled(true);
 			}
 		});
 	}

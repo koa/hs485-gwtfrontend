@@ -5,11 +5,11 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 
 /**
  * Input-Device
@@ -17,16 +17,16 @@ import javax.persistence.ManyToOne;
 @Entity
 public class InputDevice implements Serializable {
 	private static final long	serialVersionUID	= 1L;
-	@ManyToOne
-	private Floor							floor;
+	@Embedded
+	private FloorPlace				floorPlace				= new FloorPlace();
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						inputDeviceId;
 	private String						name;
 	private InputDeviceType		type;
 
-	public Floor getFloor() {
-		return floor;
+	public FloorPlace getFloorPlace() {
+		return floorPlace;
 	}
 
 	public Integer getInputDeviceId() {
@@ -41,8 +41,8 @@ public class InputDevice implements Serializable {
 		return type;
 	}
 
-	public void setFloor(final Floor floor) {
-		this.floor = floor;
+	public void setFloorPlace(final FloorPlace floorPlace) {
+		this.floorPlace = floorPlace;
 	}
 
 	public void setInputDeviceId(final Integer inputDeviceId) {

@@ -8,7 +8,7 @@
   </ui:style>
   <g:SplitLayoutPanel width="1000" height="700">
     <g:west size="325.0">
-      <g:VerticalPanel>
+      <g:VerticalPanel ui:field="addInputDeviceButton">
         <g:HorizontalPanel/>
         <g:Grid>
         	<g:row>
@@ -37,7 +37,10 @@
         	</g:row>
         	<g:row>
         		<g:customCell>
-        			<g:Button ui:field="addLampButton">add Lamp</g:Button>
+        			<g:Button ui:field="outputDeviceButton">add Outputdevice</g:Button>
+        		</g:customCell>
+        		<g:customCell>
+        			<g:Button ui:field="inputDeviceButton">add Inputdevice</g:Button>
         		</g:customCell>
         	</g:row>
         </g:Grid>
