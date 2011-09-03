@@ -29,6 +29,11 @@
         			<g:Button ui:field="addFileButton">add File ...</g:Button>
         		</g:customCell>
         	</g:row>
+        	<g:row>
+        		<g:customCell>
+        			<g:Button ui:field="addLampButton">add Lamp</g:Button>
+        		</g:customCell>
+        	</g:row>
         </g:Grid>
       </g:VerticalPanel>
     </g:west>

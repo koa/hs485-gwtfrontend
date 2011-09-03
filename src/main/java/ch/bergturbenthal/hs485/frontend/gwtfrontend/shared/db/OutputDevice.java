@@ -67,7 +67,7 @@ public class OutputDevice implements Serializable {
 
 	@Override
 	public String toString() {
-		return "OutputDevice [deviceId=" + deviceId + ", name=" + name + ", type=" + type + "]";
+		return "OutputDevice [deviceId=" + deviceId + ", floor=" + floor + ", name=" + name + ", position=" + position + ", type=" + type + "]";
 	}
 
 }

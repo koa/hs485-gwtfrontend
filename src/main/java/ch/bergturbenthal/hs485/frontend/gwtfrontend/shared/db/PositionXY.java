@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
+
 import javax.persistence.Embeddable;
 
 @Embeddable
@@ -23,6 +24,11 @@ public class PositionXY implements Serializable {
 
 	public void setY(final float y) {
 		this.y = y;
+	}
+
+	@Override
+	public String toString() {
+		return "PositionXY [x=" + x + ", y=" + y + "]";
 	}
 
 }

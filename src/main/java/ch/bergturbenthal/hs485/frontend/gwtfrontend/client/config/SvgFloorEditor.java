@@ -29,9 +29,11 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseDownHandler;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
@@ -50,11 +52,15 @@ import com.google.gwt.resources.client.ResourceException;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.MenuBar;
+import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -94,19 +100,29 @@ public class SvgFloorEditor extends Composite {
 
 	private static SvgFloorEditorUiBinder	uiBinder					= GWT.create(SvgFloorEditorUiBinder.class);
 
+	private int														absoluteLeft;
+
+	private int														absoluteTop;
 	@UiField
 	Button																addFileButton;
-
+	@UiField
+	Button																addLampButton;
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
 	private OMSVGUseElement								dragIcon;
+
 	private PositionXY										dragPosition;
-	private OMSVGRect											dragViewPort;
+	private OMSVGGElement									iconsGroup;
+
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
+
 	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
 
 	@UiField
 	Button																removeFloorButton;
+
 	private final Resources								resources					= GWT.create(Resources.class);
+
+	private float													scale;
 
 	@UiField
 	ListBox																selectFileListBox;
@@ -115,7 +131,6 @@ public class SvgFloorEditor extends Composite {
 	ListBox																selectFloorListBox;
 
 	private OMSVGSVGElement								svg;
-
 	@UiField
 	HTMLPanel															svgPanel;
 
@@ -167,6 +182,11 @@ public class SvgFloorEditor extends Composite {
 		iconTemplates.put(iconId, icon);
 	}
 
+	public void deleteOutputDevice(final OutputDevice device) {
+		outputDevices.remove(device);
+		updateIcons();
+	}
+
 	private void drawSvg() {
 		if (svg == null)
 			return;
@@ -174,7 +194,7 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGRect viewport = svg.getViewport();
 		final float xScale = svgPanel.getOffsetWidth() / viewport.getWidth();
 		final float yScale = svgPanel.getOffsetHeight() / viewport.getHeight();
-		final float scale = Math.min(yScale, xScale);
+		scale = Math.min(yScale, xScale);
 
 		final OMSVGDocument currentDocument = OMSVGParser.currentDocument();
 		final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
@@ -193,7 +213,7 @@ public class SvgFloorEditor extends Composite {
 			iconDef.appendChild(icon.getIcon());
 		rootG.appendChild(iconDef);
 
-		final OMSVGGElement iconsGroup = currentDocument.createSVGGElement();
+		iconsGroup = currentDocument.createSVGGElement();
 
 		rootG.appendChild(iconsGroup);
 
@@ -203,36 +223,10 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGTransform xform = svg.createSVGTransform();
 		xformList.appendItem(xform);
 		xform.setScale(scale, scale);
-
-		for (final OutputDevice device : outputDevices) {
-			final OMSVGUseElement useIcon = currentDocument.createSVGUseElement();
-			final IconData iconData = iconTemplates.get(BULB_ON_ICON_ID);
-			useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
-
-			final OMSVGRect viewPort2 = iconData.getViewPort();
-			final PositionXY position = device.getPosition();
-			useIcon.getX().getBaseVal().setValue(position.getX() - viewPort2.getCenterX());
-			useIcon.getY().getBaseVal().setValue(position.getY() - viewPort2.getCenterY());
-			iconsGroup.appendChild(useIcon);
-			useIcon.addMouseDownHandler(new MouseDownHandler() {
-
-				public void onMouseDown(final MouseDownEvent event) {
-					dragPosition = position;
-					dragIcon = useIcon;
-					dragViewPort = iconData.getViewPort();
-					System.out.println(dragViewPort.getCenterX() + ":" + dragViewPort.getCenterY());
-				}
-			});
-			useIcon.addMouseUpHandler(new MouseUpHandler() {
-
-				public void onMouseUp(final MouseUpEvent event) {
-					dragPosition = null;
-					dragIcon = null;
-				}
-			});
-		}
+		updateIcons();
 
 		final SVGImage image = new SVGImage(svg);
+		// image.getElement().setAttribute("oncontextmenu", "return false;");
 		image.addMouseUpHandler(new MouseUpHandler() {
 
 			public void onMouseUp(final MouseUpEvent event) {
@@ -242,16 +236,8 @@ public class SvgFloorEditor extends Composite {
 		});
 		svgPanel.add(image);
 		image.addMouseMoveHandler(new MouseMoveHandler() {
-			private int			absoluteLeft	= image.getAbsoluteLeft();
-			private boolean	absoluteSet		= false;
-			private int			absoluteTop		= image.getAbsoluteTop();
 
 			public void onMouseMove(final MouseMoveEvent event) {
-				if (!absoluteSet) {
-					absoluteLeft = image.getAbsoluteLeft();
-					absoluteTop = image.getAbsoluteTop();
-					absoluteSet = true;
-				}
 				if (dragIcon == null || dragPosition == null)
 					return;
 
@@ -259,8 +245,8 @@ public class SvgFloorEditor extends Composite {
 				final int y = event.getClientY() - absoluteTop;
 				dragPosition.setX(x / scale);
 				dragPosition.setY(y / scale);
-				dragIcon.getX().getBaseVal().setValue(dragPosition.getX() - dragViewPort.getCenterX());
-				dragIcon.getY().getBaseVal().setValue(dragPosition.getY() - dragViewPort.getCenterY());
+				dragIcon.getX().getBaseVal().setValue(dragPosition.getX());
+				dragIcon.getY().getBaseVal().setValue(dragPosition.getY());
 				// System.out.println(dragPosition.getX() + ":" + dragPosition.getY());
 			}
 		});
@@ -293,6 +279,17 @@ public class SvgFloorEditor extends Composite {
 		});
 		fileUploadDialog.setModal(true);
 		fileUploadDialog.show();
+	}
+
+	@UiHandler("addLampButton")
+	void onAddLampButtonClick(final ClickEvent event) {
+		final OutputDevice outputDevice = new OutputDevice();
+		outputDevice.setName("Lamp " + outputDevices.size());
+		outputDevice.setPosition(new PositionXY());
+		outputDevice.getPosition().setX(300);
+		outputDevice.getPosition().setX(150);
+		outputDevices.add(outputDevice);
+		updateIcons();
 	}
 
 	@UiHandler("selectFileListBox")
@@ -337,5 +334,80 @@ public class SvgFloorEditor extends Composite {
 
 			}
 		});
+	}
+
+	private void removeAllChildren(final Element element) {
+		Node node;
+		while ((node = element.getFirstChild()) != null)
+			element.removeChild(node);
+	}
+
+	private void updateIcons() {
+		if (iconsGroup == null)
+			return;
+		removeAllChildren(iconsGroup.getElement());
+		for (final OutputDevice device : outputDevices) {
+			final OMSVGUseElement useIcon = OMSVGParser.currentDocument().createSVGUseElement();
+			final IconData iconData = iconTemplates.get(BULB_ON_ICON_ID);
+			useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
+
+			// final OMSVGRect viewPort2 = iconData.getViewPort();
+			final PositionXY position = device.getPosition();
+			useIcon.getX().getBaseVal().setValue(position.getX());
+			useIcon.getY().getBaseVal().setValue(position.getY());
+			iconsGroup.appendChild(useIcon);
+			useIcon.addMouseDownHandler(new MouseDownHandler() {
+
+				public void onMouseDown(final MouseDownEvent event) {
+					final int mouseButton = event.getNativeButton();
+					switch (mouseButton) {
+					case NativeEvent.BUTTON_LEFT:
+						dragPosition = position;
+						dragIcon = useIcon;
+						final int clientX = event.getClientX();
+						final int clientY = event.getClientY();
+						absoluteLeft = Math.round(clientX - dragPosition.getX() * scale);
+						absoluteTop = Math.round(clientY - dragPosition.getY() * scale);
+						break;
+					case NativeEvent.BUTTON_RIGHT:
+						final PopupPanel popupPanel = new PopupPanel(true);
+						final MenuBar menuBar = new MenuBar(true);
+						popupPanel.add(menuBar);
+						menuBar.addItem(new MenuItem("remove", new Command() {
+							public void execute() {
+								popupPanel.hide();
+								if (Window.confirm("Are you sure to remove " + device.getName() + "?")) {
+									outputDevices.remove(device);
+									updateIcons();
+								}
+							}
+						}));
+						popupPanel.setPopupPosition(event.getClientX(), event.getClientY());
+						popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
+						popupPanel.show();
+						event.stopPropagation();
+						event.preventDefault();
+						break;
+
+					default:
+						break;
+					}
+				}
+			});
+			useIcon.addClickHandler(new ClickHandler() {
+
+				public void onClick(final ClickEvent event) {
+					System.out.println("Clicked: " + event.getNativeButton());
+				}
+			});
+			useIcon.addMouseUpHandler(new MouseUpHandler() {
+
+				public void onMouseUp(final MouseUpEvent event) {
+					dragPosition = null;
+					dragIcon = null;
+					System.out.println(outputDevices);
+				}
+			});
+		}
 	}
 }
