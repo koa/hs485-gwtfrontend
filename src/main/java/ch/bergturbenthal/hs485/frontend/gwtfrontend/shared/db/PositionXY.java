@@ -7,28 +7,23 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class PositionXY implements Serializable {
 	private static final long	serialVersionUID	= -5769901005298597592L;
-	float											x;
-	float											y;
+	private Float							x;
+	private Float							y;
 
-	public float getX() {
+	public Float getX() {
 		return x;
 	}
 
-	public float getY() {
+	public Float getY() {
 		return y;
 	}
 
-	public void setX(final float x) {
+	public void setX(final Float x) {
 		this.x = x;
 	}
 
-	public void setY(final float y) {
+	public void setY(final Float y) {
 		this.y = y;
-	}
-
-	@Override
-	public String toString() {
-		return "PositionXY [x=" + x + ", y=" + y + "]";
 	}
 
 }

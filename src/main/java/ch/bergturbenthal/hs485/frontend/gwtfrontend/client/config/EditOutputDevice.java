@@ -32,13 +32,15 @@ public class EditOutputDevice extends DialogBox {
 	@UiField
 	TextBox																	nameTextInput;
 
+	private final Runnable									refreshRunnable;
 	@UiField
 	Button																	saveButton;
 	@UiField
 	ListBox																	typeListBox;
 
-	public EditOutputDevice(final OutputDevice device) {
+	public EditOutputDevice(final OutputDevice device, final Runnable refreshRunnable) {
 		this.device = device;
+		this.refreshRunnable = refreshRunnable;
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		final OutputDeviceType[] values = OutputDeviceType.values();
@@ -72,6 +74,7 @@ public class EditOutputDevice extends DialogBox {
 			@Override
 			public void onSuccess(final Iterable<OutputDevice> result) {
 				device = result.iterator().next();
+				refreshRunnable.run();
 				hide();
 			}
 		});

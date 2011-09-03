@@ -62,7 +62,7 @@ public class Config implements EntryPoint {
 
 		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();
 		dockPanel.add(svgFloorEditor, DockPanel.CENTER);
-		svgFloorEditor.setHeight("500px");
+		svgFloorEditor.setHeight("400px");
 
 	}
 

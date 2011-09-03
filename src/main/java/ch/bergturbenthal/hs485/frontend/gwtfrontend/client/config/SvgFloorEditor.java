@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.vectomatic.dom.svg.OMSVGDefsElement;
 import org.vectomatic.dom.svg.OMSVGDocument;
@@ -17,6 +19,7 @@ import org.vectomatic.dom.svg.OMSVGSVGElement;
 import org.vectomatic.dom.svg.OMSVGTransform;
 import org.vectomatic.dom.svg.OMSVGTransformList;
 import org.vectomatic.dom.svg.OMSVGUseElement;
+import org.vectomatic.dom.svg.ui.ExternalSVGResource;
 import org.vectomatic.dom.svg.ui.SVGImage;
 import org.vectomatic.dom.svg.ui.SVGResource;
 import org.vectomatic.dom.svg.utils.OMSVGParser;
@@ -28,6 +31,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 import com.google.gwt.core.client.GWT;
@@ -103,6 +107,12 @@ public class SvgFloorEditor extends Composite {
 
 	private static final String						BULB_ON_ICON_ID		= "bulb_on_icon";
 
+	private static final String						FAN_ID						= "fan_icon";
+
+	private static final String						GLOSSY_FLAME_ID		= "glossy_flame_icon";
+
+	private static final String						SWITCH_ON_ICON_ID	= "switch_on_icon";
+
 	private static SvgFloorEditorUiBinder	uiBinder					= GWT.create(SvgFloorEditorUiBinder.class);
 
 	private int														absoluteLeft;
@@ -113,7 +123,7 @@ public class SvgFloorEditor extends Composite {
 	@UiField
 	Button																addFloorButton;
 	@UiField
-	Button																addLampButton;
+	Button																addOutputDeviceButton;
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
 
 	private Floor													currentFloor;
@@ -151,29 +161,30 @@ public class SvgFloorEditor extends Composite {
 		reloadFileList();
 		reloadFloorList();
 		try {
-			resources.bulb_on().getSvg(new ResourceCallback<SVGResource>() {
+			final Map<String, ExternalSVGResource> iconResourceMap = new HashMap<String, ExternalSVGResource>();
+			iconResourceMap.put(BULB_ON_ICON_ID, resources.bulb_on());
+			iconResourceMap.put(BULB_OFF_ICON_ID, resources.bulb_off());
+			iconResourceMap.put(SWITCH_ON_ICON_ID, resources.switch_on());
+			iconResourceMap.put(GLOSSY_FLAME_ID, resources.glossy_flame());
+			iconResourceMap.put(FAN_ID, resources.fan());
 
-				public void onError(final ResourceException e) {
-					// TODO Auto-generated method stub
-				}
+			final Set<Entry<String, ExternalSVGResource>> entrySet = iconResourceMap.entrySet();
+			for (final Entry<String, ExternalSVGResource> entry : entrySet)
+				entry.getValue().getSvg(new ResourceCallback<SVGResource>() {
 
-				public void onSuccess(final SVGResource resource) {
-					appendIcon(resource.getSvg(), BULB_ON_ICON_ID);
-					showFloor(currentFloor);
-				}
-			});
-			resources.bulb_off().getSvg(new ResourceCallback<SVGResource>() {
+					@Override
+					public void onError(final ResourceException e) {
+						// TODO Auto-generated method stub
 
-				public void onError(final ResourceException e) {
-					// TODO Auto-generated method stub
+					}
 
-				}
+					@Override
+					public void onSuccess(final SVGResource resource) {
+						appendIcon(resource.getSvg(), entry.getKey());
+						showFloor(currentFloor);
 
-				public void onSuccess(final SVGResource resource) {
-					appendIcon(resource.getSvg(), BULB_OFF_ICON_ID);
-					showFloor(currentFloor);
-				}
-			});
+					}
+				});
 		} catch (final ResourceException e) {
 			throw new RuntimeException("Cannot Load SVG", e);
 		}
@@ -268,7 +279,12 @@ public class SvgFloorEditor extends Composite {
 			@Override
 			public void execute() {
 				popupPanel.hide();
-				new EditOutputDevice(device).center();
+				new EditOutputDevice(device, new Runnable() {
+					@Override
+					public void run() {
+						updateIcons();
+					}
+				}).center();
 			}
 		}));
 		menuBar.addItem(new MenuItem("remove", new Command() {
@@ -342,14 +358,14 @@ public class SvgFloorEditor extends Composite {
 		});
 	}
 
-	@UiHandler("addLampButton")
-	void onAddLampButtonClick(final ClickEvent event) {
+	@UiHandler("addOutputDeviceButton")
+	void onAddOutputDeviceButtonClick(final ClickEvent event) {
 		final OutputDevice outputDevice = new OutputDevice();
 		outputDevice.setName("Lamp " + outputDevices.size());
-		outputDevice.setPosition(new PositionXY());
-		outputDevice.getPosition().setX(300);
-		outputDevice.getPosition().setX(150);
-		outputDevice.setFloor(currentFloor);
+		outputDevice.getFloorPlace().getPosition().setX(300f);
+		outputDevice.getFloorPlace().getPosition().setY(300f);
+		outputDevice.getFloorPlace().setFloor(currentFloor);
+		outputDevice.setType(OutputDeviceType.LIGHT);
 		outputDevices.add(outputDevice);
 		updateOutputDevicesOnServer();
 	}
@@ -492,7 +508,7 @@ public class SvgFloorEditor extends Composite {
 		addFileButton.setEnabled(currentFloor != null);
 		removeFloorButton.setEnabled(currentFloor != null);
 		selectFileListBox.setEnabled(currentFloor != null);
-		addLampButton.setEnabled(currentFloor != null);
+		addOutputDeviceButton.setEnabled(currentFloor != null);
 		if (currentFloor == null)
 			return;
 		final FileData plan = currentFloor.getPlan();
@@ -530,11 +546,29 @@ public class SvgFloorEditor extends Composite {
 		removeAllChildren(iconsGroup.getElement());
 		for (final OutputDevice device : outputDevices) {
 			final OMSVGUseElement useIcon = OMSVGParser.currentDocument().createSVGUseElement();
-			final IconData iconData = iconTemplates.get(BULB_ON_ICON_ID);
+			final String iconId;
+			if (device.getType() == null)
+				iconId = BULB_OFF_ICON_ID;
+			else
+				switch (device.getType()) {
+				case LIGHT:
+					iconId = BULB_ON_ICON_ID;
+					break;
+				case HEAT:
+					iconId = GLOSSY_FLAME_ID;
+					break;
+				case FAN:
+					iconId = FAN_ID;
+					break;
+				default:
+					iconId = BULB_OFF_ICON_ID;
+					break;
+				}
+			final IconData iconData = iconTemplates.get(iconId);
 			useIcon.getHref().setBaseVal("#" + iconData.getIcon().getId());
 
 			// final OMSVGRect viewPort2 = iconData.getViewPort();
-			final PositionXY position = device.getPosition();
+			final PositionXY position = device.getFloorPlace().getPosition();
 			useIcon.getX().getBaseVal().setValue(position.getX());
 			useIcon.getY().getBaseVal().setValue(position.getY());
 			iconsGroup.appendChild(useIcon);
@@ -585,12 +619,12 @@ public class SvgFloorEditor extends Composite {
 
 	private void updateOutputDevicesOnServer() {
 		System.out.println(outputDevices);
-		addLampButton.setEnabled(false);
+		addOutputDeviceButton.setEnabled(false);
 		configService.updateOutputDevices(outputDevices, new AsyncCallback<Iterable<OutputDevice>>() {
 
 			@Override
 			public void onFailure(final Throwable caught) {
-				addLampButton.setEnabled(true);
+				addOutputDeviceButton.setEnabled(true);
 				// TODO Auto-generated method stub
 
 			}
@@ -601,7 +635,7 @@ public class SvgFloorEditor extends Composite {
 				for (final OutputDevice outputDevice : result)
 					outputDevices.add(outputDevice);
 				updateIcons();
-				addLampButton.setEnabled(true);
+				addOutputDeviceButton.setEnabled(true);
 			}
 		});
 	}

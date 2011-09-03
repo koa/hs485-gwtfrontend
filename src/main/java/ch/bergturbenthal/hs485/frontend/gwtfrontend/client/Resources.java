@@ -21,4 +21,16 @@ public interface Resources extends ClientBundle {
 	@Validated(validated = false)
 	ExternalSVGResource bulb_on();
 
+	@Source("symbols/fan.svg")
+	@Validated(validated = false)
+	ExternalSVGResource fan();
+
+	@Source("symbols/glossy_flame.svg")
+	@Validated(validated = false)
+	ExternalSVGResource glossy_flame();
+
+	@Source("symbols/switch_2.svg")
+	@Validated(validated = false)
+	ExternalSVGResource switch_on();
+
 }

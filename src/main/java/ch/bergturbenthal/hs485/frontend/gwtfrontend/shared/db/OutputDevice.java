@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -18,27 +17,21 @@ public class OutputDevice implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						deviceId;
-	@ManyToOne
-	private Floor							floor;
-	private String						name;
 	@Embedded
-	private PositionXY				position;
+	private FloorPlace				floorPlace				= new FloorPlace();
+	private String						name;
 	private OutputDeviceType	type;
 
 	public Integer getDeviceId() {
 		return deviceId;
 	}
 
-	public Floor getFloor() {
-		return floor;
+	public FloorPlace getFloorPlace() {
+		return floorPlace;
 	}
 
 	public String getName() {
 		return name;
-	}
-
-	public PositionXY getPosition() {
-		return position;
 	}
 
 	public OutputDeviceType getType() {
@@ -49,16 +42,12 @@ public class OutputDevice implements Serializable {
 		this.deviceId = deviceId;
 	}
 
-	public void setFloor(final Floor floor) {
-		this.floor = floor;
+	public void setFloorPlace(final FloorPlace floorPlace) {
+		this.floorPlace = floorPlace;
 	}
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public void setPosition(final PositionXY position) {
-		this.position = position;
 	}
 
 	public void setType(final OutputDeviceType type) {
@@ -74,19 +63,14 @@ public class OutputDevice implements Serializable {
 			builder.append(deviceId);
 			builder.append(", ");
 		}
-		if (floor != null) {
-			builder.append("floor=");
-			builder.append(floor.getName());
+		if (floorPlace != null) {
+			builder.append("floorPlace=");
+			builder.append(floorPlace);
 			builder.append(", ");
 		}
 		if (name != null) {
 			builder.append("name=");
 			builder.append(name);
-			builder.append(", ");
-		}
-		if (position != null) {
-			builder.append("position=");
-			builder.append(position);
 			builder.append(", ");
 		}
 		if (type != null) {
