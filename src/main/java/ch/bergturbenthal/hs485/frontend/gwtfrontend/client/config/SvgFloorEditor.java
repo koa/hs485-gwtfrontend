@@ -159,6 +159,7 @@ public class SvgFloorEditor extends Composite {
 
 				public void onSuccess(final SVGResource resource) {
 					appendIcon(resource.getSvg(), BULB_ON_ICON_ID);
+					showFloor(currentFloor);
 				}
 			});
 			resources.bulb_off().getSvg(new ResourceCallback<SVGResource>() {
@@ -170,6 +171,7 @@ public class SvgFloorEditor extends Composite {
 
 				public void onSuccess(final SVGResource resource) {
 					appendIcon(resource.getSvg(), BULB_OFF_ICON_ID);
+					showFloor(currentFloor);
 				}
 			});
 		} catch (final ResourceException e) {
@@ -265,8 +267,8 @@ public class SvgFloorEditor extends Composite {
 
 			@Override
 			public void execute() {
-				// TODO Auto-generated method stub
-
+				popupPanel.hide();
+				new EditOutputDevice(device).center();
 			}
 		}));
 		menuBar.addItem(new MenuItem("remove", new Command() {
