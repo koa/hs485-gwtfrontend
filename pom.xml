@@ -19,8 +19,8 @@
     <!-- Convenience property to set the GWT version -->
     <gwtVersion>2.3.0</gwtVersion>
     <!-- GWT needs at least java 1.5 -->
-    <maven.compiler.source>1.5</maven.compiler.source>
-    <maven.compiler.target>1.5</maven.compiler.target>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
     <!-- <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory> -->
     <webappDirectory>${project.build.directory}/m2e-wtp/web-resources</webappDirectory>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
@@ -128,8 +128,8 @@
             </goals>
           </execution>
         </executions>
-        <!-- Plugin configuration. There are many available options, see gwt-maven-plugin 
-          documentation at codehaus.org -->
+        <!-- Plugin configuration. There are many available options, see 
+          gwt-maven-plugin documentation at codehaus.org -->
         <configuration>
           <runTarget>Config.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
@@ -156,40 +156,15 @@
         </configuration>
       </plugin>
       <!-- Copy Java-Agent for starting Surefire -->
-      <!-- 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}</outputDirectory>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.springframework</groupId>
-                  <artifactId>spring-instrument</artifactId>
-                  <version>${org.springframework.version}</version>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <forkMode>pertest</forkMode>
-          <argLine>-javaagent:${basedir}/target/spring-instrument-${org.springframework.version}.jar</argLine>
-          <workingDirectory>${basedir}/target</workingDirectory>
-        </configuration>
-      </plugin>
-       -->
+      <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-dependency-plugin</artifactId> 
+        <executions> <execution> <id>copy</id> <phase>process-resources</phase> <goals> 
+        <goal>copy</goal> </goals> <configuration> <outputDirectory>${project.build.directory}</outputDirectory> 
+        <artifactItems> <artifactItem> <groupId>org.springframework</groupId> <artifactId>spring-instrument</artifactId> 
+        <version>${org.springframework.version}</version> </artifactItem> </artifactItems> 
+        </configuration> </execution> </executions> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
+        <artifactId>maven-surefire-plugin</artifactId> <configuration> <forkMode>pertest</forkMode> 
+        <argLine>-javaagent:${basedir}/target/spring-instrument-${org.springframework.version}.jar</argLine> 
+        <workingDirectory>${basedir}/target</workingDirectory> </configuration> </plugin> -->
       <plugin>
         <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
         <groupId>au.com.alderaan</groupId>
@@ -203,11 +178,23 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+          <compilerArguments>
+            <encoding>UTF-8</encoding>
+          </compilerArguments>
+        </configuration>
+      </plugin>
     </plugins>
     <pluginManagement>
       <plugins>
-        <!--This plugin's configuration is used to store Eclipse m2e settings only. 
-          It has no influence on the Maven build itself. -->
+        <!--This plugin's configuration is used to store Eclipse m2e settings 
+          only. It has no influence on the Maven build itself. -->
         <plugin>
           <groupId>org.eclipse.m2e</groupId>
           <artifactId>lifecycle-mapping</artifactId>

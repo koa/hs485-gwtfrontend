@@ -5,7 +5,6 @@
 	<persistence-unit name="SpringJpaGettingStarted">
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor</class>
-		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY</class>

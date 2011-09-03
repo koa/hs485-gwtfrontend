@@ -12,14 +12,12 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.BuildingDao;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FloorRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.RoomRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 import ch.eleveneye.hs485.device.Registry;
 
 import com.google.gwt.user.client.rpc.SerializationException;
@@ -27,13 +25,12 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigService {
 
-	private static final long		serialVersionUID	= 5816537750102063151L;
-	private BuildingDao					dao;
-	private FileDataRepository	fileDataRepository;
-	private FloorRepository			floorRepository;
-	private Registry						hs485registry;
-	private RoomRepository			roomRepository;
-	private TransactionTemplate	transactionTemplate;
+	private static final long				serialVersionUID	= 5816537750102063151L;
+	private FileDataRepository			fileDataRepository;
+	private FloorRepository					floorRepository;
+	private Registry								hs485registry;
+	private OutputDeviceRepository	outputDeviceRepository;
+	private TransactionTemplate			transactionTemplate;
 
 	/*
 	 * (non-Javadoc)
@@ -43,7 +40,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * (ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDevice)
 	 */
 	public void addOutputDevice(final OutputDevice device) {
-		dao.insert(device);
+		outputDeviceRepository.save(device);
 	}
 
 	/*
@@ -57,8 +54,8 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		return fileDataRepository.findOne(filename);
 	}
 
-	public List<OutputDevice> getOutputDevices() {
-		return dao.list();
+	public Iterable<OutputDevice> getOutputDevices() {
+		return outputDeviceRepository.findAll();
 	}
 
 	@Override
@@ -68,10 +65,8 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
-
-		dao = ctx.getBean(BuildingDao.class);
+		outputDeviceRepository = ctx.getBean(OutputDeviceRepository.class);
 		floorRepository = ctx.getBean(FloorRepository.class);
-		roomRepository = ctx.getBean(RoomRepository.class);
 		fileDataRepository = ctx.getBean(FileDataRepository.class);
 		hs485registry = ctx.getBean("hs485registry", Registry.class);
 	}
@@ -85,17 +80,6 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public Iterable<Floor> listAllFloors() {
 		return floorRepository.findAll();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#listAllRooms
-	 * ()
-	 */
-	public Iterable<Room> listAllRooms() {
-		return roomRepository.findAll();
 	}
 
 	/*
@@ -136,17 +120,6 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository.delete(floors);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#removeRooms
-	 * (java.lang.Iterable)
-	 */
-	public void removeRooms(final Iterable<Room> rooms) {
-		roomRepository.delete(rooms);
-	}
-
 	/**
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.lang.Iterable)
 	 */
@@ -159,22 +132,6 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#addOutputDevice(ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice)
 	 */
 	public void updateOutputDevice(final OutputDevice device) {
-		transactionTemplate.execute(new TransactionCallback<OutputDevice>() {
-
-			public OutputDevice doInTransaction(final TransactionStatus status) {
-				return dao.update(device);
-			}
-		});
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateRooms
-	 * (java.lang.Iterable)
-	 */
-	public void updateRooms(final Iterable<Room> rooms) {
-		roomRepository.save(rooms);
+		outputDeviceRepository.save(device);
 	}
 }

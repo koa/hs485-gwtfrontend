@@ -53,6 +53,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
@@ -62,6 +63,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 /**
@@ -278,7 +280,7 @@ public class SvgFloorEditor extends Composite {
 			}
 		});
 		fileUploadDialog.setModal(true);
-		fileUploadDialog.show();
+		fileUploadDialog.center();
 	}
 
 	@UiHandler("addLampButton")
@@ -294,6 +296,7 @@ public class SvgFloorEditor extends Composite {
 
 	@UiHandler("selectFileListBox")
 	void onSelectFileListBoxChange(final ChangeEvent event) {
+		DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "wait");
 		try {
 			final int selectedIndex = selectFileListBox.getSelectedIndex();
 			final String filename = selectFileListBox.getValue(selectedIndex);
@@ -302,6 +305,7 @@ public class SvgFloorEditor extends Composite {
 
 				public void onError(final Request request, final Throwable exception) {
 					// TODO Auto-generated method stub
+					DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
 
 				}
 
@@ -309,9 +313,11 @@ public class SvgFloorEditor extends Composite {
 					svg = OMSVGParser.parse(response.getText());
 					SVGProcessor.normalizeIds(svg);
 					drawSvg();
+					DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
 				}
 			});
 		} catch (final RequestException e) {
+			DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "default");
 			throw new RuntimeException(e);
 		}
 	}

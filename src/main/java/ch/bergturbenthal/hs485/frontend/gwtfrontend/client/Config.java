@@ -1,7 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
@@ -108,13 +107,6 @@ public class Config implements EntryPoint {
 		});
 		menuBar_2.addItem(editFloorsItem);
 
-		final MenuItem editRoomsItem = new MenuItem(messages.editRoomsItem(), false, new Command() {
-			public void execute() {
-				new RoomEditorDialog().show();
-			}
-		});
-		menuBar_2.addItem(editRoomsItem);
-
 		final MenuItem editFilesItem = new MenuItem(messages.mntmNewItem_text_1(), false, new Command() {
 			public void execute() {
 				new FileUploadDialog().show();
@@ -168,15 +160,16 @@ public class Config implements EntryPoint {
 	 * 
 	 */
 	private void reloadOutputDeviceList() {
-		configService.getOutputDevices(new AsyncCallback<List<OutputDevice>>() {
+		configService.getOutputDevices(new AsyncCallback<Iterable<OutputDevice>>() {
 
 			public void onFailure(final Throwable caught) {
 				GWT.log("Error", caught);
 			}
 
-			public void onSuccess(final List<OutputDevice> result) {
+			public void onSuccess(final Iterable<OutputDevice> result) {
 				outputDeviceList.clear();
-				outputDeviceList.addAll(result);
+				for (final OutputDevice outputDevice : result)
+					outputDeviceList.add(outputDevice);
 				outputDeviceCellTable.setRowData(outputDeviceList);
 			}
 		});

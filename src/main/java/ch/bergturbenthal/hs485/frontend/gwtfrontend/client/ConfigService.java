@@ -5,7 +5,6 @@ import java.util.List;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Room;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
@@ -30,9 +29,7 @@ public interface ConfigService extends RemoteService {
 
 	public FileData getFile(String filename);
 
-	public List<OutputDevice> getOutputDevices();
-
-	public List<String> listFilesByMimeType(String mimeType);
+	public Iterable<OutputDevice> getOutputDevices();
 
 	/**
 	 * Gets all Available Floors
@@ -41,12 +38,7 @@ public interface ConfigService extends RemoteService {
 	 */
 	public Iterable<Floor> listAllFloors();
 
-	/**
-	 * Gets all Available Rooms
-	 * 
-	 * @return
-	 */
-	public Iterable<Room> listAllRooms();
+	public List<String> listFilesByMimeType(String mimeType);
 
 	/**
 	 * remove this Floors
@@ -54,13 +46,6 @@ public interface ConfigService extends RemoteService {
 	 * @param floors
 	 */
 	public void removeFloors(Iterable<Floor> floors);
-
-	/**
-	 * remove this Rooms
-	 * 
-	 * @param floors
-	 */
-	public void removeRooms(Iterable<Room> rooms);
 
 	/**
 	 * Add or modifiy this floors
@@ -71,10 +56,4 @@ public interface ConfigService extends RemoteService {
 
 	public void updateOutputDevice(OutputDevice device);
 
-	/**
-	 * Add or modify this Rooms
-	 * 
-	 * @param rooms
-	 */
-	public void updateRooms(Iterable<Room> rooms);
 }

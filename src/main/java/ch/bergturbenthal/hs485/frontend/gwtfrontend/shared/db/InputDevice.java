@@ -17,13 +17,17 @@ import javax.persistence.ManyToOne;
 @Entity
 public class InputDevice implements Serializable {
 	private static final long	serialVersionUID	= 1L;
+	@ManyToOne
+	private Floor							floor;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						inputDeviceId;
 	private String						name;
-	@ManyToOne
-	private Room							room;
 	private InputDeviceType		type;
+
+	public Floor getFloor() {
+		return floor;
+	}
 
 	public Integer getInputDeviceId() {
 		return inputDeviceId;
@@ -33,12 +37,12 @@ public class InputDevice implements Serializable {
 		return name;
 	}
 
-	public Room getRoom() {
-		return room;
-	}
-
 	public InputDeviceType getType() {
 		return type;
+	}
+
+	public void setFloor(final Floor floor) {
+		this.floor = floor;
 	}
 
 	public void setInputDeviceId(final Integer inputDeviceId) {
@@ -47,10 +51,6 @@ public class InputDevice implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public void setRoom(final Room room) {
-		this.room = room;
 	}
 
 	public void setType(final InputDeviceType type) {
