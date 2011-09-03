@@ -79,7 +79,19 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * ()
 	 */
 	public Iterable<Floor> listAllFloors() {
-		return floorRepository.findAll();
+		System.out.println("---------------------- list all floors ------------------------------");
+		try {
+			final Iterable<Floor> found = floorRepository.findAll();
+			System.out.println(found);
+			System.out.println("----- returning -----");
+			return found;
+		} catch (final RuntimeException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (final Throwable t) {
+			t.printStackTrace();
+			throw new RuntimeException(t);
+		}
 	}
 
 	/*
@@ -107,6 +119,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 				}
 			});
 		} catch (final RuntimeException ex) {
+			ex.printStackTrace();
 			if (ex.getCause() != null && ex.getCause() instanceof SerializationException)
 				throw (SerializationException) ex.getCause();
 			throw ex;

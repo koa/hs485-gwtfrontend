@@ -4,6 +4,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,8 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
@@ -108,11 +111,18 @@ public class SvgFloorEditor extends Composite {
 	@UiField
 	Button																addFileButton;
 	@UiField
+	Button																addFloorButton;
+	@UiField
 	Button																addLampButton;
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
+
+	private Floor													currentFloor;
 	private OMSVGUseElement								dragIcon;
 
 	private PositionXY										dragPosition;
+
+	private List<Floor>										floors						= new ArrayList<Floor>();
+
 	private OMSVGGElement									iconsGroup;
 
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
@@ -125,29 +135,21 @@ public class SvgFloorEditor extends Composite {
 	private final Resources								resources					= GWT.create(Resources.class);
 
 	private float													scale;
-
 	@UiField
 	ListBox																selectFileListBox;
-
 	@UiField
 	ListBox																selectFloorListBox;
 
 	private OMSVGSVGElement								svg;
+
 	@UiField
 	HTMLPanel															svgPanel;
 
 	public SvgFloorEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
-
-		// Test-Data
-		final OutputDevice outputDevice = new OutputDevice();
-		outputDevice.setName("Wohnzimmer");
-		outputDevice.setPosition(new PositionXY());
-		outputDevice.getPosition().setX(300);
-		outputDevice.getPosition().setX(150);
-		outputDevices.add(outputDevice);
-
+		showFloor(null);
 		reloadFileList();
+		reloadFloorList();
 		try {
 			resources.bulb_on().getSvg(new ResourceCallback<SVGResource>() {
 
@@ -283,6 +285,25 @@ public class SvgFloorEditor extends Composite {
 		fileUploadDialog.center();
 	}
 
+	@UiHandler("addFloorButton")
+	void onAddFloorButtonClick(final ClickEvent event) {
+		final Floor newFloor = new Floor();
+		newFloor.setName("Floor " + floors.size());
+		configService.updateFloors(Arrays.asList(new Floor[] { newFloor }), new AsyncCallback<Void>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Void result) {
+				reloadFloorList();
+			}
+		});
+	}
+
 	@UiHandler("addLampButton")
 	void onAddLampButtonClick(final ClickEvent event) {
 		final OutputDevice outputDevice = new OutputDevice();
@@ -296,10 +317,98 @@ public class SvgFloorEditor extends Composite {
 
 	@UiHandler("selectFileListBox")
 	void onSelectFileListBoxChange(final ChangeEvent event) {
-		DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "wait");
-		try {
-			final int selectedIndex = selectFileListBox.getSelectedIndex();
+		final int selectedIndex = selectFileListBox.getSelectedIndex();
+		if (selectedIndex < 1)
+			currentFloor.setPlan(null);
+		else {
 			final String filename = selectFileListBox.getValue(selectedIndex);
+			configService.getFile(filename, new AsyncCallback<FileData>() {
+
+				@Override
+				public void onFailure(final Throwable caught) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void onSuccess(final FileData result) {
+					currentFloor.setPlan(result);
+				}
+			});
+			showBackgroundFile(filename);
+		}
+	}
+
+	@UiHandler("selectFloorListBox")
+	void onSelectFloorListBoxChange(final ChangeEvent event) {
+		final int selectedIndex = selectFileListBox.getSelectedIndex();
+		if (selectedIndex < 0 || selectedIndex >= floors.size())
+			showFloor(null);
+		else
+			showFloor(floors.get(selectedIndex));
+	}
+
+	/**
+	 * 
+	 */
+	private void reloadFileList() {
+		configService.listFilesByMimeType("image/svg+xml", new AsyncCallback<List<String>>() {
+
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			public void onSuccess(final List<String> result) {
+				selectFileListBox.clear();
+				selectFileListBox.addItem("----");
+				for (final String filename : result)
+					selectFileListBox.addItem(filename);
+			}
+		});
+	}
+
+	private void reloadFloorList() {
+		configService.listAllFloors(new AsyncCallback<Iterable<Floor>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<Floor> result) {
+				selectFloorListBox.clear();
+				floors = new ArrayList<Floor>();
+				for (final Floor floor : result) {
+					floors.add(floor);
+					selectFloorListBox.addItem(floor.getName());
+				}
+				if (currentFloor != null)
+					for (int i = 0; i < floors.size(); i++)
+						if (currentFloor.getName().equals(floors.get(i).getName())) {
+							selectFloorListBox.setSelectedIndex(i);
+							showFloor(floors.get(i));
+							return;
+						}
+				if (floors.size() > 0)
+					showFloor(floors.get(0));
+			}
+		});
+		// TODO Auto-generated method stub
+
+	}
+
+	private void removeAllChildren(final Element element) {
+		Node node;
+		while ((node = element.getFirstChild()) != null)
+			element.removeChild(node);
+	}
+
+	private void showBackgroundFile(final String filename) {
+		try {
+			DOM.setStyleAttribute(RootPanel.getBodyElement(), "cursor", "wait");
 			final RequestBuilder requestBuilder = new RequestBuilder(RequestBuilder.GET, GWT.getModuleBaseURL() + "file?filename=" + filename);
 			requestBuilder.sendRequest(null, new RequestCallback() {
 
@@ -322,30 +431,17 @@ public class SvgFloorEditor extends Composite {
 		}
 	}
 
-	/**
-	 * 
-	 */
-	private void reloadFileList() {
-		configService.listFilesByMimeType("image/svg+xml", new AsyncCallback<List<String>>() {
+	private void showFloor(final Floor floor) {
+		currentFloor = floor;
+		addFileButton.setEnabled(currentFloor != null);
+		removeFloorButton.setEnabled(currentFloor != null);
+		selectFileListBox.setEnabled(currentFloor != null);
+		addLampButton.setEnabled(currentFloor != null);
+		if (currentFloor == null)
+			return;
+		showBackgroundFile(currentFloor.getPlan().getFileName());
+		drawSvg();
 
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void onSuccess(final List<String> result) {
-				selectFileListBox.clear();
-				for (final String filename : result)
-					selectFileListBox.addItem(filename);
-
-			}
-		});
-	}
-
-	private void removeAllChildren(final Element element) {
-		Node node;
-		while ((node = element.getFirstChild()) != null)
-			element.removeChild(node);
 	}
 
 	private void updateIcons() {
