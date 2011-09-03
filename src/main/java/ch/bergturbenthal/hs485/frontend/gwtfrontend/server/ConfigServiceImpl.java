@@ -59,6 +59,11 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	}
 
 	@Override
+	public Iterable<OutputDevice> getOutputDevicesByFloor(final Floor floor) {
+		return outputDeviceRepository.findByFloor(floor);
+	}
+
+	@Override
 	public void init() throws ServletException {
 		super.init();
 		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
@@ -137,6 +142,8 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.lang.Iterable)
 	 */
 	public void updateFloors(final Iterable<Floor> floors) {
+		System.out.println("----------------------- update floors ----------------");
+		System.out.println(floors);
 		floorRepository.save(floors);
 	}
 
@@ -146,5 +153,12 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public void updateOutputDevice(final OutputDevice device) {
 		outputDeviceRepository.save(device);
+	}
+
+	@Override
+	public Iterable<OutputDevice> updateOutputDevices(final Iterable<OutputDevice> devices) {
+		System.out.println("--------------- update output devices ---------------");
+		System.out.println(devices);
+		return outputDeviceRepository.save(devices);
 	}
 }

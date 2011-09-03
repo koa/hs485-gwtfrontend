@@ -29,6 +29,7 @@ public class FileUploader extends Composite {
 	private Runnable										finishedRunnable	= null;
 	@UiField
 	FormPanel														formPanel;
+
 	@UiField
 	Button															uploadButton;
 

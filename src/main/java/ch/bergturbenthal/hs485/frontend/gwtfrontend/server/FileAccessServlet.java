@@ -43,8 +43,8 @@ public class FileAccessServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
 		final FileData fileData = fileDataRepository.findOne(req.getParameter("filename"));
 		resp.setContentType(fileData.getMimeType());
-		resp.setContentLength(fileData.getFileDataContent().length);
-		resp.getOutputStream().write(fileData.getFileDataContent());
+		// resp.setContentLength(fileData.getFileDataContent().length());
+		resp.getWriter().print(fileData.getFileDataContent());
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class FileAccessServlet extends HttpServlet {
 				final FileData data = new FileData();
 				data.setFileName(file.getName());
 				data.setMimeType(file.getContentType());
-				data.setFileDataContent(file.get());
+				data.setFileDataContent(new String(file.get(), "utf-8"));
 				fileDataRepository.save(data);
 			}
 

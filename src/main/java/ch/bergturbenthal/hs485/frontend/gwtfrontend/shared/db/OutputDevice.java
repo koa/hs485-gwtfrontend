@@ -67,7 +67,34 @@ public class OutputDevice implements Serializable {
 
 	@Override
 	public String toString() {
-		return "OutputDevice [deviceId=" + deviceId + ", floor=" + floor + ", name=" + name + ", position=" + position + ", type=" + type + "]";
+		final StringBuilder builder = new StringBuilder();
+		builder.append("OutputDevice [");
+		if (deviceId != null) {
+			builder.append("deviceId=");
+			builder.append(deviceId);
+			builder.append(", ");
+		}
+		if (floor != null) {
+			builder.append("floor=");
+			builder.append(floor.getName());
+			builder.append(", ");
+		}
+		if (name != null) {
+			builder.append("name=");
+			builder.append(name);
+			builder.append(", ");
+		}
+		if (position != null) {
+			builder.append("position=");
+			builder.append(position);
+			builder.append(", ");
+		}
+		if (type != null) {
+			builder.append("type=");
+			builder.append(type);
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

@@ -16,12 +16,12 @@ import javax.persistence.Lob;
 public class FileData implements Serializable {
 	private static final long	serialVersionUID	= 720587507323632368L;
 	@Lob
-	private byte[]						fileDataContent;
+	private String						fileDataContent;
 	@Id
 	private String						fileName;
 	private String						mimeType;
 
-	public byte[] getFileDataContent() {
+	public String getFileDataContent() {
 		return fileDataContent;
 	}
 
@@ -33,7 +33,7 @@ public class FileData implements Serializable {
 		return mimeType;
 	}
 
-	public void setFileDataContent(final byte[] fileDataContent) {
+	public void setFileDataContent(final String fileDataContent) {
 		this.fileDataContent = fileDataContent;
 	}
 

@@ -25,11 +25,11 @@ public interface ConfigService extends RemoteService {
 		}
 	}
 
-	public void addOutputDevice(OutputDevice device);
-
 	public FileData getFile(String filename);
 
 	public Iterable<OutputDevice> getOutputDevices();
+
+	public Iterable<OutputDevice> getOutputDevicesByFloor(Floor floor);
 
 	/**
 	 * Gets all Available Floors
@@ -54,6 +54,6 @@ public interface ConfigService extends RemoteService {
 	 */
 	public void updateFloors(Iterable<Floor> floors);
 
-	public void updateOutputDevice(OutputDevice device);
+	public Iterable<OutputDevice> updateOutputDevices(Iterable<OutputDevice> devices);
 
 }

@@ -311,8 +311,9 @@ public class SvgFloorEditor extends Composite {
 		outputDevice.setPosition(new PositionXY());
 		outputDevice.getPosition().setX(300);
 		outputDevice.getPosition().setX(150);
+		outputDevice.setFloor(currentFloor);
 		outputDevices.add(outputDevice);
-		updateIcons();
+		updateOutputDevicesOnServer();
 	}
 
 	@UiHandler("selectFileListBox")
@@ -333,19 +334,36 @@ public class SvgFloorEditor extends Composite {
 				@Override
 				public void onSuccess(final FileData result) {
 					currentFloor.setPlan(result);
+					configService.updateFloors(Arrays.asList(new Floor[] { currentFloor }), new AsyncCallback<Void>() {
+
+						@Override
+						public void onFailure(final Throwable caught) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void onSuccess(final Void result) {
+							// TODO Auto-generated method stub
+
+						}
+					});
+					showFloor(currentFloor);
 				}
 			});
-			showBackgroundFile(filename);
 		}
 	}
 
 	@UiHandler("selectFloorListBox")
 	void onSelectFloorListBoxChange(final ChangeEvent event) {
-		final int selectedIndex = selectFileListBox.getSelectedIndex();
+		final int selectedIndex = selectFloorListBox.getSelectedIndex();
+		System.out.println(selectedIndex);
 		if (selectedIndex < 0 || selectedIndex >= floors.size())
 			showFloor(null);
-		else
+		else {
+			System.out.println(floors.get(selectedIndex));
 			showFloor(floors.get(selectedIndex));
+		}
 	}
 
 	/**
@@ -439,7 +457,31 @@ public class SvgFloorEditor extends Composite {
 		addLampButton.setEnabled(currentFloor != null);
 		if (currentFloor == null)
 			return;
-		showBackgroundFile(currentFloor.getPlan().getFileName());
+		final FileData plan = currentFloor.getPlan();
+		if (plan == null)
+			return;
+		for (int i = 0; i < selectFileListBox.getItemCount(); i++)
+			if (currentFloor.getPlan().getFileName().equals(selectFileListBox.getValue(i)))
+				selectFileListBox.setSelectedIndex(i);
+
+		configService.getOutputDevicesByFloor(currentFloor, new AsyncCallback<Iterable<OutputDevice>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<OutputDevice> result) {
+				outputDevices.clear();
+				for (final OutputDevice outputDevice : result)
+					outputDevices.add(outputDevice);
+				updateIcons();
+			}
+		});
+		svg = OMSVGParser.parse(plan.getFileDataContent());
+		SVGProcessor.normalizeIds(svg);
 		drawSvg();
 
 	}
@@ -505,11 +547,36 @@ public class SvgFloorEditor extends Composite {
 			useIcon.addMouseUpHandler(new MouseUpHandler() {
 
 				public void onMouseUp(final MouseUpEvent event) {
+					if (dragIcon != null)
+						updateOutputDevicesOnServer();
 					dragPosition = null;
 					dragIcon = null;
 					System.out.println(outputDevices);
 				}
 			});
 		}
+	}
+
+	private void updateOutputDevicesOnServer() {
+		System.out.println(outputDevices);
+		addLampButton.setEnabled(false);
+		configService.updateOutputDevices(outputDevices, new AsyncCallback<Iterable<OutputDevice>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				addLampButton.setEnabled(true);
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<OutputDevice> result) {
+				outputDevices.clear();
+				for (final OutputDevice outputDevice : result)
+					outputDevices.add(outputDevice);
+				updateIcons();
+				addLampButton.setEnabled(true);
+			}
+		});
 	}
 }

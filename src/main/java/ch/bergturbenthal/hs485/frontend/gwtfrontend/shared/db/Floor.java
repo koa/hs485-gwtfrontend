@@ -4,13 +4,11 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 /**
@@ -19,15 +17,13 @@ import javax.persistence.OneToOne;
 @Entity
 public class Floor implements Serializable {
 
-	private static final long					serialVersionUID	= 2901805918126067682L;
+	private static final long	serialVersionUID	= 2901805918126067682L;
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer										floorId;
-	private String										name;
-	@ManyToOne(targetEntity = OutputDevice.class)
-	private Collection<OutputDevice>	outputDevices;
+	private Integer						floorId;
+	private String						name;
 	@OneToOne
-	private FileData									plan;
+	private FileData					plan;
 
 	public Integer getFloorId() {
 		return floorId;
@@ -35,10 +31,6 @@ public class Floor implements Serializable {
 
 	public String getName() {
 		return name;
-	}
-
-	public Collection<OutputDevice> getOutputDevices() {
-		return outputDevices;
 	}
 
 	public FileData getPlan() {
@@ -51,10 +43,6 @@ public class Floor implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public void setOutputDevices(final Collection<OutputDevice> outputDevices) {
-		this.outputDevices = outputDevices;
 	}
 
 	public void setPlan(final FileData plan) {
@@ -73,6 +61,11 @@ public class Floor implements Serializable {
 		if (name != null) {
 			builder.append("name=");
 			builder.append(name);
+			builder.append(", ");
+		}
+		if (plan != null) {
+			builder.append("plan=");
+			builder.append(plan.getFileName());
 		}
 		builder.append("]");
 		return builder.toString();
