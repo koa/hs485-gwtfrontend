@@ -257,6 +257,42 @@ public class SvgFloorEditor extends Composite {
 
 	}
 
+	private PopupPanel makePopupPanelForOutputDevice(final OutputDevice device) {
+		final PopupPanel popupPanel = new PopupPanel(true);
+		final MenuBar menuBar = new MenuBar(true);
+		popupPanel.add(menuBar);
+		menuBar.addItem(new MenuItem("edit ...", new Command() {
+
+			@Override
+			public void execute() {
+				// TODO Auto-generated method stub
+
+			}
+		}));
+		menuBar.addItem(new MenuItem("remove", new Command() {
+			public void execute() {
+				popupPanel.hide();
+				if (Window.confirm("Are you sure to remove " + device.getName() + "?"))
+					configService.removeOutputDevice(device, new AsyncCallback<Void>() {
+
+						@Override
+						public void onFailure(final Throwable caught) {
+							updateIcons();
+							// TODO Auto-generated method stub
+						}
+
+						@Override
+						public void onSuccess(final Void result) {
+							outputDevices.remove(device);
+							updateIcons();
+						}
+					});
+			}
+		}));
+		popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
+		return popupPanel;
+	}
+
 	/**
 	 * @param svg
 	 * @return
@@ -514,20 +550,8 @@ public class SvgFloorEditor extends Composite {
 						absoluteTop = Math.round(clientY - dragPosition.getY() * scale);
 						break;
 					case NativeEvent.BUTTON_RIGHT:
-						final PopupPanel popupPanel = new PopupPanel(true);
-						final MenuBar menuBar = new MenuBar(true);
-						popupPanel.add(menuBar);
-						menuBar.addItem(new MenuItem("remove", new Command() {
-							public void execute() {
-								popupPanel.hide();
-								if (Window.confirm("Are you sure to remove " + device.getName() + "?")) {
-									outputDevices.remove(device);
-									updateIcons();
-								}
-							}
-						}));
+						final PopupPanel popupPanel = makePopupPanelForOutputDevice(device);
 						popupPanel.setPopupPosition(event.getClientX(), event.getClientY());
-						popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
 						popupPanel.show();
 						event.stopPropagation();
 						event.preventDefault();

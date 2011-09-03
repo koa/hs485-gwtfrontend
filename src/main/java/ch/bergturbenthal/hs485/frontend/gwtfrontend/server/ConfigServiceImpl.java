@@ -138,6 +138,11 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository.delete(floors);
 	}
 
+	@Override
+	public void removeOutputDevice(final OutputDevice device) {
+		outputDeviceRepository.delete(device);
+	}
+
 	/**
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#updateFloors(java.lang.Iterable)
 	 */

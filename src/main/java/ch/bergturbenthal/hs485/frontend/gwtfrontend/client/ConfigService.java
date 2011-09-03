@@ -47,6 +47,8 @@ public interface ConfigService extends RemoteService {
 	 */
 	public void removeFloors(Iterable<Floor> floors);
 
+	public void removeOutputDevice(OutputDevice device);
+
 	/**
 	 * Add or modifiy this floors
 	 * 
