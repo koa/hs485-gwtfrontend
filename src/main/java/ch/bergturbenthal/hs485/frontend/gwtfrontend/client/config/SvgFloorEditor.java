@@ -27,7 +27,6 @@ import org.vectomatic.dom.svg.utils.OMSVGParser;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.svg.SVGProcessor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
@@ -76,22 +75,13 @@ public class SvgFloorEditor extends Composite {
 
 	private static final class IconData {
 		private OMSVGGElement	icon;
-		private OMSVGRect			viewPort;
 
 		public OMSVGGElement getIcon() {
 			return icon;
 		}
 
-		public OMSVGRect getViewPort() {
-			return viewPort;
-		}
-
 		public void setIcon(final OMSVGGElement icon) {
 			this.icon = icon;
-		}
-
-		public void setViewPort(final OMSVGRect viewPort) {
-			this.viewPort = viewPort;
 		}
 
 	}
@@ -123,6 +113,9 @@ public class SvgFloorEditor extends Composite {
 	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
 
 	private Floor													currentFloor;
+	@UiField
+	Button																decScaleButton;
+
 	private OMSVGUseElement								dragIcon;
 
 	private PositionXY										dragPosition;
@@ -130,29 +123,30 @@ public class SvgFloorEditor extends Composite {
 	private List<Floor>										floors						= new ArrayList<Floor>();
 
 	private OMSVGGElement									iconsGroup;
-
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
 
 	@UiField
-	Button																inputDeviceButton;
-	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
+	Button																incScaleButton;
 
 	@UiField
-	Button																outputDeviceButton;
+	Button																inputDeviceButton;
 
+	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
+	@UiField
+	Button																outputDeviceButton;
 	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
 
 	@UiField
 	Button																removeFloorButton;
+
 	private final Resources								resources					= GWT.create(Resources.class);
 	private float													scale;
-
 	@UiField
 	ListBox																selectFileListBox;
-
 	@UiField
 	ListBox																selectFloorListBox;
 	private OMSVGSVGElement								svg;
+
 	@UiField
 	HTMLPanel															svgPanel;
 
@@ -191,10 +185,18 @@ public class SvgFloorEditor extends Composite {
 
 	private void appendIcon(final OMSVGSVGElement svgDoc, final String iconId) {
 		final IconData icon = new IconData();
-		icon.setViewPort(svgDoc.getViewport());
-		final OMSVGGElement bulbOn = moveSvgToG(svgDoc);
-		bulbOn.setId(iconId);
-		icon.setIcon(bulbOn);
+		// icon.setViewPort(svgDoc.getViewport());
+		final OMSVGGElement svgGElem = moveSvgToG(svgDoc);
+		final OMSVGTransform scaleTransform = svgDoc.createSVGTransform();
+		final OMSVGTransform centerTransform = svgDoc.createSVGTransform();
+		final OMSVGRect baseRect = svgDoc.getViewport();
+		centerTransform.setTranslate(-baseRect.getCenterX(), -baseRect.getCenterY());
+		final OMSVGTransformList transformList = svgGElem.getTransform().getBaseVal();
+		transformList.appendItem(scaleTransform);
+		transformList.appendItem(centerTransform);
+		svgGElem.setId(iconId);
+		icon.setIcon(svgGElem);
+		// icon.setScaleTransform(scaleTransform);
 		iconTemplates.put(iconId, icon);
 	}
 
@@ -385,7 +387,7 @@ public class SvgFloorEditor extends Composite {
 	 * @return
 	 */
 	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
-		SVGProcessor.normalizeIds(svg);
+		// SVGProcessor.normalizeIds(svg);
 		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
 		final Element svgElement = svg.getElement();
 		final Element newGElement = newG.getElement();
@@ -425,6 +427,24 @@ public class SvgFloorEditor extends Composite {
 				reloadFloorList();
 			}
 		});
+	}
+
+	@UiHandler("decScaleButton")
+	void onDecScaleButtonClick(final ClickEvent event) {
+		float iconScale = currentFloor.getScale();
+		iconScale = iconScale * 0.8f;
+		scaleIcons(iconScale);
+		currentFloor.setScale(iconScale);
+		saveFloor();
+	}
+
+	@UiHandler("incScaleButton")
+	void onIncScaleButtonClick(final ClickEvent event) {
+		float iconScale = currentFloor.getScale();
+		iconScale = iconScale * 1.25f;
+		scaleIcons(iconScale);
+		currentFloor.setScale(iconScale);
+		saveFloor();
 	}
 
 	@UiHandler("inputDeviceButton")
@@ -470,20 +490,7 @@ public class SvgFloorEditor extends Composite {
 				@Override
 				public void onSuccess(final FileData result) {
 					currentFloor.setPlan(result);
-					configService.updateFloors(Arrays.asList(new Floor[] { currentFloor }), new AsyncCallback<Void>() {
-
-						@Override
-						public void onFailure(final Throwable caught) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void onSuccess(final Void result) {
-							// TODO Auto-generated method stub
-
-						}
-					});
+					saveFloor();
 					showFloor(currentFloor);
 				}
 			});
@@ -617,6 +624,33 @@ public class SvgFloorEditor extends Composite {
 			element.removeChild(node);
 	}
 
+	/**
+	 * 
+	 */
+	private void saveFloor() {
+		configService.updateFloors(Arrays.asList(new Floor[] { currentFloor }), new AsyncCallback<Void>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Void result) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+	}
+
+	private void scaleIcons(final float scaleFactor) {
+		for (final IconData iconData : iconTemplates.values()) {
+			final OMSVGTransform scaleTransform = iconData.getIcon().getTransform().getBaseVal().getItem(0);
+			scaleTransform.setScale(scaleFactor, scaleFactor);
+		}
+	}
+
 	private void showFloor(final Floor floor) {
 		currentFloor = floor;
 		addFileButton.setEnabled(currentFloor != null);
@@ -626,6 +660,9 @@ public class SvgFloorEditor extends Composite {
 		inputDeviceButton.setEnabled(currentFloor != null);
 		if (currentFloor == null)
 			return;
+		if (currentFloor.getScale() == null || currentFloor.getScale().floatValue() == 0)
+			currentFloor.setScale(1f);
+		scaleIcons(currentFloor.getScale());
 		final FileData plan = currentFloor.getPlan();
 		if (plan == null)
 			return;
@@ -667,7 +704,7 @@ public class SvgFloorEditor extends Composite {
 			}
 		});
 		svg = OMSVGParser.parse(plan.getFileDataContent());
-		SVGProcessor.normalizeIds(svg);
+		// SVGProcessor.normalizeIds(svg);
 		drawSvg();
 
 	}
@@ -724,8 +761,6 @@ public class SvgFloorEditor extends Composite {
 				inputDeviceButton.setEnabled(true);
 			}
 		});
-		// TODO Auto-generated method stub
-
 	}
 
 	private void updateOutputDevicesOnServer() {
@@ -736,7 +771,6 @@ public class SvgFloorEditor extends Composite {
 			public void onFailure(final Throwable caught) {
 				outputDeviceButton.setEnabled(true);
 				// TODO Auto-generated method stub
-
 			}
 
 			@Override

@@ -26,6 +26,15 @@
         			<g:Button ui:field="removeFloorButton" text="remove current Floor" />
         		</g:customCell>
         	</g:row>
+        	<g:row>
+        		<g:cell></g:cell>
+        		<g:customCell>
+        			<g:HorizontalPanel width="100%" horizontalAlignment="ALIGN_CENTER">
+        				<g:Button ui:field="incScaleButton">+</g:Button>
+        				<g:Button ui:field="decScaleButton">-</g:Button>
+        			</g:HorizontalPanel>
+        		</g:customCell>
+        	</g:row>
         	<g:row/>
         	<g:row>
         		<g:customCell>

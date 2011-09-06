@@ -24,6 +24,7 @@ public class Floor implements Serializable {
 	private String						name;
 	@OneToOne
 	private FileData					plan;
+	private Float							scale;
 
 	public Integer getFloorId() {
 		return floorId;
@@ -37,6 +38,10 @@ public class Floor implements Serializable {
 		return plan;
 	}
 
+	public Float getScale() {
+		return scale;
+	}
+
 	public void setFloorId(final Integer floorId) {
 		this.floorId = floorId;
 	}
@@ -47,6 +52,10 @@ public class Floor implements Serializable {
 
 	public void setPlan(final FileData plan) {
 		this.plan = plan;
+	}
+
+	public void setScale(final Float scale) {
+		this.scale = scale;
 	}
 
 	@Override
