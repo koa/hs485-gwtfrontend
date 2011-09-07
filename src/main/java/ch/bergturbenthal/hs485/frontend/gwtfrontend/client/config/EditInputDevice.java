@@ -10,6 +10,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -22,6 +23,8 @@ public class EditInputDevice extends DialogBox {
 	private static EditInputDeviceUiBinder	uiBinder	= GWT.create(EditInputDeviceUiBinder.class);
 	@UiField
 	Button																	cancelButton;
+	@UiField
+	IntegerBox															channelCountInput;
 	private final InputDevice								device;
 	@UiField
 	TextBox																	nameTextInput;
@@ -37,6 +40,7 @@ public class EditInputDevice extends DialogBox {
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		nameTextInput.setValue(inputDevice.getName());
+		// channelCountInput.setValue(inputDevice.get)
 		for (final InputDeviceType inputDeviceType : InputDeviceType.values()) {
 			typeListBox.addItem(inputDeviceType.name());
 			if (inputDeviceType.equals(inputDevice.getType()))

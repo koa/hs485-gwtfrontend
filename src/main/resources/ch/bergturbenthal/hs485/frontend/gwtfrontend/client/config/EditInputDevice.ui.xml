@@ -21,6 +21,14 @@
   		</g:customCell>
   	</g:row>
   	<g:row>
+  		<g:customCell>
+  			<g:Label text="Channel Count"/>
+  		</g:customCell>
+  		<g:customCell>
+  			<g:IntegerBox ui:field="channelCountInput"/>
+  		</g:customCell>
+  	</g:row>
+  	<g:row>
   		<g:cell></g:cell>
   		<g:customCell>
   			<g:HorizontalPanel>

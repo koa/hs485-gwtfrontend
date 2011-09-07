@@ -4,26 +4,37 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OrderColumn;
 
 /**
  * Input-Device
  */
 @Entity
 public class InputDevice implements Serializable {
-	private static final long	serialVersionUID	= 1L;
+	private static final long			serialVersionUID	= 1L;
+	@ElementCollection
+	@OrderColumn
+	private List<InputConnector>	connectors				= new ArrayList<InputConnector>();
 	@Embedded
-	private FloorPlace				floorPlace				= new FloorPlace();
+	private FloorPlace						floorPlace				= new FloorPlace();
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer						inputDeviceId;
-	private String						name;
-	private InputDeviceType		type;
+	private Integer								inputDeviceId;
+	private String								name;
+	private InputDeviceType				type;
+
+	public List<InputConnector> getConnectors() {
+		return connectors;
+	}
 
 	public FloorPlace getFloorPlace() {
 		return floorPlace;
@@ -39,6 +50,10 @@ public class InputDevice implements Serializable {
 
 	public InputDeviceType getType() {
 		return type;
+	}
+
+	public void setConnectors(final List<InputConnector> connectors) {
+		this.connectors = connectors;
 	}
 
 	public void setFloorPlace(final FloorPlace floorPlace) {
