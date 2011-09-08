@@ -1,4 +1,8 @@
-#Wed Aug 31 08:57:51 CEST 2011
+#Thu Sep 08 10:42:50 CEST 2011
 eclipse.preferences.version=1
 encoding//src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/client/Messages_de.properties=UTF-8
+encoding//src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/client/config/EditInputDeviceEditInputDeviceUiBinderImplGenMessages_de.properties=UTF-8
+encoding//src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/client/config/SvgFloorEditorSvgFloorEditorUiBinderImplGenMessages_de.properties=UTF-8
+encoding//src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/client/config/SvgFloorEditorSvgFloorEditorUiBinderImplGenMessages_default.properties=UTF-8
+encoding//target/extra/Config/ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.EditInputDeviceEditInputDeviceUiBinderImplGenMessages_de.properties=UTF-8
 encoding/<project>=UTF-8

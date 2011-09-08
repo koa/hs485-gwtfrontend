@@ -1,44 +1,59 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
-<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:p1="urn:import:com.google.gwt.user.cellview.client" xmlns:p2="urn:import:ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui"
+  xmlns:p1="urn:import:com.google.gwt.user.cellview.client"
+  xmlns:p2="urn:import:ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config"
+  ui:generateFormat='com.google.gwt.i18n.rebind.format.PropertiesFormat'
+  ui:generateKeys="com.google.gwt.i18n.rebind.keygen.MD5KeyGenerator"
+  ui:generateLocales="default, de">
   <ui:style>
     
   </ui:style>
   <g:Grid>
-  	<g:row>
-  		<g:customCell>
-  			<g:Label text="Name"/>
-  		</g:customCell>
-  		<g:customCell>
-  			<g:TextBox ui:field="nameTextInput"/>
-  		</g:customCell>
-  	</g:row>
-  	<g:row>
-  		<g:customCell>
-  			<g:Label text="Type"/>
-  		</g:customCell>
-  		<g:customCell>
-  			<g:ListBox visibleItemCount="1" ui:field="typeListBox"/>
-  		</g:customCell>
-  	</g:row>
-  	<g:row>
-  		<g:customCell>
-  			<g:Label text="Channels"/>
-  		</g:customCell>
-  		<g:customCell>
-  			<p2:InputConnectorEditorTable ui:field="connectorEditor"/>
-  		</g:customCell>
-  	</g:row>
-  	<g:row>
-  		<g:cell></g:cell>
-  	</g:row>
-  	<g:row>
-  		<g:cell></g:cell>
-  		<g:customCell>
-  			<g:HorizontalPanel>
-  				<g:Button ui:field="cancelButton">cancel</g:Button>
-  				<g:Button ui:field="saveButton">save</g:Button>
-  			</g:HorizontalPanel>
-  		</g:customCell>
-  	</g:row>
+    <g:row>
+      <g:customCell>
+        <g:Label text="Name">
+          <ui:attribute name='text' description='title of nameTextInput' />
+        </g:Label>
+      </g:customCell>
+      <g:customCell>
+        <g:TextBox ui:field="nameTextInput" />
+      </g:customCell>
+    </g:row>
+    <g:row>
+      <g:customCell>
+        <g:Label text="Type">
+          <ui:attribute name='text' description='title of typeListBox' />
+        </g:Label>
+      </g:customCell>
+      <g:customCell>
+        <g:ListBox visibleItemCount="1" ui:field="typeListBox" />
+      </g:customCell>
+    </g:row>
+    <g:row>
+      <g:customCell>
+        <g:Label text="Channels">
+          <ui:attribute name='text' description='title of connectorEditor' />
+        </g:Label>
+      </g:customCell>
+      <g:customCell>
+        <p2:InputConnectorEditorTable ui:field="connectorEditor" />
+      </g:customCell>
+    </g:row>
+    <g:row>
+      <g:cell></g:cell>
+    </g:row>
+    <g:row>
+      <g:cell></g:cell>
+      <g:customCell>
+        <g:HorizontalPanel>
+          <g:Button ui:field="cancelButton">
+            <ui:msg description="cancel">cancel</ui:msg>
+          </g:Button>
+          <g:Button ui:field="saveButton">
+            <ui:msg description="save">save</ui:msg>
+          </g:Button>
+        </g:HorizontalPanel>
+      </g:customCell>
+    </g:row>
   </g:Grid>
 </ui:UiBinder> 
