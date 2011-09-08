@@ -245,13 +245,13 @@ public class SvgFloorEditor extends Composite {
 
 		final SVGImage image = new SVGImage(svg);
 		// image.getElement().setAttribute("oncontextmenu", "return false;");
-		image.addMouseUpHandler(new MouseUpHandler() {
-
-			public void onMouseUp(final MouseUpEvent event) {
-				dragPosition = null;
-				dragIcon = null;
-			}
-		});
+		// image.addMouseUpHandler(new MouseUpHandler() {
+		//
+		// public void onMouseUp(final MouseUpEvent event) {
+		// dragPosition = null;
+		// dragIcon = null;
+		// }
+		// });
 		svgPanel.add(image);
 		image.addMouseMoveHandler(new MouseMoveHandler() {
 
@@ -557,11 +557,12 @@ public class SvgFloorEditor extends Composite {
 		useIcon.addMouseUpHandler(new MouseUpHandler() {
 
 			public void onMouseUp(final MouseUpEvent event) {
-				if (dragIcon != null)
+				if (dragIcon != null) {
 					updateOutputDevicesOnServer();
+					updateInputDevicesOnServer();
+				}
 				dragPosition = null;
 				dragIcon = null;
-				System.out.println(outputDevices);
 			}
 		});
 	}

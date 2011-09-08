@@ -1,5 +1,8 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
+import java.util.ArrayList;
+
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 
@@ -10,7 +13,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -24,7 +26,7 @@ public class EditInputDevice extends DialogBox {
 	@UiField
 	Button																	cancelButton;
 	@UiField
-	IntegerBox															channelCountInput;
+	InputConnectorEditorTable								connectorEditor;
 	private final InputDevice								device;
 	@UiField
 	TextBox																	nameTextInput;
@@ -40,7 +42,9 @@ public class EditInputDevice extends DialogBox {
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		nameTextInput.setValue(inputDevice.getName());
-		// channelCountInput.setValue(inputDevice.get)
+		if (device.getConnectors() == null)
+			device.setConnectors(new ArrayList<InputConnector>());
+		connectorEditor.setData(device.getConnectors());
 		for (final InputDeviceType inputDeviceType : InputDeviceType.values()) {
 			typeListBox.addItem(inputDeviceType.name());
 			if (inputDeviceType.equals(inputDevice.getType()))
@@ -55,7 +59,9 @@ public class EditInputDevice extends DialogBox {
 
 	@UiHandler("saveButton")
 	void onSaveButtonClick(final ClickEvent event) {
+		device.setConnectors(connectorEditor.getEntries());
 		device.setName(nameTextInput.getValue());
+		// device.setConnectors(connectorEditor.gete)
 		final int selectedIndex = typeListBox.getSelectedIndex();
 		if (selectedIndex >= 0)
 			device.setType(InputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));

@@ -1,5 +1,5 @@
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
-<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui" xmlns:p1="urn:import:com.google.gwt.user.cellview.client" xmlns:p2="urn:import:ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config">
   <ui:style>
     
   </ui:style>
@@ -22,11 +22,14 @@
   	</g:row>
   	<g:row>
   		<g:customCell>
-  			<g:Label text="Channel Count"/>
+  			<g:Label text="Channels"/>
   		</g:customCell>
   		<g:customCell>
-  			<g:IntegerBox ui:field="channelCountInput"/>
+  			<p2:InputConnectorEditorTable ui:field="connectorEditor"/>
   		</g:customCell>
+  	</g:row>
+  	<g:row>
+  		<g:cell></g:cell>
   	</g:row>
   	<g:row>
   		<g:cell></g:cell>

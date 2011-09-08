@@ -1,5 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,6 +19,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.Input
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.eleveneye.hs485.device.Registry;
@@ -66,7 +68,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	@Override
 	public Iterable<InputDevice> getInputDevicesByFloor(final Floor floor) {
-		return inputDeviceRepository.findByFloor(floor);
+		return makeSerializable(inputDeviceRepository.findByFloor(floor));
 	}
 
 	public Iterable<OutputDevice> getOutputDevices() {
@@ -124,6 +126,19 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public List<String> listFilesByMimeType(final String mimeType) {
 		return fileDataRepository.listFilesByMimeType(mimeType);
+	}
+
+	/**
+	 * @param iterable
+	 * @return
+	 */
+	private Iterable<InputDevice> makeSerializable(final Iterable<InputDevice> iterable) {
+		for (final InputDevice inputDevice : iterable) {
+			final List<InputConnector> connectors = inputDevice.getConnectors();
+			if (connectors != null)
+				inputDevice.setConnectors(new ArrayList<InputConnector>(connectors));
+		}
+		return iterable;
 	}
 
 	@Override
@@ -188,7 +203,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	@Override
 	public Iterable<InputDevice> updateInputDevices(final Iterable<InputDevice> devices) {
-		return inputDeviceRepository.save(devices);
+		return makeSerializable(inputDeviceRepository.save(devices));
 	}
 
 	/**

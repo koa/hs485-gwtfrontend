@@ -88,6 +88,10 @@ public abstract class AbstractFullTableEditor<E> extends Composite {
 	 */
 	protected abstract void fillValueColumns(CellTable<E> table);
 
+	public List<E> getEntries() {
+		return entries;
+	}
+
 	/**
 	 * Get new and Modified Floors
 	 * 
