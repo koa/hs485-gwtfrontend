@@ -26,6 +26,7 @@ import org.vectomatic.dom.svg.utils.OMSVGParser;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
@@ -50,6 +51,8 @@ import com.google.gwt.event.dom.client.MouseUpEvent;
 import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.resources.client.ResourceCallback;
 import com.google.gwt.resources.client.ResourceException;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -132,26 +135,28 @@ public class SvgFloorEditor extends Composite {
 	Button																inputDeviceButton;
 
 	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
+	private final Messages								messages					= GWT.create(Messages.class);
 	@UiField
 	Button																outputDeviceButton;
+
 	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
 
 	@UiField
 	Button																removeFloorButton;
-
 	private final Resources								resources					= GWT.create(Resources.class);
 	private float													scale;
 	@UiField
 	ListBox																selectFileListBox;
 	@UiField
 	ListBox																selectFloorListBox;
-	private OMSVGSVGElement								svg;
 
+	private OMSVGSVGElement								svg;
 	@UiField
 	HTMLPanel															svgPanel;
 
 	public SvgFloorEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
+
 		showFloor(null);
 		reloadFileList();
 		reloadFloorList();
@@ -181,6 +186,12 @@ public class SvgFloorEditor extends Composite {
 		} catch (final ResourceException e) {
 			throw new RuntimeException("Cannot Load SVG", e);
 		}
+		Window.addResizeHandler(new ResizeHandler() {
+			@Override
+			public void onResize(final ResizeEvent event) {
+				drawSvg();
+			}
+		});
 	}
 
 	private void appendIcon(final OMSVGSVGElement svgDoc, final String iconId) {
@@ -215,16 +226,19 @@ public class SvgFloorEditor extends Composite {
 		scale = Math.min(yScale, xScale);
 
 		final OMSVGDocument currentDocument = OMSVGParser.currentDocument();
+		final OMSVGSVGElement svgOut = currentDocument.createSVGSVGElement();
+
 		final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
 		final OMSVGGElement rootG = currentDocument.createSVGGElement();
 		final Element scaleGElement = rootG.getElement();
 		final Element backgroundGElement = backgroundG.getElement();
-		final Element svgElement = svg.getElement();
+		final Element svgElement = (Element) svg.getElement().cloneNode(true);
 		Node node;
 		while ((node = svgElement.getFirstChild()) != null)
 			backgroundGElement.appendChild(svgElement.removeChild(node));
 		scaleGElement.appendChild(backgroundGElement);
-		svgElement.appendChild(scaleGElement);
+		svgOut.appendChild(rootG);
+		// svgElement.appendChild(scaleGElement);
 
 		final OMSVGDefsElement iconDef = currentDocument.createSVGDefsElement();
 		for (final IconData icon : iconTemplates.values())
@@ -238,12 +252,12 @@ public class SvgFloorEditor extends Composite {
 		final OMSVGGElement xformGroup = rootG;
 
 		final OMSVGTransformList xformList = xformGroup.getTransform().getBaseVal();
-		final OMSVGTransform xform = svg.createSVGTransform();
+		final OMSVGTransform xform = svgOut.createSVGTransform();
 		xformList.appendItem(xform);
 		xform.setScale(scale, scale);
 		updateIcons();
 
-		final SVGImage image = new SVGImage(svg);
+		final SVGImage image = new SVGImage(svgOut);
 		// image.getElement().setAttribute("oncontextmenu", "return false;");
 		// image.addMouseUpHandler(new MouseUpHandler() {
 		//
@@ -333,7 +347,7 @@ public class SvgFloorEditor extends Composite {
 		final PopupPanel popupPanel = new PopupPanel(true);
 		final MenuBar menuBar = new MenuBar(true);
 		popupPanel.add(menuBar);
-		menuBar.addItem(new MenuItem("edit ...", new Command() {
+		menuBar.addItem(new MenuItem(messages.edit() + " ...", new Command() {
 
 			@Override
 			public void execute() {
@@ -358,10 +372,11 @@ public class SvgFloorEditor extends Composite {
 				}).center();
 			}
 		}));
-		menuBar.addItem(new MenuItem("remove", new Command() {
+		menuBar.addItem(new MenuItem(messages.removeText(), new Command() {
 			public void execute() {
 				popupPanel.hide();
-				if (Window.confirm("Are you sure to remove " + device.getName() + "?"))
+				if (Window.confirm(messages.removeDeviceQuestion(device.getName())))
+					// "Are you sure to remove " + device.getName() + "?"))
 					configService.removeOutputDevice(device, new AsyncCallback<Void>() {
 
 						@Override

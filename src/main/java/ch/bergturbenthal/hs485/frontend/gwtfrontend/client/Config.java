@@ -4,10 +4,9 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.Command;
-import com.google.gwt.user.client.ui.DockPanel;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -29,14 +28,12 @@ public class Config implements EntryPoint {
 		// Use RootPanel.get() to get the entire body element
 		final RootPanel rootPanel = RootPanel.get("main");
 
-		final DockPanel dockPanel = new DockPanel();
-		dockPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
-		dockPanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-		rootPanel.add(dockPanel);
-		dockPanel.setSize("100%", "100%");
+		final DockLayoutPanel dockLayoutPanel = new DockLayoutPanel(Unit.EM);
+		rootPanel.add(dockLayoutPanel);
+		dockLayoutPanel.setSize("100%", "100%");
 
 		final MenuBar menuBar = new MenuBar(false);
-		dockPanel.add(menuBar, DockPanel.NORTH);
+		dockLayoutPanel.addNorth(menuBar, 7.7);
 		final MenuBar menuBar_1 = new MenuBar(true);
 
 		final MenuItem mntmFile = new MenuItem(messages.mntmFile_text(), false, menuBar_1);
@@ -61,9 +58,8 @@ public class Config implements EntryPoint {
 		menuBar.addItem(settingsMenu);
 
 		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();
-		dockPanel.add(svgFloorEditor, DockPanel.CENTER);
-		svgFloorEditor.setHeight("400px");
+		dockLayoutPanel.add(svgFloorEditor);
+		// svgFloorEditor.setHeight("100%");
 
 	}
-
 }
