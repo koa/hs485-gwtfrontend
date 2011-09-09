@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -13,7 +12,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -33,8 +31,6 @@ public class EditInputDevice extends DialogBox {
 	private final Runnable									refreshRunnable;
 	@UiField
 	Button																	saveButton;
-	@UiField
-	ListBox																	typeListBox;
 
 	public EditInputDevice(final InputDevice inputDevice, final Runnable refreshRunnable) {
 		device = inputDevice;
@@ -45,11 +41,10 @@ public class EditInputDevice extends DialogBox {
 		if (device.getConnectors() == null)
 			device.setConnectors(new ArrayList<InputConnector>());
 		connectorEditor.setData(device.getConnectors());
-		for (final InputDeviceType inputDeviceType : InputDeviceType.values()) {
-			typeListBox.addItem(inputDeviceType.name());
-			if (inputDeviceType.equals(inputDevice.getType()))
-				typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
-		}
+		// for (final InputType inputDeviceType : InputType.values())
+		// typeListBox.addItem(inputDeviceType.name());
+		// if (inputDeviceType.equals(inputDevice.getType()))
+		// typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
 	}
 
 	@UiHandler("cancelButton")
@@ -62,9 +57,9 @@ public class EditInputDevice extends DialogBox {
 		device.setConnectors(connectorEditor.getEntries());
 		device.setName(nameTextInput.getValue());
 		// device.setConnectors(connectorEditor.gete)
-		final int selectedIndex = typeListBox.getSelectedIndex();
-		if (selectedIndex >= 0)
-			device.setType(InputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));
+		// final int selectedIndex = typeListBox.getSelectedIndex();
+		// if (selectedIndex >= 0)
+		// device.setType(InputType.valueOf(typeListBox.getValue(selectedIndex)));
 		hide();
 		refreshRunnable.run();
 	}

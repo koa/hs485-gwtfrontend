@@ -31,7 +31,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
@@ -180,7 +179,7 @@ public class SvgFloorEditor extends Composite {
 					@Override
 					public void onSuccess(final SVGResource resource) {
 						appendIcon(resource.getSvg(), entry.getKey());
-						// showFloor(currentFloor);
+						showFloor(currentFloor);
 					}
 				});
 		} catch (final ResourceException e) {
@@ -469,7 +468,6 @@ public class SvgFloorEditor extends Composite {
 		inputDevice.getFloorPlace().getPosition().setX(300f);
 		inputDevice.getFloorPlace().getPosition().setY(300f);
 		inputDevice.getFloorPlace().setFloor(currentFloor);
-		inputDevice.setType(InputDeviceType.SWITCH);
 		inputDevices.add(inputDevice);
 		updateInputDevicesOnServer();
 
@@ -478,7 +476,7 @@ public class SvgFloorEditor extends Composite {
 	@UiHandler("outputDeviceButton")
 	void onOutputDeviceButtonClick(final ClickEvent event) {
 		final OutputDevice outputDevice = new OutputDevice();
-		outputDevice.setName("Lamp " + outputDevices.size());
+		outputDevice.setName("Output " + outputDevices.size());
 		outputDevice.getFloorPlace().getPosition().setX(300f);
 		outputDevice.getFloorPlace().getPosition().setY(300f);
 		outputDevice.getFloorPlace().setFloor(currentFloor);

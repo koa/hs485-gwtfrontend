@@ -14,6 +14,8 @@ import javax.persistence.Table;
 public class OutputDevice implements Serializable {
 	private static final long	serialVersionUID	= 2108040144856847494L;
 
+	@Embedded
+	private ConnectorAddress	address						= new ConnectorAddress();
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						deviceId;
@@ -21,6 +23,10 @@ public class OutputDevice implements Serializable {
 	private FloorPlace				floorPlace				= new FloorPlace();
 	private String						name;
 	private OutputDeviceType	type;
+
+	public ConnectorAddress getAddress() {
+		return address;
+	}
 
 	public Integer getDeviceId() {
 		return deviceId;
@@ -36,6 +42,10 @@ public class OutputDevice implements Serializable {
 
 	public OutputDeviceType getType() {
 		return type;
+	}
+
+	public void setAddress(final ConnectorAddress address) {
+		this.address = address;
 	}
 
 	public void setDeviceId(final Integer deviceId) {

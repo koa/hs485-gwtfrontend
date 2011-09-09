@@ -19,16 +19,7 @@
         <g:TextBox ui:field="nameTextInput" />
       </g:customCell>
     </g:row>
-    <g:row>
-      <g:customCell>
-        <g:Label text="Type">
-          <ui:attribute name='text' description='title of typeListBox' />
-        </g:Label>
-      </g:customCell>
-      <g:customCell>
-        <g:ListBox visibleItemCount="1" ui:field="typeListBox" />
-      </g:customCell>
-    </g:row>
+    <g:row/>
     <g:row>
       <g:customCell>
         <g:Label text="Channels">

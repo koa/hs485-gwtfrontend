@@ -14,10 +14,11 @@ import javax.persistence.ManyToOne;
  */
 @Embeddable
 public class FloorPlace implements Serializable {
+	private static final long	serialVersionUID	= 2609551152103493581L;
 	@ManyToOne
-	private Floor				floor;
+	private Floor							floor;
 	@Embedded
-	private PositionXY	position	= new PositionXY();
+	private PositionXY				position					= new PositionXY();
 
 	public Floor getFloor() {
 		return floor;

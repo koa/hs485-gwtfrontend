@@ -30,7 +30,6 @@ public class InputDevice implements Serializable {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer								inputDeviceId;
 	private String								name;
-	private InputDeviceType				type;
 
 	public List<InputConnector> getConnectors() {
 		return connectors;
@@ -48,10 +47,6 @@ public class InputDevice implements Serializable {
 		return name;
 	}
 
-	public InputDeviceType getType() {
-		return type;
-	}
-
 	public void setConnectors(final List<InputConnector> connectors) {
 		this.connectors = connectors;
 	}
@@ -66,10 +61,6 @@ public class InputDevice implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public void setType(final InputDeviceType type) {
-		this.type = type;
 	}
 
 }

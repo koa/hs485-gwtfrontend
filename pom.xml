@@ -24,6 +24,7 @@
     <!-- <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory> -->
     <webappDirectory>${project.build.directory}/m2e-wtp/web-resources</webappDirectory>
     <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+    <atmosphere.version>0.7.2</atmosphere.version>
   </properties>
 
   <dependencies>
@@ -106,9 +107,29 @@
       <version>1.2.2</version>
     </dependency>
     <dependency>
-    	<groupId>commons-io</groupId>
-    	<artifactId>commons-io</artifactId>
-    	<version>2.0.1</version>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.atmosphere</groupId>
+      <artifactId>atmosphere-gwt-server</artifactId>
+      <version>${atmosphere.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.atmosphere</groupId>
+      <artifactId>atmosphere-gwt-client</artifactId>
+      <version>${atmosphere.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.atmosphere</groupId>
+      <artifactId>atmosphere-gwt-poll</artifactId>
+      <version>${atmosphere.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.slf4j</groupId>
+    	<artifactId>slf4j-simple</artifactId>
+    	<version>1.6.2</version>
     </dependency>
   </dependencies>
 

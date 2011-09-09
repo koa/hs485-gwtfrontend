@@ -22,7 +22,9 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.eleveneye.hs485.api.BroadcastHandler;
 import ch.eleveneye.hs485.device.Registry;
+import ch.eleveneye.hs485.protocol.IMessage;
 
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -92,6 +94,15 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		floorRepository = ctx.getBean(FloorRepository.class);
 		fileDataRepository = ctx.getBean(FileDataRepository.class);
 		hs485registry = ctx.getBean("hs485registry", Registry.class);
+		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
+
+			@Override
+			public void handleBroadcastMessage(final IMessage message) {
+				System.out.println("Message");
+				System.out.println("From: " + message.getSenderNumber());
+				System.out.println(message);
+			}
+		});
 	}
 
 	/*

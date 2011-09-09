@@ -13,6 +13,12 @@
     <servlet-name>FileAccess</servlet-name>
     <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.FileAccessServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>AtmosphereServlet</servlet-name>
+    <description>AtmosphereServlet</description>
+    <servlet-class>org.atmosphere.cpr.AtmosphereServlet</servlet-class>
+    <load-on-startup>0 </load-on-startup>
+  </servlet>
   <servlet-mapping>
     <servlet-name>ConfigService</servlet-name>
     <url-pattern>/Config/ConfigService</url-pattern>
@@ -20,6 +26,10 @@
   <servlet-mapping>
     <servlet-name>FileAccess</servlet-name>
     <url-pattern>/Config/file</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AtmosphereServlet</servlet-name>
+    <url-pattern>/Atmosphere </url-pattern>
   </servlet-mapping>
   <!-- Default page to serve -->
   <welcome-file-list>
