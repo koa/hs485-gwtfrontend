@@ -5,6 +5,8 @@ import java.util.List;
 
 import javax.servlet.ServletException;
 
+import org.atmosphere.gwt.server.AtmosphereGwtHandler;
+import org.atmosphere.jersey.JerseyBroadcaster;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -98,9 +100,15 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 
 			@Override
 			public void handleBroadcastMessage(final IMessage message) {
+				// BroadcasterFactory.getDefault().lookup(DefaultBroadcaster.class,
+				// "GWT").broadcast(new StreamingServiceBusiness.Event(queueName,
+				// message));
 				System.out.println("Message");
 				System.out.println("From: " + message.getSenderNumber());
 				System.out.println(message);
+				new JerseyBroadcaster(AtmosphereGwtHandler.GWT_BROADCASTER_ID).broadcast(message);
+				// BroadcasterFactory.getDefault().lookup(DefaultBroadcaster.class,
+				// AtmosphereGwtHandler.GWT_BROADCASTER_ID).broadcast(message);
 			}
 		});
 	}
