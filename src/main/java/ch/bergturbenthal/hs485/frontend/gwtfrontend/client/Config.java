@@ -1,12 +1,15 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SelectKeyComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.Overflow;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -16,8 +19,7 @@ import com.google.gwt.user.client.ui.RootPanel;
  */
 public class Config implements EntryPoint {
 
-	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
-	private final Messages						messages			= GWT.create(Messages.class);
+	private final Messages	messages	= GWT.create(Messages.class);
 
 	/**
 	 * This is the entry point method.
@@ -33,7 +35,7 @@ public class Config implements EntryPoint {
 		dockLayoutPanel.setSize("100%", "100%");
 
 		final MenuBar menuBar = new MenuBar(false);
-		dockLayoutPanel.addNorth(menuBar, 7.7);
+		dockLayoutPanel.addNorth(menuBar, 2);
 		final MenuBar menuBar_1 = new MenuBar(true);
 
 		final MenuItem mntmFile = new MenuItem(messages.mntmFile_text(), false, menuBar_1);
@@ -56,6 +58,32 @@ public class Config implements EntryPoint {
 		});
 		menuBar_2.addItem(editFilesItem);
 		menuBar.addItem(settingsMenu);
+
+		final HTML logHtml = new HTML("", true);
+		logHtml.getElement().getStyle().setOverflow(Overflow.AUTO);
+		// EventDistributor.registerHandler(new EventHandler() {
+		// TreeMap<String, KeyEvent.EventType> lastValue = new TreeMap<String,
+		// KeyEvent.EventType>();
+		//
+		// @Override
+		// public void handleKeyEvent(final KeyEvent keyEvent) {
+		// final String eventSourceAddress =
+		// Integer.toHexString(keyEvent.getKeyAddress().getModuleAddress()) + ":"
+		// + keyEvent.getKeyAddress().getInputAddress();
+		// lastValue.put(eventSourceAddress, keyEvent.getType());
+		// final StringBuffer stateDescr = new StringBuffer();
+		// for (final Entry<String, EventType> valueEntry : lastValue.entrySet()) {
+		// stateDescr.append(valueEntry.getKey());
+		// stateDescr.append(": ");
+		// stateDescr.append(valueEntry.getValue().name());
+		// stateDescr.append("</br>");
+		//
+		// }
+		// logHtml.setHTML(stateDescr.toString());
+		// }
+		// });
+		dockLayoutPanel.addSouth(new SelectKeyComposite(), 15);
+		// communicationService.getEvents(new PollAsyncCallback(logHtml));
 
 		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();
 		dockLayoutPanel.add(svgFloorEditor);

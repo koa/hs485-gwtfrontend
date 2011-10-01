@@ -6,6 +6,10 @@
 <web-app>
   <!-- Servlets -->
   <servlet>
+    <servlet-name>CommmunicationService</servlet-name>
+    <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.CommunicationServiceImpl</servlet-class>
+  </servlet>
+  <servlet>
     <servlet-name>ConfigService</servlet-name>
     <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.ConfigServiceImpl</servlet-class>
   </servlet>
@@ -13,6 +17,10 @@
     <servlet-name>FileAccess</servlet-name>
     <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.FileAccessServlet</servlet-class>
   </servlet>
+  <servlet-mapping>
+    <servlet-name>CommmunicationService</servlet-name>
+    <url-pattern>/Config/CommunicationService</url-pattern>
+  </servlet-mapping>
   <servlet-mapping>
     <servlet-name>ConfigService</servlet-name>
     <url-pattern>/Config/ConfigService</url-pattern>

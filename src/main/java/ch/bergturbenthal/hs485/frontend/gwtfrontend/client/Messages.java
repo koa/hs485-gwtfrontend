@@ -201,4 +201,5 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 	@DefaultMessage("Room")
 	@Key("room")
 	String room();
+	String htmlNewHtml_html();
 }

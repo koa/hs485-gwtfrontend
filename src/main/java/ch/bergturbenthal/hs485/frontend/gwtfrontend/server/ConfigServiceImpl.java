@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.servlet.ServletException;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.ApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -22,7 +22,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
-import ch.eleveneye.hs485.device.Registry;
 
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
@@ -30,11 +29,12 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigService {
 
 	private static final long				serialVersionUID	= 5816537750102063151L;
+
 	private FileDataRepository			fileDataRepository;
 	private FloorRepository					floorRepository;
-	private Registry								hs485registry;
 	private InputDeviceRepository		inputDeviceRepository;
 	private OutputDeviceRepository	outputDeviceRepository;
+
 	private TransactionTemplate			transactionTemplate;
 
 	/*
@@ -83,15 +83,13 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
-				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
+		final ApplicationContext ctx = SpringUtil.getSpringContext();
 		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
 		transactionTemplate = new TransactionTemplate(transactionManager);
 		outputDeviceRepository = ctx.getBean(OutputDeviceRepository.class);
 		inputDeviceRepository = ctx.getBean(InputDeviceRepository.class);
 		floorRepository = ctx.getBean(FloorRepository.class);
 		fileDataRepository = ctx.getBean(FileDataRepository.class);
-		hs485registry = ctx.getBean("hs485registry", Registry.class);
 	}
 
 	/*
