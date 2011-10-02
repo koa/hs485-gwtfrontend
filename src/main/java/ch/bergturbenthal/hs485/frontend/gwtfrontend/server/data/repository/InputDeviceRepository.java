@@ -10,6 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 
 /**
@@ -18,4 +19,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 public interface InputDeviceRepository extends CrudRepository<InputDevice, Integer> {
 	@Query("select id from InputDevice id where id.floorPlace.floor=:floor")
 	public List<InputDevice> findByFloor(@Param("floor") Floor floor);
+
+	@Query("select id from InputDevice id where id.connectors.address=:address")
+	public List<InputDevice> findByInputaddress(@Param("address") InputAddress address);
 }

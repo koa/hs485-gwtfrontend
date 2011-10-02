@@ -1,19 +1,24 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventDistributor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -24,6 +29,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class SelectInputComposite extends Composite {
 	private static class KeyData {
 		private int									activationCount	= 0;
+		private String							connectedSwitchLabel;
 		private final RadioButton		displayRadioButton;
 		private KeyEvent.EventType	lastState;
 
@@ -36,12 +42,20 @@ public class SelectInputComposite extends Composite {
 			return activationCount;
 		}
 
+		public String getConnectedSwitchLabel() {
+			return connectedSwitchLabel;
+		}
+
 		public RadioButton getDisplayRadioButton() {
 			return displayRadioButton;
 		}
 
 		public KeyEvent.EventType getLastState() {
 			return lastState;
+		}
+
+		public void setConnectedSwitchLabel(final String connectedSwitchLabel) {
+			this.connectedSwitchLabel = connectedSwitchLabel;
 		}
 
 		public void setLastState(final KeyEvent.EventType lastState) {
@@ -51,6 +65,8 @@ public class SelectInputComposite extends Composite {
 		}
 
 	}
+
+	private final ConfigServiceAsync					configService	= ConfigServiceAsync.Util.getInstance();
 
 	private final String											groupName;
 	private final EventHandler								handler;
@@ -69,12 +85,11 @@ public class SelectInputComposite extends Composite {
 			@Override
 			public synchronized void handleKeyEvent(final KeyEvent keyEvent) {
 				final InputAddress keyAddress = keyEvent.getKeyAddress();
-				final String keyAddressString = Integer.toHexString(keyAddress.getDeviceAddress()) + ":" + keyAddress.getInputAddress();
 				if (!visibleInputs.containsKey(keyAddress))
 					addConnectorEntry(keyAddress);
 				final KeyData keyData = visibleInputs.get(keyAddress);
 				keyData.setLastState(keyEvent.getType());
-				keyData.getDisplayRadioButton().setText(keyAddressString + ": " + keyData.getLastState().name() + ", " + keyData.getActivationCount());
+				updateKeyLabel(keyAddress, keyData);
 			}
 		};
 		// inputListPanel.add(new RadioButton(groupName, " Connector 1"));
@@ -107,8 +122,30 @@ public class SelectInputComposite extends Composite {
 		final String keyAddressString = Integer.toHexString(keyAddress.getDeviceAddress()) + ":" + keyAddress.getInputAddress();
 		final RadioButton displayRadioButton = new RadioButton(groupName);
 		displayRadioButton.setFormValue(keyAddressString);
-		visibleInputs.put(keyAddress, new KeyData(displayRadioButton));
+		final KeyData keyData = new KeyData(displayRadioButton);
+		visibleInputs.put(keyAddress, keyData);
 		inputListPanel.add(displayRadioButton);
+		configService.getInputDeviceByInputAddress(keyAddress, new AsyncCallback<Iterable<InputDevice>>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Iterable<InputDevice> result) {
+				final Iterator<InputDevice> iterator = result.iterator();
+				if (!iterator.hasNext())
+					return;
+				final InputDevice inputDevice = iterator.next();
+				for (final InputConnector inputConnector : inputDevice.getConnectors())
+					if (keyAddress.equals(inputConnector.getAddress())) {
+						keyData.setConnectedSwitchLabel(inputDevice.getName() + "-" + inputConnector.getConnectorName());
+						updateKeyLabel(keyAddress, keyData);
+					}
+			}
+		});
 	}
 
 	@Override
@@ -154,6 +191,24 @@ public class SelectInputComposite extends Composite {
 
 	public void stopRecording() {
 		EventDistributor.removeHandler(handler);
+	}
+
+	private void updateKeyLabel(final InputAddress keyAddress, final KeyData keyData) {
+		final StringBuilder labelStringBuilder = new StringBuilder();
+
+		labelStringBuilder.append(Integer.toHexString(keyAddress.getDeviceAddress()));
+		labelStringBuilder.append(":");
+		labelStringBuilder.append(keyAddress.getInputAddress());
+		labelStringBuilder.append(": ");
+		labelStringBuilder.append(keyData.getLastState().name());
+		labelStringBuilder.append(", ");
+		labelStringBuilder.append(keyData.getActivationCount());
+		if (keyData.getConnectedSwitchLabel() != null) {
+			labelStringBuilder.append(" [");
+			labelStringBuilder.append(keyData.getConnectedSwitchLabel());
+			labelStringBuilder.append("]");
+		}
+		keyData.getDisplayRadioButton().setText(labelStringBuilder.toString());
 	}
 
 }

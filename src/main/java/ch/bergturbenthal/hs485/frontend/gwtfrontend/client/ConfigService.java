@@ -4,6 +4,7 @@ import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 
@@ -27,6 +28,8 @@ public interface ConfigService extends RemoteService {
 	}
 
 	public FileData getFile(String filename);
+
+	public Iterable<InputDevice> getInputDeviceByInputAddress(InputAddress address);
 
 	public Iterable<InputDevice> getInputDevicesByFloor(Floor floor);
 

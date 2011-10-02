@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -19,6 +20,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.Input
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
@@ -57,6 +59,11 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 	 */
 	public FileData getFile(final String filename) {
 		return fileDataRepository.findOne(filename);
+	}
+
+	@Override
+	public Collection<InputDevice> getInputDeviceByInputAddress(final InputAddress address) {
+		return new ArrayList<InputDevice>(inputDeviceRepository.findByInputaddress(address));
 	}
 
 	/*
