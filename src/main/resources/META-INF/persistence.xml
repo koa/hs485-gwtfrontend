@@ -10,7 +10,7 @@
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FloorPlace</class>
 		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector</class>
-		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectorAddress</class>
+		<class>ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress</class>
 		<properties>
 			<property name="eclipselink.ddl-generation" value="create-tables" />
 			<property name="eclipselink.ddl-generation.output-mode"

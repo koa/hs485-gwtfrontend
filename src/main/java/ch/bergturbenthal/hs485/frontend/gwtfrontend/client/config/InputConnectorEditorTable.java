@@ -3,8 +3,10 @@
  */
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 
+import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -14,6 +16,10 @@ import com.google.gwt.user.cellview.client.Column;
  *
  */
 public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConnector> {
+	private SelectInputComposite	selectKeyComposite;
+
+	public InputConnectorEditorTable() {
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -49,6 +55,27 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 			}
 		});
 		table.addColumn(titleColumn, "Name");
+
+		final Column<InputConnector, String> addressColumn = new Column<InputConnector, String>(new ButtonCell()) {
+
+			@Override
+			public String getValue(final InputConnector object) {
+				final InputAddress address = object.getAddress();
+				if (address == null)
+					return "-";
+				return address.toString();
+			}
+		};
+		addressColumn.setFieldUpdater(new FieldUpdater<InputConnector, String>() {
+
+			@Override
+			public void update(final int index, final InputConnector object, final String value) {
+				object.setAddress(selectKeyComposite.getSelectedAddress());
+				setEntityModified(object);
+				table.redraw();
+			}
+		});
+		table.addColumn(addressColumn, "Address");
 	}
 
 	/*
@@ -62,5 +89,9 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 		final InputConnector inputConnector = new InputConnector();
 		inputConnector.setConnectorName("Connector " + entries.size());
 		return inputConnector;
+	}
+
+	public void setSelectKeyComposite(final SelectInputComposite selectKeyComposite) {
+		this.selectKeyComposite = selectKeyComposite;
 	}
 }

@@ -1,5 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
+
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 public class KeyEvent implements Event, IsSerializable {
@@ -9,10 +11,10 @@ public class KeyEvent implements Event, IsSerializable {
 
 	private static final long	serialVersionUID	= 1184146590744072872L;
 
-	private KeyAddress				keyAddress;
+	private InputAddress				keyAddress;
 	private EventType					type;
 
-	public KeyAddress getKeyAddress() {
+	public InputAddress getKeyAddress() {
 		return keyAddress;
 	}
 
@@ -20,7 +22,7 @@ public class KeyEvent implements Event, IsSerializable {
 		return type;
 	}
 
-	public void setKeyAddress(final KeyAddress keyAddress) {
+	public void setKeyAddress(final InputAddress keyAddress) {
 		this.keyAddress = keyAddress;
 	}
 

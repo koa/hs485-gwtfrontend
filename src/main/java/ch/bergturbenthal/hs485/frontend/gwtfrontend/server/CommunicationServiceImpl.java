@@ -17,9 +17,9 @@ import org.springframework.context.ApplicationContext;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.eleveneye.hs485.api.BroadcastHandler;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.protocol.IMessage;
@@ -33,7 +33,6 @@ public class CommunicationServiceImpl extends RemoteServiceServlet implements Co
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();
 
 	private KeyEvent deceodeKeyMessage(final IMessage message) {
-		System.out.println(message);
 		final byte[] data = message.getData();
 		if (data.length != 4)
 			return null;
@@ -52,7 +51,7 @@ public class CommunicationServiceImpl extends RemoteServiceServlet implements Co
 			event.setType(EventType.UP);
 			break;
 		}
-		event.setKeyAddress(new KeyAddress(message.getSourceAddress(), data[1]));
+		event.setKeyAddress(new InputAddress(message.getSourceAddress(), data[1]));
 		return event;
 	}
 

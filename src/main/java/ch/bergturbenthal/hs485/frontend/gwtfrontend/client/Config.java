@@ -1,6 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SelectKeyComposite;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SelectInputComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -82,7 +82,7 @@ public class Config implements EntryPoint {
 		// logHtml.setHTML(stateDescr.toString());
 		// }
 		// });
-		dockLayoutPanel.addSouth(new SelectKeyComposite(), 15);
+		dockLayoutPanel.addSouth(new SelectInputComposite(), 15);
 		// communicationService.getEvents(new PollAsyncCallback(logHtml));
 
 		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();

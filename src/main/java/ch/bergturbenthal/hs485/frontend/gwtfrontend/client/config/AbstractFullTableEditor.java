@@ -19,6 +19,8 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.view.client.SelectionChangeEvent.Handler;
+import com.google.gwt.view.client.SelectionModel;
 
 /**
  *
@@ -82,6 +84,13 @@ public abstract class AbstractFullTableEditor<E> extends Composite {
 	protected abstract String addEntryString();
 
 	/**
+	 * @see SelectionModel#addSelectionChangeHandler(Handler)
+	 */
+	public void addSelectionChangeHandler(final Handler handler) {
+		cellTable.getSelectionModel().addSelectionChangeHandler(handler);
+	}
+
+	/**
 	 * Append Object-Specific Columns
 	 * 
 	 * @param cellTable2
@@ -110,6 +119,14 @@ public abstract class AbstractFullTableEditor<E> extends Composite {
 	 */
 	public List<E> getRemovedFloors() {
 		return new ArrayList<E>(removedRows.keySet());
+	}
+
+	public E getSelectedEntry() {
+		final SelectionModel<? super E> selectionModel = cellTable.getSelectionModel();
+		for (final E entry : entries)
+			if (selectionModel.isSelected(entry))
+				return entry;
+		return null;
 	}
 
 	/**

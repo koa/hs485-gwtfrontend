@@ -40,7 +40,12 @@
       </g:customCell>
     </g:row>
     <g:row>
-      <g:cell></g:cell>
+    	<g:customCell>
+    		<g:Label text="Available Input Devices"/>
+    	</g:customCell>
+      <g:customCell>
+      	<p2:SelectInputComposite ui:field="selectKeyComposite"/>
+      </g:customCell>
     </g:row>
     <g:row>
       <g:cell></g:cell>

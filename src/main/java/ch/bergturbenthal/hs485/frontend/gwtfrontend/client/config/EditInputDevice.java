@@ -34,6 +34,8 @@ public class EditInputDevice extends DialogBox {
 	@UiField
 	Button																	saveButton;
 	@UiField
+	SelectInputComposite											selectKeyComposite;
+	@UiField
 	ListBox																	typeListBox;
 
 	public EditInputDevice(final InputDevice inputDevice, final Runnable refreshRunnable) {
@@ -50,6 +52,7 @@ public class EditInputDevice extends DialogBox {
 			if (inputDeviceType.equals(inputDevice.getType()))
 				typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
 		}
+		connectorEditor.setSelectKeyComposite(selectKeyComposite);
 	}
 
 	@UiHandler("cancelButton")

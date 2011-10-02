@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="src/main/java"/>
-	<classpathentry kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="target/generated-sources/gwt"/>
+	<classpathentry excluding="ch/bergturbenthal/hs485/frontend/gwtfrontend/shared/db/" kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="target/generated-sources/gwt"/>
 	<classpathentry kind="src" output="target/m2e-wtp/web-resources/WEB-INF/classes" path="src/main/resources"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/resources"/>

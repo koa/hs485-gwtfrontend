@@ -13,10 +13,10 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class InputConnector implements Serializable {
 	private static final long	serialVersionUID	= -6176793023621697995L;
-	private ConnectorAddress	address;
+	private InputAddress			address;
 	private String						connectorName;
 
-	public ConnectorAddress getAddress() {
+	public InputAddress getAddress() {
 		return address;
 	}
 
@@ -24,7 +24,7 @@ public class InputConnector implements Serializable {
 		return connectorName;
 	}
 
-	public void setAddress(final ConnectorAddress address) {
+	public void setAddress(final InputAddress address) {
 		this.address = address;
 	}
 
