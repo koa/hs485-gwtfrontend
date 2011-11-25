@@ -25,9 +25,7 @@ import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.protocol.IMessage;
 import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-
-public class CommunicationServiceImpl extends RemoteServiceServlet implements CommunicationService {
+public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet implements CommunicationService {
 	private static final long																			serialVersionUID	= 8948548851433479912L;
 	private Registry																							hs485registry;
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();

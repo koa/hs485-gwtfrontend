@@ -20,6 +20,6 @@ public interface InputDeviceRepository extends CrudRepository<InputDevice, Integ
 	@Query("select id from InputDevice id where id.floorPlace.floor=:floor")
 	public List<InputDevice> findByFloor(@Param("floor") Floor floor);
 
-	@Query("select id from InputDevice id where id.connectors.address=:address")
-	public List<InputDevice> findByInputaddress(@Param("address") InputAddress address);
+	@Query("SELECT id from InputDevice id JOIN id.connectors c WHERE c = :address")
+	public List<InputDevice> findByInputAddress(@Param("address") InputAddress address);
 }

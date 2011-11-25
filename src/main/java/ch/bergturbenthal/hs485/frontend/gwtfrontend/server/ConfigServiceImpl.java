@@ -4,14 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.servlet.ServletException;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
@@ -25,19 +19,22 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 
-import com.google.gwt.user.client.rpc.SerializationException;
-import com.google.gwt.user.server.rpc.RemoteServiceServlet;
-
-public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigService {
+@Transactional
+public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements ConfigService {
 
 	private static final long				serialVersionUID	= 5816537750102063151L;
 
+	@Autowired
 	private FileDataRepository			fileDataRepository;
+	@Autowired
 	private FloorRepository					floorRepository;
+	@Autowired
 	private InputDeviceRepository		inputDeviceRepository;
+	@Autowired
 	private OutputDeviceRepository	outputDeviceRepository;
 
-	private TransactionTemplate			transactionTemplate;
+	// @Autowired
+	// private TransactionTemplate transactionTemplate;
 
 	/*
 	 * (non-Javadoc)
@@ -63,7 +60,7 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 
 	@Override
 	public Collection<InputDevice> getInputDeviceByInputAddress(final InputAddress address) {
-		return new ArrayList<InputDevice>(inputDeviceRepository.findByInputaddress(address));
+		return new ArrayList<InputDevice>(inputDeviceRepository.findByInputAddress(address));
 	}
 
 	/*
@@ -87,17 +84,18 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		return outputDeviceRepository.findByFloor(floor);
 	}
 
-	@Override
-	public void init() throws ServletException {
-		super.init();
-		final ApplicationContext ctx = SpringUtil.getSpringContext();
-		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
-		transactionTemplate = new TransactionTemplate(transactionManager);
-		outputDeviceRepository = ctx.getBean(OutputDeviceRepository.class);
-		inputDeviceRepository = ctx.getBean(InputDeviceRepository.class);
-		floorRepository = ctx.getBean(FloorRepository.class);
-		fileDataRepository = ctx.getBean(FileDataRepository.class);
-	}
+	// @Override
+	// public void init() throws ServletException {
+	// super.init();
+	// final ApplicationContext ctx = SpringUtil.getSpringContext();
+	// final PlatformTransactionManager transactionManager =
+	// ctx.getBean("transactionManager", JpaTransactionManager.class);
+	// transactionTemplate = new TransactionTemplate(transactionManager);
+	// outputDeviceRepository = ctx.getBean(OutputDeviceRepository.class);
+	// inputDeviceRepository = ctx.getBean(InputDeviceRepository.class);
+	// floorRepository = ctx.getBean(FloorRepository.class);
+	// fileDataRepository = ctx.getBean(FileDataRepository.class);
+	// }
 
 	/*
 	 * (non-Javadoc)
@@ -146,26 +144,28 @@ public class ConfigServiceImpl extends RemoteServiceServlet implements ConfigSer
 		return iterable;
 	}
 
-	@Override
-	public String processCall(final String payload) throws SerializationException {
-		try {
-			return transactionTemplate.execute(new TransactionCallback<String>() {
-
-				public String doInTransaction(final TransactionStatus status) {
-					try {
-						return ConfigServiceImpl.super.processCall(payload);
-					} catch (final SerializationException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			});
-		} catch (final RuntimeException ex) {
-			ex.printStackTrace();
-			if (ex.getCause() != null && ex.getCause() instanceof SerializationException)
-				throw (SerializationException) ex.getCause();
-			throw ex;
-		}
-	}
+	// @Override
+	// public String processCall(final String payload) throws
+	// SerializationException {
+	// try {
+	// return transactionTemplate.execute(new TransactionCallback<String>() {
+	//
+	// public String doInTransaction(final TransactionStatus status) {
+	// try {
+	// return ConfigServiceImpl.super.processCall(payload);
+	// } catch (final SerializationException e) {
+	// throw new RuntimeException(e);
+	// }
+	// }
+	// });
+	// } catch (final RuntimeException ex) {
+	// ex.printStackTrace();
+	// if (ex.getCause() != null && ex.getCause() instanceof
+	// SerializationException)
+	// throw (SerializationException) ex.getCause();
+	// throw ex;
+	// }
+	// }
 
 	/**
 	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService#removeFloors(java.lang.Iterable)

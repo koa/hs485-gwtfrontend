@@ -17,13 +17,13 @@
 
   <properties>
     <!-- Convenience property to set the GWT version -->
-    <gwtVersion>2.3.0</gwtVersion>
+    <gwtVersion>2.4.0</gwtVersion>
     <!-- GWT needs at least java 1.5 -->
     <maven.compiler.source>1.6</maven.compiler.source>
     <maven.compiler.target>1.6</maven.compiler.target>
     <!-- <webappDirectory>${project.build.directory}/${project.build.finalName}</webappDirectory> -->
     <webappDirectory>${project.build.directory}/m2e-wtp/web-resources</webappDirectory>
-    <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+    <org.springframework.version>3.0.6.RELEASE</org.springframework.version>
   </properties>
 
   <dependencies>
@@ -106,9 +106,14 @@
       <version>1.2.2</version>
     </dependency>
     <dependency>
-    	<groupId>commons-io</groupId>
-    	<artifactId>commons-io</artifactId>
-    	<version>2.0.1</version>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.2</version>
     </dependency>
   </dependencies>
 
@@ -165,15 +170,6 @@
         </configuration>
       </plugin>
       <!-- Copy Java-Agent for starting Surefire -->
-      <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-dependency-plugin</artifactId> 
-        <executions> <execution> <id>copy</id> <phase>process-resources</phase> <goals> 
-        <goal>copy</goal> </goals> <configuration> <outputDirectory>${project.build.directory}</outputDirectory> 
-        <artifactItems> <artifactItem> <groupId>org.springframework</groupId> <artifactId>spring-instrument</artifactId> 
-        <version>${org.springframework.version}</version> </artifactItem> </artifactItems> 
-        </configuration> </execution> </executions> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
-        <artifactId>maven-surefire-plugin</artifactId> <configuration> <forkMode>pertest</forkMode> 
-        <argLine>-javaagent:${basedir}/target/spring-instrument-${org.springframework.version}.jar</argLine> 
-        <workingDirectory>${basedir}/target</workingDirectory> </configuration> </plugin> -->
       <plugin>
         <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
         <groupId>au.com.alderaan</groupId>
@@ -202,6 +198,11 @@
     </plugins>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>2.8</version>
+        </plugin>
         <!--This plugin's configuration is used to store Eclipse m2e settings 
           only. It has no influence on the Maven build itself. -->
         <plugin>
@@ -213,42 +214,15 @@
               <pluginExecutions>
                 <pluginExecution>
                   <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <versionRange>[2.1.1,)</versionRange>
-                    <goals>
-                      <goal>exploded</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>gwt-maven-plugin</artifactId>
-                    <versionRange>[2.2.0,)</versionRange>
+                    <versionRange>[2.3.0,)</versionRange>
                     <goals>
                       <goal>generateAsync</goal>
-                      <goal>i18n</goal>
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <versionRange>[2.1,)</versionRange>
-                    <goals>
-                      <goal>copy</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore></ignore>
+                    <execute />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -263,7 +237,20 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <execute />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <versionRange>[2.1.1,)</versionRange>
+                    <goals>
+                      <goal>exploded</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
