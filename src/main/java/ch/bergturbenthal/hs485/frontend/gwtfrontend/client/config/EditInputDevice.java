@@ -34,7 +34,7 @@ public class EditInputDevice extends DialogBox {
 	@UiField
 	Button																	saveButton;
 	@UiField
-	SelectInputComposite											selectKeyComposite;
+	SelectInputComposite										selectKeyComposite;
 	@UiField
 	ListBox																	typeListBox;
 
@@ -47,11 +47,10 @@ public class EditInputDevice extends DialogBox {
 		if (device.getConnectors() == null)
 			device.setConnectors(new ArrayList<InputConnector>());
 		connectorEditor.setData(device.getConnectors());
-		for (final InputDeviceType inputDeviceType : InputDeviceType.values()) {
+		for (final InputDeviceType inputDeviceType : InputDeviceType.values())
 			typeListBox.addItem(inputDeviceType.name());
-			if (inputDeviceType.equals(inputDevice.getType()))
-				typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
-		}
+		// if (inputDeviceType.equals(inputDevice.getType()))
+		// typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
 		connectorEditor.setSelectKeyComposite(selectKeyComposite);
 	}
 
@@ -67,8 +66,8 @@ public class EditInputDevice extends DialogBox {
 		// device.setConnectors(connectorEditor.gete)
 		final int selectedIndex = typeListBox.getSelectedIndex();
 		if (selectedIndex >= 0)
-			device.setType(InputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));
-		hide();
+			// device.setType(InputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));
+			hide();
 		refreshRunnable.run();
 	}
 }

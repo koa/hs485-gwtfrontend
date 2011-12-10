@@ -17,7 +17,11 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/testContext.xml" })
@@ -60,8 +64,16 @@ public class SetupData {
 		final Plan plan = new Plan();
 		plan.setName("Berg");
 		final Floor floor = new Floor();
-		floor.setPlan(file);
+		floor.setDrawing(file);
 		plan.getFloors().add(floor);
+		final InputDevice inputDevice = new InputDevice();
+		inputDevice.setName("Saeule");
+		inputDevice.setPosition(new PositionXY(7500f, 4660f));
+		final InputConnector inputConnector = new InputConnector();
+		inputDevice.getConnectors().add(inputConnector);
+		inputConnector.setType(InputDeviceType.SWITCH);
+		inputConnector.setConnectorName("1L");
+		floor.getInputDevices().add(inputDevice);
 		planRepository.save(plan);
 
 	}

@@ -15,6 +15,7 @@ public class InputConnector implements Serializable {
 	@Indexed
 	private InputAddress			address						= new InputAddress();
 	private String						connectorName;
+	private InputDeviceType		type;
 
 	public InputAddress getAddress() {
 		return address;
@@ -24,12 +25,20 @@ public class InputConnector implements Serializable {
 		return connectorName;
 	}
 
+	public InputDeviceType getType() {
+		return type;
+	}
+
 	public void setAddress(final InputAddress address) {
 		this.address = address;
 	}
 
 	public void setConnectorName(final String connectorName) {
 		this.connectorName = connectorName;
+	}
+
+	public void setType(final InputDeviceType type) {
+		this.type = type;
 	}
 
 }

@@ -31,7 +31,7 @@ public class Config implements EntryPoint {
 
 		final DockLayoutPanel dockLayoutPanel = new DockLayoutPanel(Unit.EM);
 		rootPanel.add(dockLayoutPanel);
-		dockLayoutPanel.setSize("100%", "100%");
+//		dockLayoutPanel.setSize("100%", "100%");
 
 		final MenuBar menuBar = new MenuBar(false);
 		dockLayoutPanel.addNorth(menuBar, 2);

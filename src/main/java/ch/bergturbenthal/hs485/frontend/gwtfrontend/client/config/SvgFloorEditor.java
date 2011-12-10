@@ -30,7 +30,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
@@ -474,7 +473,7 @@ public class SvgFloorEditor extends Composite {
 		// inputDevice.getFloorPlace().getPosition().setX(300f);
 		// inputDevice.getFloorPlace().getPosition().setY(300f);
 		// inputDevice.getFloorPlace().setFloor(currentFloor);
-		inputDevice.setType(InputDeviceType.SWITCH);
+		// inputDevice.setType(InputDeviceType.SWITCH);
 		inputDevices.add(inputDevice);
 		updateInputDevicesOnServer();
 
@@ -496,7 +495,7 @@ public class SvgFloorEditor extends Composite {
 	void onSelectFileListBoxChange(final ChangeEvent event) {
 		final int selectedIndex = selectFileListBox.getSelectedIndex();
 		if (selectedIndex < 1)
-			currentFloor.setPlan(null);
+			currentFloor.setDrawing(null);
 		else {
 			final String filename = selectFileListBox.getValue(selectedIndex);
 			configService.getFile(filename, new AsyncCallback<FileData>() {
@@ -509,7 +508,7 @@ public class SvgFloorEditor extends Composite {
 
 				@Override
 				public void onSuccess(final FileData result) {
-					currentFloor.setPlan(result);
+					currentFloor.setDrawing(result);
 					saveFloor();
 					showFloor(currentFloor);
 				}
@@ -686,12 +685,12 @@ public class SvgFloorEditor extends Composite {
 		if (currentFloor.getScale() == null || currentFloor.getScale().floatValue() == 0)
 			currentFloor.setScale(1f);
 		scaleIcons(currentFloor.getScale());
-		final FileData plan = currentFloor.getPlan();
+		final FileData plan = currentFloor.getDrawing();
 		if (plan == null)
 			return;
 		selectFileListBox.setSelectedIndex(0);
 		for (int i = 0; i < selectFileListBox.getItemCount(); i++)
-			if (currentFloor.getPlan().getFileName().equals(selectFileListBox.getValue(i)))
+			if (currentFloor.getDrawing().getFileName().equals(selectFileListBox.getValue(i)))
 				selectFileListBox.setSelectedIndex(i);
 
 		// configService.getOutputDevicesByFloor(currentFloor, new

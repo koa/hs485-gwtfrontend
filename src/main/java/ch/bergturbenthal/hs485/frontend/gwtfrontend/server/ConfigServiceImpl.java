@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.InputDeviceRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
@@ -18,16 +16,16 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 @Transactional
 public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements ConfigService {
 
-	private static final long				serialVersionUID	= 5816537750102063151L;
+	private static final long		serialVersionUID	= 5816537750102063151L;
 
 	@Autowired
-	private FileDataRepository			fileDataRepository;
+	private FileDataRepository	fileDataRepository;
+	// @Autowired
+	// private InputDeviceRepository inputDeviceRepository;
+	// @Autowired
+	// private OutputDeviceRepository outputDeviceRepository;
 	@Autowired
-	private InputDeviceRepository		inputDeviceRepository;
-	@Autowired
-	private OutputDeviceRepository	outputDeviceRepository;
-	@Autowired
-	private PlanRepository					planRepository;
+	private PlanRepository			planRepository;
 
 	// @Autowired
 	// private TransactionTemplate transactionTemplate;

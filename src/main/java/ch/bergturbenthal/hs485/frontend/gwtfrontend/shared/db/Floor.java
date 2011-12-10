@@ -20,11 +20,15 @@ import com.google.code.morphia.annotations.Entity;
 public class Floor implements Serializable {
 
 	private static final long				serialVersionUID	= 2901805918126067682L;
+	@DBRef
+	private FileData								drawing;
 	private final List<InputDevice>	inputDevices			= new ArrayList<InputDevice>();
 	private String									name;
-	@DBRef
-	private FileData								plan;
 	private Float										scale;
+
+	public FileData getDrawing() {
+		return drawing;
+	}
 
 	public List<InputDevice> getInputDevices() {
 		return inputDevices;
@@ -34,20 +38,16 @@ public class Floor implements Serializable {
 		return name;
 	}
 
-	public FileData getPlan() {
-		return plan;
-	}
-
 	public Float getScale() {
 		return scale;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setDrawing(final FileData plan) {
+		drawing = plan;
 	}
 
-	public void setPlan(final FileData plan) {
-		this.plan = plan;
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	public void setScale(final Float scale) {
@@ -68,9 +68,9 @@ public class Floor implements Serializable {
 			builder.append(name);
 			builder.append(", ");
 		}
-		if (plan != null) {
+		if (drawing != null) {
 			builder.append("plan=");
-			builder.append(plan);
+			builder.append(drawing);
 			builder.append(", ");
 		}
 		if (scale != null) {

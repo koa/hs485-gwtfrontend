@@ -22,7 +22,6 @@ public class InputDevice implements Serializable {
 	private String								inputDeviceId;
 	private String								name;
 	private PositionXY						position					= new PositionXY();
-	private InputDeviceType				type;
 
 	public List<InputConnector> getConnectors() {
 		return connectors;
@@ -40,10 +39,6 @@ public class InputDevice implements Serializable {
 		return position;
 	}
 
-	public InputDeviceType getType() {
-		return type;
-	}
-
 	public void setConnectors(final List<InputConnector> connectors) {
 		this.connectors = connectors;
 	}
@@ -58,10 +53,6 @@ public class InputDevice implements Serializable {
 
 	public void setPosition(final PositionXY position) {
 		this.position = position;
-	}
-
-	public void setType(final InputDeviceType type) {
-		this.type = type;
 	}
 
 }

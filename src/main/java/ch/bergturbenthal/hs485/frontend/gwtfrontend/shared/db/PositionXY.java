@@ -7,6 +7,15 @@ public class PositionXY implements Serializable {
 	private Float							x;
 	private Float							y;
 
+	public PositionXY() {
+		super();
+	}
+
+	public PositionXY(final Float x, final Float y) {
+		this.x = x;
+		this.y = y;
+	}
+
 	public Float getX() {
 		return x;
 	}
