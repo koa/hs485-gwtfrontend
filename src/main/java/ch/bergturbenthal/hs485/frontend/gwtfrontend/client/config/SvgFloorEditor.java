@@ -4,7 +4,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +122,7 @@ public class SvgFloorEditor extends Composite {
 
 	private PositionXY										dragPosition;
 
-	private List<Floor>										floors						= new ArrayList<Floor>();
+	private final List<Floor>							floors						= new ArrayList<Floor>();
 
 	private OMSVGGElement									iconsGroup;
 	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
@@ -300,19 +299,20 @@ public class SvgFloorEditor extends Composite {
 				new EditInputDevice(device, new Runnable() {
 					@Override
 					public void run() {
-						configService.updateInputDevices(Arrays.asList(new InputDevice[] { device }), new AsyncCallback<Iterable<InputDevice>>() {
-
-							@Override
-							public void onFailure(final Throwable caught) {
-								// TODO Auto-generated method stub
-							}
-
-							@Override
-							public void onSuccess(final Iterable<InputDevice> result) {
-								updateIcons();
-							}
-						});
-
+						// configService.updateInputDevices(Arrays.asList(new InputDevice[]
+						// { device }), new AsyncCallback<Iterable<InputDevice>>() {
+						//
+						// @Override
+						// public void onFailure(final Throwable caught) {
+						// // TODO Auto-generated method stub
+						// }
+						//
+						// @Override
+						// public void onSuccess(final Iterable<InputDevice> result) {
+						// updateIcons();
+						// }
+						// });
+						//
 					}
 				}).center();
 
@@ -322,21 +322,22 @@ public class SvgFloorEditor extends Composite {
 			@Override
 			public void execute() {
 				popupPanel.hide();
-				if (Window.confirm("Are you sure to remove " + device.getName() + "?"))
-					configService.removeInputDevice(device, new AsyncCallback<Void>() {
-
-						@Override
-						public void onFailure(final Throwable caught) {
-							updateIcons();
-							// TODO Auto-generated method stub
-						}
-
-						@Override
-						public void onSuccess(final Void result) {
-							inputDevices.remove(device);
-							updateIcons();
-						}
-					});
+				// if (Window.confirm("Are you sure to remove " + device.getName() +
+				// "?"))
+				// configService.removeInputDevice(device, new AsyncCallback<Void>() {
+				//
+				// @Override
+				// public void onFailure(final Throwable caught) {
+				// updateIcons();
+				// // TODO Auto-generated method stub
+				// }
+				//
+				// @Override
+				// public void onSuccess(final Void result) {
+				// inputDevices.remove(device);
+				// updateIcons();
+				// }
+				// });
 			}
 		}));
 		popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
@@ -355,18 +356,20 @@ public class SvgFloorEditor extends Composite {
 				new EditOutputDevice(device, new Runnable() {
 					@Override
 					public void run() {
-						configService.updateOutputDevices(Arrays.asList(new OutputDevice[] { device }), new AsyncCallback<Iterable<OutputDevice>>() {
-
-							@Override
-							public void onFailure(final Throwable caught) {
-								// TODO Auto-generated method stub
-							}
-
-							@Override
-							public void onSuccess(final Iterable<OutputDevice> result) {
-								updateIcons();
-							}
-						});
+						// configService.updateOutputDevices(Arrays.asList(new
+						// OutputDevice[] { device }), new
+						// AsyncCallback<Iterable<OutputDevice>>() {
+						//
+						// @Override
+						// public void onFailure(final Throwable caught) {
+						// // TODO Auto-generated method stub
+						// }
+						//
+						// @Override
+						// public void onSuccess(final Iterable<OutputDevice> result) {
+						// updateIcons();
+						// }
+						// });
 
 					}
 				}).center();
@@ -375,22 +378,22 @@ public class SvgFloorEditor extends Composite {
 		menuBar.addItem(new MenuItem(messages.removeText(), new Command() {
 			public void execute() {
 				popupPanel.hide();
-				if (Window.confirm(messages.removeDeviceQuestion(device.getName())))
-					// "Are you sure to remove " + device.getName() + "?"))
-					configService.removeOutputDevice(device, new AsyncCallback<Void>() {
-
-						@Override
-						public void onFailure(final Throwable caught) {
-							updateIcons();
-							// TODO Auto-generated method stub
-						}
-
-						@Override
-						public void onSuccess(final Void result) {
-							outputDevices.remove(device);
-							updateIcons();
-						}
-					});
+				// if (Window.confirm(messages.removeDeviceQuestion(device.getName())))
+				// "Are you sure to remove " + device.getName() + "?"))
+				// configService.removeOutputDevice(device, new AsyncCallback<Void>() {
+				//
+				// @Override
+				// public void onFailure(final Throwable caught) {
+				// updateIcons();
+				// // TODO Auto-generated method stub
+				// }
+				//
+				// @Override
+				// public void onSuccess(final Void result) {
+				// outputDevices.remove(device);
+				// updateIcons();
+				// }
+				// });
 			}
 		}));
 		popupPanel.getElement().setAttribute("oncontextmenu", "return false;");
@@ -429,19 +432,20 @@ public class SvgFloorEditor extends Composite {
 	void onAddFloorButtonClick(final ClickEvent event) {
 		final Floor newFloor = new Floor();
 		newFloor.setName("Floor " + floors.size());
-		configService.updateFloors(Arrays.asList(new Floor[] { newFloor }), new AsyncCallback<Void>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Void result) {
-				reloadFloorList();
-			}
-		});
+		// configService.updateFloors(Arrays.asList(new Floor[] { newFloor }), new
+		// AsyncCallback<Void>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Void result) {
+		// reloadFloorList();
+		// }
+		// });
 	}
 
 	@UiHandler("decScaleButton")
@@ -466,9 +470,10 @@ public class SvgFloorEditor extends Composite {
 	void onInputDeviceButtonClick(final ClickEvent event) {
 		final InputDevice inputDevice = new InputDevice();
 		inputDevice.setName("Switch " + inputDevices.size());
-		inputDevice.getFloorPlace().getPosition().setX(300f);
-		inputDevice.getFloorPlace().getPosition().setY(300f);
-		inputDevice.getFloorPlace().setFloor(currentFloor);
+		// TODO reimplement
+		// inputDevice.getFloorPlace().getPosition().setX(300f);
+		// inputDevice.getFloorPlace().getPosition().setY(300f);
+		// inputDevice.getFloorPlace().setFloor(currentFloor);
 		inputDevice.setType(InputDeviceType.SWITCH);
 		inputDevices.add(inputDevice);
 		updateInputDevicesOnServer();
@@ -586,50 +591,51 @@ public class SvgFloorEditor extends Composite {
 	 * 
 	 */
 	private void reloadFileList() {
-		configService.listFilesByMimeType("image/svg+xml", new AsyncCallback<List<String>>() {
-
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void onSuccess(final List<String> result) {
-				selectFileListBox.clear();
-				selectFileListBox.addItem("----");
-				for (final String filename : result)
-					selectFileListBox.addItem(filename);
-			}
-		});
+		// configService.listFilesByMimeType("image/svg+xml", new
+		// AsyncCallback<List<String>>() {
+		//
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// public void onSuccess(final List<String> result) {
+		// selectFileListBox.clear();
+		// selectFileListBox.addItem("----");
+		// for (final String filename : result)
+		// selectFileListBox.addItem(filename);
+		// }
+		// });
 	}
 
 	private void reloadFloorList() {
-		configService.listAllFloors(new AsyncCallback<Iterable<Floor>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Iterable<Floor> result) {
-				selectFloorListBox.clear();
-				floors = new ArrayList<Floor>();
-				for (final Floor floor : result) {
-					floors.add(floor);
-					selectFloorListBox.addItem(floor.getName());
-				}
-				if (currentFloor != null)
-					for (int i = 0; i < floors.size(); i++)
-						if (currentFloor.getName().equals(floors.get(i).getName())) {
-							selectFloorListBox.setSelectedIndex(i);
-							showFloor(floors.get(i));
-							return;
-						}
-				if (floors.size() > 0)
-					showFloor(floors.get(0));
-			}
-		});
+		// configService.listAllFloors(new AsyncCallback<Iterable<Floor>>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Iterable<Floor> result) {
+		// selectFloorListBox.clear();
+		// floors = new ArrayList<Floor>();
+		// for (final Floor floor : result) {
+		// floors.add(floor);
+		// selectFloorListBox.addItem(floor.getName());
+		// }
+		// if (currentFloor != null)
+		// for (int i = 0; i < floors.size(); i++)
+		// if (currentFloor.getName().equals(floors.get(i).getName())) {
+		// selectFloorListBox.setSelectedIndex(i);
+		// showFloor(floors.get(i));
+		// return;
+		// }
+		// if (floors.size() > 0)
+		// showFloor(floors.get(0));
+		// }
+		// });
 		// TODO Auto-generated method stub
 
 	}
@@ -644,20 +650,21 @@ public class SvgFloorEditor extends Composite {
 	 * 
 	 */
 	private void saveFloor() {
-		configService.updateFloors(Arrays.asList(new Floor[] { currentFloor }), new AsyncCallback<Void>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Void result) {
-				// TODO Auto-generated method stub
-
-			}
-		});
+		// configService.updateFloors(Arrays.asList(new Floor[] { currentFloor }),
+		// new AsyncCallback<Void>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Void result) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		// });
 	}
 
 	private void scaleIcons(final float scaleFactor) {
@@ -687,38 +694,40 @@ public class SvgFloorEditor extends Composite {
 			if (currentFloor.getPlan().getFileName().equals(selectFileListBox.getValue(i)))
 				selectFileListBox.setSelectedIndex(i);
 
-		configService.getOutputDevicesByFloor(currentFloor, new AsyncCallback<Iterable<OutputDevice>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Iterable<OutputDevice> result) {
-				outputDevices.clear();
-				for (final OutputDevice outputDevice : result)
-					outputDevices.add(outputDevice);
-				updateIcons();
-			}
-		});
-		configService.getInputDevicesByFloor(currentFloor, new AsyncCallback<Iterable<InputDevice>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Iterable<InputDevice> result) {
-				inputDevices.clear();
-				for (final InputDevice inputDevice : result)
-					inputDevices.add(inputDevice);
-				updateIcons();
-			}
-		});
+		// configService.getOutputDevicesByFloor(currentFloor, new
+		// AsyncCallback<Iterable<OutputDevice>>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Iterable<OutputDevice> result) {
+		// outputDevices.clear();
+		// for (final OutputDevice outputDevice : result)
+		// outputDevices.add(outputDevice);
+		// updateIcons();
+		// }
+		// });
+		// configService.getInputDevicesByFloor(currentFloor, new
+		// AsyncCallback<Iterable<InputDevice>>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Iterable<InputDevice> result) {
+		// inputDevices.clear();
+		// for (final InputDevice inputDevice : result)
+		// inputDevices.add(inputDevice);
+		// updateIcons();
+		// }
+		// });
 		svg = OMSVGParser.parse(plan.getFileDataContent());
 		// SVGProcessor.normalizeIds(svg);
 		drawSvg();
@@ -729,8 +738,10 @@ public class SvgFloorEditor extends Composite {
 		if (iconsGroup == null)
 			return;
 		removeAllChildren(iconsGroup.getElement());
-		for (final InputDevice device : inputDevices)
-			placeIconAt(SWITCH_ON_ICON_ID, device.getFloorPlace().getPosition(), makePopupPanelForInputDevice(device));
+		// TODO readd
+		// for (final InputDevice device : inputDevices)
+		// placeIconAt(SWITCH_ON_ICON_ID, device.getFloorPlace().getPosition(),
+		// makePopupPanelForInputDevice(device));
 		for (final OutputDevice device : outputDevices) {
 			final String iconId;
 			if (device.getType() == null)
@@ -759,44 +770,46 @@ public class SvgFloorEditor extends Composite {
 	 */
 	private void updateInputDevicesOnServer() {
 		inputDeviceButton.setEnabled(false);
-		configService.updateInputDevices(inputDevices, new AsyncCallback<Iterable<InputDevice>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				inputDeviceButton.setEnabled(true);
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Iterable<InputDevice> result) {
-				inputDevices.clear();
-				for (final InputDevice inputDevice : result)
-					inputDevices.add(inputDevice);
-				updateIcons();
-				inputDeviceButton.setEnabled(true);
-			}
-		});
+		// configService.updateInputDevices(inputDevices, new
+		// AsyncCallback<Iterable<InputDevice>>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// inputDeviceButton.setEnabled(true);
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Iterable<InputDevice> result) {
+		// inputDevices.clear();
+		// for (final InputDevice inputDevice : result)
+		// inputDevices.add(inputDevice);
+		// updateIcons();
+		// inputDeviceButton.setEnabled(true);
+		// }
+		// });
 	}
 
 	private void updateOutputDevicesOnServer() {
 		outputDeviceButton.setEnabled(false);
-		configService.updateOutputDevices(outputDevices, new AsyncCallback<Iterable<OutputDevice>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				outputDeviceButton.setEnabled(true);
-				// TODO Auto-generated method stub
-			}
-
-			@Override
-			public void onSuccess(final Iterable<OutputDevice> result) {
-				outputDevices.clear();
-				for (final OutputDevice outputDevice : result)
-					outputDevices.add(outputDevice);
-				updateIcons();
-				outputDeviceButton.setEnabled(true);
-			}
-		});
+		// configService.updateOutputDevices(outputDevices, new
+		// AsyncCallback<Iterable<OutputDevice>>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// outputDeviceButton.setEnabled(true);
+		// // TODO Auto-generated method stub
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Iterable<OutputDevice> result) {
+		// outputDevices.clear();
+		// for (final OutputDevice outputDevice : result)
+		// outputDevices.add(outputDevice);
+		// updateIcons();
+		// outputDeviceButton.setEnabled(true);
+		// }
+		// });
 	}
 }

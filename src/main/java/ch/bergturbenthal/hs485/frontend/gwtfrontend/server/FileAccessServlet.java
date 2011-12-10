@@ -20,7 +20,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.FileDataRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 
 /**

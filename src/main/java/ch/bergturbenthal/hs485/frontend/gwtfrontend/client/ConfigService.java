@@ -1,12 +1,10 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import java.util.List;
+import java.util.Map;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
@@ -29,43 +27,11 @@ public interface ConfigService extends RemoteService {
 
 	public FileData getFile(String filename);
 
-	public Iterable<InputDevice> getInputDeviceByInputAddress(InputAddress address);
+	public Map<String, String> listAllPlans();
 
-	public Iterable<InputDevice> getInputDevicesByFloor(Floor floor);
+	public List<String> listFilesByMime(String mime);
 
-	public Iterable<OutputDevice> getOutputDevices();
+	public Plan readPlan(String planId);
 
-	public Iterable<OutputDevice> getOutputDevicesByFloor(Floor floor);
-
-	/**
-	 * Gets all Available Floors
-	 * 
-	 * @return
-	 */
-	public Iterable<Floor> listAllFloors();
-
-	public List<String> listFilesByMimeType(String mimeType);
-
-	/**
-	 * remove this Floors
-	 * 
-	 * @param floors
-	 */
-	public void removeFloors(Iterable<Floor> floors);
-
-	public void removeInputDevice(InputDevice device);
-
-	public void removeOutputDevice(OutputDevice device);
-
-	/**
-	 * Add or modifiy this floors
-	 * 
-	 * @param floors
-	 */
-	public void updateFloors(Iterable<Floor> floors);
-
-	public Iterable<InputDevice> updateInputDevices(Iterable<InputDevice> devices);
-
-	public Iterable<OutputDevice> updateOutputDevices(Iterable<OutputDevice> devices);
-
+	public Plan savePlan(Plan plan);
 }

@@ -1,7 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -10,15 +9,16 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventDistributor
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -71,10 +71,13 @@ public class SelectInputComposite extends Composite {
 	private final String											groupName;
 	private final EventHandler								handler;
 	private final VerticalPanel								inputListPanel;
+	private final Plan												plan;
+
 	private final Map<InputAddress, KeyData>	visibleInputs	= new HashMap<InputAddress, SelectInputComposite.KeyData>();
 
-	public SelectInputComposite() {
+	public SelectInputComposite(final Plan plan) {
 
+		this.plan = plan;
 		inputListPanel = new VerticalPanel();
 		final HorizontalPanel horizontalPanel = new HorizontalPanel();
 		horizontalPanel.add(inputListPanel);
@@ -125,27 +128,14 @@ public class SelectInputComposite extends Composite {
 		final KeyData keyData = new KeyData(displayRadioButton);
 		visibleInputs.put(keyAddress, keyData);
 		inputListPanel.add(displayRadioButton);
-		configService.getInputDeviceByInputAddress(keyAddress, new AsyncCallback<Iterable<InputDevice>>() {
-
-			@Override
-			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public void onSuccess(final Iterable<InputDevice> result) {
-				final Iterator<InputDevice> iterator = result.iterator();
-				if (!iterator.hasNext())
-					return;
-				final InputDevice inputDevice = iterator.next();
+		for (final Floor floor : plan.getFloors())
+			for (final InputDevice inputDevice : floor.getInputDevices())
 				for (final InputConnector inputConnector : inputDevice.getConnectors())
 					if (keyAddress.equals(inputConnector.getAddress())) {
 						keyData.setConnectedSwitchLabel(inputDevice.getName() + "-" + inputConnector.getConnectorName());
 						updateKeyLabel(keyAddress, keyData);
+						break;
 					}
-			}
-		});
 	}
 
 	@Override

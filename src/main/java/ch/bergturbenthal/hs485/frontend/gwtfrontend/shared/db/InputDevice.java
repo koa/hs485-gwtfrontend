@@ -7,13 +7,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OrderColumn;
+import org.springframework.data.annotation.Id;
+
+import com.google.code.morphia.annotations.Entity;
 
 /**
  * Input-Device
@@ -21,31 +17,27 @@ import javax.persistence.OrderColumn;
 @Entity
 public class InputDevice implements Serializable {
 	private static final long			serialVersionUID	= 1L;
-	@ElementCollection
-	@OrderColumn
 	private List<InputConnector>	connectors				= new ArrayList<InputConnector>();
-	@Embedded
-	private FloorPlace						floorPlace				= new FloorPlace();
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer								inputDeviceId;
+	private String								inputDeviceId;
 	private String								name;
+	private PositionXY						position					= new PositionXY();
 	private InputDeviceType				type;
 
 	public List<InputConnector> getConnectors() {
 		return connectors;
 	}
 
-	public FloorPlace getFloorPlace() {
-		return floorPlace;
-	}
-
-	public Integer getInputDeviceId() {
+	public String getInputDeviceId() {
 		return inputDeviceId;
 	}
 
 	public String getName() {
 		return name;
+	}
+
+	public PositionXY getPosition() {
+		return position;
 	}
 
 	public InputDeviceType getType() {
@@ -56,16 +48,16 @@ public class InputDevice implements Serializable {
 		this.connectors = connectors;
 	}
 
-	public void setFloorPlace(final FloorPlace floorPlace) {
-		this.floorPlace = floorPlace;
-	}
-
-	public void setInputDeviceId(final Integer inputDeviceId) {
+	public void setInputDeviceId(final String inputDeviceId) {
 		this.inputDeviceId = inputDeviceId;
 	}
 
 	public void setName(final String name) {
 		this.name = name;
+	}
+
+	public void setPosition(final PositionXY position) {
+		this.position = position;
 	}
 
 	public void setType(final InputDeviceType type) {

@@ -2,22 +2,13 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.springframework.data.annotation.Id;
 
-@Entity
-@Table(name = "OUTPUTDEVICE")
 public class OutputDevice implements Serializable {
 	private static final long	serialVersionUID	= 2108040144856847494L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer						deviceId;
-	@Embedded
 	private FloorPlace				floorPlace				= new FloorPlace();
 	private String						name;
 	private OutputDeviceType	type;

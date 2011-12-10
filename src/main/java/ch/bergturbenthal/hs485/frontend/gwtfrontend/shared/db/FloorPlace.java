@@ -5,18 +5,11 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.ManyToOne;
-
 /**
  *
  */
-@Embeddable
 public class FloorPlace implements Serializable {
-	@ManyToOne
 	private Floor				floor;
-	@Embedded
 	private PositionXY	position	= new PositionXY();
 
 	public Floor getFloor() {

@@ -12,6 +12,7 @@
 		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/hs485.xml</config>
 		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/db.xml</config>
 		<config>src/main/webapp/WEB-INF/applicationContext.xml</config>
+		<config>src/main/resources/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/mongodb.xml</config>
 	</configs>
 	<configSets>
 	</configSets>

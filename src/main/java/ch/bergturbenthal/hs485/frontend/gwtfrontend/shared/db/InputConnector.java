@@ -5,15 +5,15 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
  *
  */
-@Embeddable
 public class InputConnector implements Serializable {
 	private static final long	serialVersionUID	= -6176793023621697995L;
-	private InputAddress			address;
+	@Indexed
+	private InputAddress			address						= new InputAddress();
 	private String						connectorName;
 
 	public InputAddress getAddress() {

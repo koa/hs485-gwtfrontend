@@ -40,18 +40,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.persistence</groupId>
-      <artifactId>eclipselink</artifactId>
-      <version>2.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>10.8.1.2</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-jpa</artifactId>
       <version>1.0.0.RELEASE</version>
@@ -71,11 +59,6 @@
       <artifactId>spring-test</artifactId>
       <version>${org.springframework.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>2.2.4</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -114,6 +97,16 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.6.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-mongodb</artifactId>
+      <version>1.0.0.M4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.mysema.querydsl</groupId>
+      <artifactId>querydsl-mongodb</artifactId>
+      <version>2.2.5</version>
     </dependency>
   </dependencies>
 
@@ -169,20 +162,6 @@
           <webappDirectory>${webappDirectory}</webappDirectory>
         </configuration>
       </plugin>
-      <!-- Copy Java-Agent for starting Surefire -->
-      <plugin>
-        <artifactId>eclipselink-staticweave-maven-plugin</artifactId>
-        <groupId>au.com.alderaan</groupId>
-        <version>1.0.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>weave</goal>
-            </goals>
-            <phase>process-classes</phase>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -194,6 +173,28 @@
             <encoding>UTF-8</encoding>
           </compilerArguments>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mysema.maven</groupId>
+        <artifactId>maven-apt-plugin</artifactId>
+        <version>1.0.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>
+                target/generated-sources/apt
+              </outputDirectory>
+              <!-- <processor>com.mysema.query.mongodb.MongodbAnnotationProcessor</processor> -->
+              <processor>org.springframework.data.mongodb.repository.MongoAnnotationProcessor</processor>
+              <options>
+                <querydsl.entityAccessors>true</querydsl.entityAccessors>
+              </options>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
     <pluginManagement>
@@ -265,6 +266,11 @@
       <id>Neptun</id>
       <name>Neptun-releases</name>
       <url>http://www.berg-turbenthal.ch/artifactory/libs-releases-local</url>
+    </repository>
+    <repository>
+      <id>spring-milestone</id>
+      <name>Spring Maven MILESTONE Repository</name>
+      <url>http://maven.springframework.org/milestone</url>
     </repository>
   </repositories>
 </project>

@@ -2,9 +2,6 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Embeddable;
-
-@Embeddable
 public class PositionXY implements Serializable {
 	private static final long	serialVersionUID	= -5769901005298597592L;
 	private Float							x;

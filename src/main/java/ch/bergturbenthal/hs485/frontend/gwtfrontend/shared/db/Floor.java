@@ -4,30 +4,30 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.google.code.morphia.annotations.Entity;
 
 /**
  * a Floor of a Building.
  */
+@Document
 @Entity
 public class Floor implements Serializable {
 
-	private static final long	serialVersionUID	= 2901805918126067682L;
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Integer						floorId;
-	private String						name;
-	@OneToOne
-	private FileData					plan;
-	private Float							scale;
+	private static final long				serialVersionUID	= 2901805918126067682L;
+	private final List<InputDevice>	inputDevices			= new ArrayList<InputDevice>();
+	private String									name;
+	@DBRef
+	private FileData								plan;
+	private Float										scale;
 
-	public Integer getFloorId() {
-		return floorId;
+	public List<InputDevice> getInputDevices() {
+		return inputDevices;
 	}
 
 	public String getName() {
@@ -40,10 +40,6 @@ public class Floor implements Serializable {
 
 	public Float getScale() {
 		return scale;
-	}
-
-	public void setFloorId(final Integer floorId) {
-		this.floorId = floorId;
 	}
 
 	public void setName(final String name) {
@@ -62,9 +58,9 @@ public class Floor implements Serializable {
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Floor [");
-		if (floorId != null) {
-			builder.append("floorId=");
-			builder.append(floorId);
+		if (inputDevices != null) {
+			builder.append("inputDevices=");
+			builder.append(inputDevices);
 			builder.append(", ");
 		}
 		if (name != null) {
@@ -74,7 +70,12 @@ public class Floor implements Serializable {
 		}
 		if (plan != null) {
 			builder.append("plan=");
-			builder.append(plan.getFileName());
+			builder.append(plan);
+			builder.append(", ");
+		}
+		if (scale != null) {
+			builder.append("scale=");
+			builder.append(scale);
 		}
 		builder.append("]");
 		return builder.toString();

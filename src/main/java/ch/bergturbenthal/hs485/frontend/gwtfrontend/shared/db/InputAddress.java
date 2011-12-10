@@ -1,10 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
-import javax.persistence.Embeddable;
-
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-@Embeddable
 public class InputAddress implements IsSerializable {
 	private int	deviceAddress;
 	private int	inputAddress;

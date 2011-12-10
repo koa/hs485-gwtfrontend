@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.FloorEditor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -23,10 +24,14 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  */
 public class FloorEditorDialog extends DialogBox {
 	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
+	private Plan											currentPlan;
 	private final FloorEditor					floorEditor;
 	private final Messages						messages			= GWT.create(Messages.class);
 
-	public FloorEditorDialog() {
+	private final String							planId;
+
+	public FloorEditorDialog(final String planId) {
+		this.planId = planId;
 		setHTML(messages.editFloors());
 
 		final VerticalPanel verticalPanel = new VerticalPanel();
@@ -52,23 +57,18 @@ public class FloorEditorDialog extends DialogBox {
 		final Button okButton = new Button(messages.okText());
 		okButton.addClickHandler(new ClickHandler() {
 			public void onClick(final ClickEvent event) {
-				configService.updateFloors(floorEditor.getModifiedFloors(), new AsyncCallback<Void>() {
+				configService.savePlan(currentPlan, new AsyncCallback<Plan>() {
 
+					@Override
 					public void onFailure(final Throwable caught) {
-						reloadData();
+						// TODO Auto-generated method stub
+
 					}
 
-					public void onSuccess(final Void result) {
-						configService.removeFloors(floorEditor.getRemovedFloors(), new AsyncCallback<Void>() {
-
-							public void onFailure(final Throwable caught) {
-								reloadData();
-							}
-
-							public void onSuccess(final Void result) {
-								hide();
-							}
-						});
+					@Override
+					public void onSuccess(final Plan result) {
+						currentPlan = result;
+						reloadFloors();
 					}
 				});
 			}
@@ -76,24 +76,27 @@ public class FloorEditorDialog extends DialogBox {
 		horizontalSplitPanel.add(okButton);
 	}
 
-	/**
-	 * 
-	 */
 	private void reloadData() {
-		configService.listAllFloors(new AsyncCallback<Iterable<Floor>>() {
+		configService.readPlan(planId, new AsyncCallback<Plan>() {
 
+			@Override
 			public void onFailure(final Throwable caught) {
 				// TODO Auto-generated method stub
-
 			}
 
-			public void onSuccess(final Iterable<Floor> result) {
-				final ArrayList<Floor> floors = new ArrayList<Floor>();
-				for (final Floor floor : result)
-					floors.add(floor);
-				floorEditor.setData(floors);
+			@Override
+			public void onSuccess(final Plan result) {
+				currentPlan = result;
+				reloadFloors();
 			}
 		});
+	}
+
+	private void reloadFloors() {
+		final ArrayList<Floor> floors = new ArrayList<Floor>();
+		for (final Floor floor : currentPlan.getFloors())
+			floors.add(floor);
+		floorEditor.setData(floors);
 	}
 
 	@Override

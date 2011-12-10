@@ -1,6 +1,5 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SelectInputComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -46,7 +45,7 @@ public class Config implements EntryPoint {
 
 		final MenuItem editFloorsItem = new MenuItem(messages.editFloorsItem(), false, new Command() {
 			public void execute() {
-				new FloorEditorDialog().show();
+				new FloorEditorDialog("plan").show();
 			}
 		});
 		menuBar_2.addItem(editFloorsItem);
@@ -82,7 +81,7 @@ public class Config implements EntryPoint {
 		// logHtml.setHTML(stateDescr.toString());
 		// }
 		// });
-		dockLayoutPanel.addSouth(new SelectInputComposite(), 15);
+		// dockLayoutPanel.addSouth(new SelectInputComposite(), 15);
 		// communicationService.getEvents(new PollAsyncCallback(logHtml));
 
 		final SvgFloorEditor svgFloorEditor = new SvgFloorEditor();

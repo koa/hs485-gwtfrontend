@@ -5,17 +5,15 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db;
 
 import java.io.Serializable;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-/**
- *
- */
+import com.google.code.morphia.annotations.Entity;
+
+@Document
 @Entity
 public class FileData implements Serializable {
 	private static final long	serialVersionUID	= 720587507323632368L;
-	@Lob
 	private String						fileDataContent;
 	@Id
 	private String						fileName;

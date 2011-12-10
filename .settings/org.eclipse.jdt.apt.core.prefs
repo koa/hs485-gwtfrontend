@@ -1,0 +1,6 @@
+#Sat Nov 26 07:46:29 CET 2011
+eclipse.preferences.version=1
+org.eclipse.jdt.apt.aptEnabled=true
+org.eclipse.jdt.apt.genSrcDir=.apt_generated
+org.eclipse.jdt.apt.processorOptions/defaultOverwrite=true
+org.eclipse.jdt.apt.reconcileEnabled=true
