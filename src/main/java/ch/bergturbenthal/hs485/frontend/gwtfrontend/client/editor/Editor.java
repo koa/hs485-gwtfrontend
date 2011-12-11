@@ -25,7 +25,7 @@ public class Editor implements EntryPoint {
 
 			@Override
 			public void onSuccess(final Plan result) {
-				floor.setCurrentFloor(result.getFloors().get(0));
+				floor.setCurrentPlan(result);
 			}
 		});
 	}

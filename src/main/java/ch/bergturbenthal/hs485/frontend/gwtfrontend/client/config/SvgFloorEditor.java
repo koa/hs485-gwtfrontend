@@ -449,19 +449,19 @@ public class SvgFloorEditor extends Composite {
 
 	@UiHandler("decScaleButton")
 	void onDecScaleButtonClick(final ClickEvent event) {
-		float iconScale = currentFloor.getScale();
+		float iconScale = currentFloor.getIconSize();
 		iconScale = iconScale * 0.8f;
 		scaleIcons(iconScale);
-		currentFloor.setScale(iconScale);
+		currentFloor.setIconSize(iconScale);
 		saveFloor();
 	}
 
 	@UiHandler("incScaleButton")
 	void onIncScaleButtonClick(final ClickEvent event) {
-		float iconScale = currentFloor.getScale();
+		float iconScale = currentFloor.getIconSize();
 		iconScale = iconScale * 1.25f;
 		scaleIcons(iconScale);
-		currentFloor.setScale(iconScale);
+		currentFloor.setIconSize(iconScale);
 		saveFloor();
 	}
 
@@ -682,9 +682,9 @@ public class SvgFloorEditor extends Composite {
 		inputDeviceButton.setEnabled(currentFloor != null);
 		if (currentFloor == null)
 			return;
-		if (currentFloor.getScale() == null || currentFloor.getScale().floatValue() == 0)
-			currentFloor.setScale(1f);
-		scaleIcons(currentFloor.getScale());
+		if (currentFloor.getIconSize() == null || currentFloor.getIconSize().floatValue() == 0)
+			currentFloor.setIconSize(1f);
+		scaleIcons(currentFloor.getIconSize());
 		final FileData plan = currentFloor.getDrawing();
 		if (plan == null)
 			return;

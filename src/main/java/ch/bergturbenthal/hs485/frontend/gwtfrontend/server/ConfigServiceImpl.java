@@ -49,7 +49,9 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 
 	@Override
 	public Plan readPlan(final String planId) {
-		return planRepository.findOne(planId);
+		final Plan plan = planRepository.findOne(planId);
+		System.out.println(plan.getIconSet());
+		return plan;
 	}
 
 	@Override

@@ -3,6 +3,8 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,9 +16,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.IconSetRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSetEntry;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
@@ -26,12 +31,42 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:/ch/bergturbenthal/hs485/frontend/gwtfrontend/server/testContext.xml" })
 public class SetupData {
+	private static final String	SVG_MIME	= "image/svg+xml";
 	@Autowired
 	private FileDataRepository	fileDataRepository;
+	@Autowired
+	private IconSetRepository		iconSetRepository;
 	@Autowired
 	private MongoOperations			mongoOps;
 	@Autowired
 	private PlanRepository			planRepository;
+
+	@Test
+	public void setupData() throws UnsupportedEncodingException, IOException {
+		mongoOps.dropCollection(Plan.class);
+		mongoOps.dropCollection(FileData.class);
+		mongoOps.dropCollection(IconSet.class);
+		final Plan plan = new Plan();
+		plan.setIconSet(makeIconSet());
+		plan.setName("Berg");
+		final Floor floor = new Floor();
+		floor.setDrawing(loadFileFromClasspath("Stockwerk1_Grundriss.svg", SVG_MIME));
+		floor.setIconSize(2000f);
+		plan.getFloors().add(floor);
+		final InputDevice inputDevice = new InputDevice();
+		inputDevice.setName("Saeule");
+		inputDevice.setPosition(new PositionXY(23600f, 13000f));
+		final InputConnector inputConnector = new InputConnector();
+		inputDevice.getConnectors().add(inputConnector);
+		inputConnector.setType(InputDeviceType.SWITCH);
+		inputConnector.setConnectorName("1L");
+		floor.getInputDevices().add(inputDevice);
+		planRepository.save(plan);
+		System.out.println(plan.getIconSet());
+
+		final Plan foundPlan = planRepository.findOne("plan");
+		System.out.println(foundPlan.getIconSet());
+	}
 
 	private FileData loadFileFromClasspath(final String filename, final String mimeType) throws UnsupportedEncodingException, IOException {
 		final FileData fileData = new FileData();
@@ -40,6 +75,18 @@ public class SetupData {
 		fileData.setMimeType(mimeType);
 		fileDataRepository.save(fileData);
 		return fileData;
+	}
+
+	private IconSet makeIconSet() throws UnsupportedEncodingException, IOException {
+		final IconSet iconSet = new IconSet();
+		final Map<InputDeviceType, IconSetEntry> inputIcons = iconSet.getInputIcons();
+		inputIcons.put(InputDeviceType.SWITCH, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
+		inputIcons.put(InputDeviceType.PIR, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
+		inputIcons.put(InputDeviceType.HUMIDITY, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
+		inputIcons.put(InputDeviceType.PUSH, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
+		inputIcons.put(InputDeviceType.TEMPERATURE, new IconSetEntry(loadFileFromClasspath("symbols/fan.svg", SVG_MIME)));
+		iconSet.setIconsetId(UUID.randomUUID().toString());
+		return iconSetRepository.save(iconSet);
 	}
 
 	private String readResource(final Resource resource) throws UnsupportedEncodingException, IOException {
@@ -54,27 +101,5 @@ public class SetupData {
 		}
 		final String data = stringBuffer.toString();
 		return data;
-	}
-
-	@Test
-	public void setupData() throws UnsupportedEncodingException, IOException {
-		mongoOps.dropCollection(Plan.class);
-		mongoOps.dropCollection(FileData.class);
-		final FileData file = loadFileFromClasspath("Stockwerk1_Grundriss.svg", "svg");
-		final Plan plan = new Plan();
-		plan.setName("Berg");
-		final Floor floor = new Floor();
-		floor.setDrawing(file);
-		plan.getFloors().add(floor);
-		final InputDevice inputDevice = new InputDevice();
-		inputDevice.setName("Saeule");
-		inputDevice.setPosition(new PositionXY(7500f, 4660f));
-		final InputConnector inputConnector = new InputConnector();
-		inputDevice.getConnectors().add(inputConnector);
-		inputConnector.setType(InputDeviceType.SWITCH);
-		inputConnector.setConnectorName("1L");
-		floor.getInputDevices().add(inputDevice);
-		planRepository.save(plan);
-
 	}
 }

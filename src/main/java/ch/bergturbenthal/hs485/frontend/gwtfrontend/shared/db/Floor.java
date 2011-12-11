@@ -19,15 +19,19 @@ import com.google.code.morphia.annotations.Entity;
 @Entity
 public class Floor implements Serializable {
 
-	private static final long				serialVersionUID	= 2901805918126067682L;
+	private static final long	serialVersionUID	= 2901805918126067682L;
 	@DBRef
-	private FileData								drawing;
-	private final List<InputDevice>	inputDevices			= new ArrayList<InputDevice>();
-	private String									name;
-	private Float										scale;
+	private FileData					drawing;
+	private Float							iconSize;
+	private List<InputDevice>	inputDevices			= new ArrayList<InputDevice>();
+	private String						name;
 
 	public FileData getDrawing() {
 		return drawing;
+	}
+
+	public Float getIconSize() {
+		return iconSize;
 	}
 
 	public List<InputDevice> getInputDevices() {
@@ -38,20 +42,20 @@ public class Floor implements Serializable {
 		return name;
 	}
 
-	public Float getScale() {
-		return scale;
-	}
-
 	public void setDrawing(final FileData plan) {
 		drawing = plan;
 	}
 
-	public void setName(final String name) {
-		this.name = name;
+	public void setIconSize(final Float scale) {
+		iconSize = scale;
 	}
 
-	public void setScale(final Float scale) {
-		this.scale = scale;
+	public void setInputDevices(final List<InputDevice> inputDevices) {
+		this.inputDevices = inputDevices;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	@Override
@@ -73,9 +77,9 @@ public class Floor implements Serializable {
 			builder.append(drawing);
 			builder.append(", ");
 		}
-		if (scale != null) {
+		if (iconSize != null) {
 			builder.append("scale=");
-			builder.append(scale);
+			builder.append(iconSize);
 		}
 		builder.append("]");
 		return builder.toString();
