@@ -19,12 +19,13 @@ import com.google.code.morphia.annotations.Entity;
 @Entity
 public class Floor implements Serializable {
 
-	private static final long	serialVersionUID	= 2901805918126067682L;
+	private static final long		serialVersionUID	= 2901805918126067682L;
 	@DBRef
-	private FileData					drawing;
-	private Float							iconSize;
-	private List<InputDevice>	inputDevices			= new ArrayList<InputDevice>();
-	private String						name;
+	private FileData						drawing;
+	private Float								iconSize;
+	private List<InputDevice>		inputDevices			= new ArrayList<InputDevice>();
+	private String							name;
+	private List<OutputDevice>	outputDevices			= new ArrayList<OutputDevice>();
 
 	public FileData getDrawing() {
 		return drawing;
@@ -42,6 +43,10 @@ public class Floor implements Serializable {
 		return name;
 	}
 
+	public List<OutputDevice> getOutputDevices() {
+		return outputDevices;
+	}
+
 	public void setDrawing(final FileData plan) {
 		drawing = plan;
 	}
@@ -56,6 +61,10 @@ public class Floor implements Serializable {
 
 	public void setName(final String name) {
 		this.name = name;
+	}
+
+	public void setOutputDevices(final List<OutputDevice> outputDevices) {
+		this.outputDevices = outputDevices;
 	}
 
 	@Override

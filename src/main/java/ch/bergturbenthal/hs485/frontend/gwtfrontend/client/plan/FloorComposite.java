@@ -1,5 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,14 +23,25 @@ import org.vectomatic.dom.svg.utils.OMSVGParser;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSetEntry;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconEntry;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.MouseDownEvent;
+import com.google.gwt.event.dom.client.MouseDownHandler;
+import com.google.gwt.event.dom.client.MouseMoveEvent;
+import com.google.gwt.event.dom.client.MouseMoveHandler;
+import com.google.gwt.event.dom.client.MouseOutEvent;
+import com.google.gwt.event.dom.client.MouseOutHandler;
+import com.google.gwt.event.dom.client.MouseUpEvent;
+import com.google.gwt.event.dom.client.MouseUpHandler;
 import com.google.gwt.event.logical.shared.ResizeEvent;
 import com.google.gwt.event.logical.shared.ResizeHandler;
 import com.google.gwt.user.client.Window;
@@ -37,10 +50,13 @@ import com.google.gwt.user.client.ui.Composite;
 public class FloorComposite extends Composite {
 	private Floor																currentFloor;
 	private Plan																currentPlan;
+	private final Collection<FloorEventHandler>	eventHandlers	= new ArrayList<FloorEventHandler>();
 	private final OMSVGDefsElement							iconDef;
 	private final OMSVGGElement									iconG;
-	private final Map<InputDeviceType, String>	inputIconIds	= new HashMap<InputDeviceType, String>();
+	private String															inputIconId;
+	private final Map<OutputDeviceType, String>	outputIconIds	= new HashMap<OutputDeviceType, String>();
 	private final OMSVGGElement									rootG;
+	private float																scale;
 	private OMSVGSVGElement											svgDrawing;
 	private final SVGImage											svgImage;
 
@@ -63,6 +79,34 @@ public class FloorComposite extends Composite {
 				scaleToFit();
 			}
 		});
+		svgRootElement.addMouseMoveHandler(new MouseMoveHandler() {
+
+			@Override
+			public void onMouseMove(final MouseMoveEvent event) {
+				for (final FloorEventHandler handler : eventHandlers)
+					handler.onMouseMove(event);
+			}
+		});
+		svgRootElement.addMouseOutHandler(new MouseOutHandler() {
+
+			@Override
+			public void onMouseOut(final MouseOutEvent event) {
+				for (final FloorEventHandler handler : eventHandlers)
+					handler.onMouseOut(event);
+			}
+		});
+		svgRootElement.addMouseUpHandler(new MouseUpHandler() {
+
+			@Override
+			public void onMouseUp(final MouseUpEvent event) {
+				for (final FloorEventHandler handler : eventHandlers)
+					handler.onMouseUp(event);
+			}
+		});
+	}
+
+	public void addFloorEventHandler(final FloorEventHandler handler) {
+		eventHandlers.add(handler);
 	}
 
 	public Floor getCurrentFloor() {
@@ -91,6 +135,33 @@ public class FloorComposite extends Composite {
 		System.out.println("finished");
 	}
 
+	private void addIcon(final String iconId, final FileData image) {
+		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
+		final OMSVGGElement iconG = moveSvgToG(iconDoc);
+		final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
+		final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
+		final OMSVGRect viewport = iconDoc.getViewport();
+
+		centerTransform.setTranslate(-viewport.getCenterX(), -viewport.getCenterY());
+		final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
+		final float scaleX = 1 / viewport.getWidth();
+		final float scaleY = 1 / viewport.getHeight();
+		final float iconScale = Math.min(scaleX, scaleY);
+		baseScaleTransform.setScale(iconScale, iconScale);
+		transformList.appendItem(baseScaleTransform);
+		transformList.appendItem(centerTransform);
+		iconG.setId(iconId);
+
+		iconDef.appendChild(iconG);
+	}
+
+	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
+		if (!loadedFiles.contains(image.getFileName())) {
+			addIcon(iconId, image);
+			loadedFiles.add(image.getFileName());
+		}
+	}
+
 	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
 		// SVGProcessor.normalizeIds(svg);
 		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
@@ -105,20 +176,76 @@ public class FloorComposite extends Composite {
 	private void placeIcons() {
 		for (final OMNode child : iconG.getChildNodes())
 			iconG.removeChild(child);
-		System.out.println(svgDrawing.getPixelUnitToMillimeterX());
+		// System.out.println(svgDrawing.getPixelUnitToMillimeterX());
 		for (final InputDevice inputDevice : currentFloor.getInputDevices()) {
-			final PositionXY position = inputDevice.getPosition();
-			final String switchId = inputIconIds.get(InputDeviceType.SWITCH);
 			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
-			currentIcon.getHref().setBaseVal('#' + switchId);
 			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
 			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
 			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
 			scaleTransform.setScale(currentFloor.getIconSize(), currentFloor.getIconSize());
-			moveTransform.setTranslate(position.getX(), position.getY());
+			final Runnable iconUpdater = new Runnable() {
+
+				@Override
+				public void run() {
+					final PositionXY position = inputDevice.getPosition();
+					currentIcon.getHref().setBaseVal('#' + inputIconId);
+					moveTransform.setTranslate(position.getX(), position.getY());
+				}
+			};
+			iconUpdater.run();
 			transformList.appendItem(moveTransform);
 			transformList.appendItem(scaleTransform);
 			iconG.appendChild(currentIcon);
+			currentIcon.addClickHandler(new ClickHandler() {
+				@Override
+				public void onClick(final ClickEvent event) {
+					event.getX();
+					for (final FloorEventHandler handler : eventHandlers)
+						handler.onInputDeviceClick(event, inputDevice, scale, iconUpdater);
+				}
+			});
+			currentIcon.addMouseDownHandler(new MouseDownHandler() {
+				@Override
+				public void onMouseDown(final MouseDownEvent event) {
+					for (final FloorEventHandler handler : eventHandlers)
+						handler.onInputDeviceMouseDown(event, inputDevice, scale, iconUpdater);
+				}
+			});
+		}
+		for (final OutputDevice outputDevice : currentFloor.getOutputDevices()) {
+			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
+			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
+			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
+			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
+			scaleTransform.setScale(currentFloor.getIconSize(), currentFloor.getIconSize());
+			final Runnable iconUpdater = new Runnable() {
+
+				@Override
+				public void run() {
+					final PositionXY position = outputDevice.getPosition();
+					currentIcon.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+					moveTransform.setTranslate(position.getX(), position.getY());
+				}
+			};
+			iconUpdater.run();
+			transformList.appendItem(moveTransform);
+			transformList.appendItem(scaleTransform);
+			iconG.appendChild(currentIcon);
+			currentIcon.addClickHandler(new ClickHandler() {
+				@Override
+				public void onClick(final ClickEvent event) {
+					event.getX();
+					for (final FloorEventHandler handler : eventHandlers)
+						handler.onOutputDeviceClick(event, outputDevice, scale, iconUpdater);
+				}
+			});
+			currentIcon.addMouseDownHandler(new MouseDownHandler() {
+				@Override
+				public void onMouseDown(final MouseDownEvent event) {
+					for (final FloorEventHandler handler : eventHandlers)
+						handler.onOutputDeviceMouseDown(event, outputDevice, scale, iconUpdater);
+				}
+			});
 		}
 	}
 
@@ -151,9 +278,11 @@ public class FloorComposite extends Composite {
 		final float drawingHeight = viewport.getHeight();
 		final float yScale = imageHeight / drawingHeight;
 		final float xScale = imageWidth / drawingWidth;
-		final float scale = Math.min(yScale, xScale);
+		scale = Math.min(yScale, xScale);
 		scaleXForm.setScale(scale, scale);
-		translateXForm.setTranslate((imageWidth - drawingWidth * scale) / 2, (imageHeight - drawingHeight * scale) / 2);
+		final float xOffset = (imageWidth - drawingWidth * scale) / 2;
+		final float yOffset = (imageHeight - drawingHeight * scale) / 2;
+		translateXForm.setTranslate(xOffset, yOffset);
 
 	}
 
@@ -161,34 +290,16 @@ public class FloorComposite extends Composite {
 		for (final OMNode child : iconDef.getChildNodes())
 			iconDef.removeChild(child);
 		System.out.println(currentPlan.getIconSet());
-		inputIconIds.clear();
 		final Set<String> loadedFiles = new HashSet<String>();
-		final Map<InputDeviceType, IconSetEntry> inputIcons = currentPlan.getIconSet().getInputIcons();
-		for (final Entry<InputDeviceType, IconSetEntry> inputIconEntry : inputIcons.entrySet()) {
-			final FileData image = inputIconEntry.getValue().getImage();
-			final String iconId = "icon-" + image.getFileName();
-			if (!loadedFiles.contains(image.getFileName())) {
-
-				final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
-				final OMSVGGElement iconG = moveSvgToG(iconDoc);
-				final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
-				final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
-				final OMSVGRect viewport = iconDoc.getViewport();
-
-				centerTransform.setTranslate(-viewport.getCenterX(), -viewport.getCenterY());
-				final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
-				final float scaleX = 1 / viewport.getWidth();
-				final float scaleY = 1 / viewport.getHeight();
-				final float iconScale = Math.min(scaleX, scaleY);
-				baseScaleTransform.setScale(iconScale, iconScale);
-				transformList.appendItem(baseScaleTransform);
-				transformList.appendItem(centerTransform);
-				iconG.setId(iconId);
-
-				iconDef.appendChild(iconG);
-				loadedFiles.add(image.getFileName());
-			}
-			inputIconIds.put(inputIconEntry.getKey(), iconId);
+		final IconEntry inputIcon = currentPlan.getIconSet().getInputIcon();
+		final FileData image = inputIcon.getImage();
+		inputIconId = "icon-" + image.getFileName();
+		loadIconIfNeeded(image, inputIconId, loadedFiles);
+		for (final Entry<OutputDeviceType, IconEntry> iconEntry : currentPlan.getIconSet().getOutputIcons().entrySet()) {
+			final FileData outputImage = iconEntry.getValue().getImage();
+			final String iconId = "icon-" + outputImage.getFileName();
+			loadIconIfNeeded(outputImage, iconId, loadedFiles);
+			outputIconIds.put(iconEntry.getKey(), iconId);
 		}
 	}
 }

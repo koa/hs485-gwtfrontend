@@ -4,16 +4,16 @@ import java.io.Serializable;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
-public class IconSetEntry implements Serializable {
+public class IconEntry implements Serializable {
 
 	private static final long	serialVersionUID	= 3130975511563877820L;
 	@DBRef
 	private FileData					image;
 
-	public IconSetEntry() {
+	public IconEntry() {
 	}
 
-	public IconSetEntry(final FileData image) {
+	public IconEntry(final FileData image) {
 		this.image = image;
 	}
 

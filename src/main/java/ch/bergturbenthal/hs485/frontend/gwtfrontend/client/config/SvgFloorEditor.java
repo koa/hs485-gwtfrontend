@@ -74,6 +74,9 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class SvgFloorEditor extends Composite {
 
+	interface SvgFloorEditorUiBinder extends UiBinder<Widget, SvgFloorEditor> {
+	}
+
 	private static final class IconData {
 		private OMSVGGElement	icon;
 
@@ -85,9 +88,6 @@ public class SvgFloorEditor extends Composite {
 			this.icon = icon;
 		}
 
-	}
-
-	interface SvgFloorEditorUiBinder extends UiBinder<Widget, SvgFloorEditor> {
 	}
 
 	private static final String						BULB_OFF_ICON_ID	= "bulb_off_icon";
@@ -102,55 +102,55 @@ public class SvgFloorEditor extends Composite {
 
 	private static SvgFloorEditorUiBinder	uiBinder					= GWT.create(SvgFloorEditorUiBinder.class);
 
-	private int														absoluteLeft;
-
-	private int														absoluteTop;
 	@UiField
 	Button																addFileButton;
+
 	@UiField
 	Button																addFloorButton;
 	@UiField
 	VerticalPanel													addInputDeviceButton;
-	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
-
-	private Floor													currentFloor;
 	@UiField
 	Button																decScaleButton;
-
-	private OMSVGUseElement								dragIcon;
-
-	private PositionXY										dragPosition;
-
-	private final List<Floor>							floors						= new ArrayList<Floor>();
-
-	private OMSVGGElement									iconsGroup;
-	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
-
 	@UiField
 	Button																incScaleButton;
-
 	@UiField
 	Button																inputDeviceButton;
 
-	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
-	private final Messages								messages					= GWT.create(Messages.class);
 	@UiField
 	Button																outputDeviceButton;
-
-	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
-
 	@UiField
 	Button																removeFloorButton;
-	private final Resources								resources					= GWT.create(Resources.class);
-	private float													scale;
+
 	@UiField
 	ListBox																selectFileListBox;
+
 	@UiField
 	ListBox																selectFloorListBox;
 
-	private OMSVGSVGElement								svg;
 	@UiField
 	HTMLPanel															svgPanel;
+
+	private int														absoluteLeft;
+	private int														absoluteTop;
+
+	private final ConfigServiceAsync			configService			= ConfigServiceAsync.Util.getInstance();
+
+	private Floor													currentFloor;
+
+	private OMSVGUseElement								dragIcon;
+	private PositionXY										dragPosition;
+	private final List<Floor>							floors						= new ArrayList<Floor>();
+
+	private OMSVGGElement									iconsGroup;
+
+	private final Map<String, IconData>		iconTemplates			= new HashMap<String, IconData>();
+	private final List<InputDevice>				inputDevices			= new ArrayList<InputDevice>();
+	private final Messages								messages					= GWT.create(Messages.class);
+	private final List<OutputDevice>			outputDevices			= new ArrayList<OutputDevice>();
+	private final Resources								resources					= GWT.create(Resources.class);
+
+	private float													scale;
+	private OMSVGSVGElement								svg;
 
 	public SvgFloorEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
@@ -192,6 +192,125 @@ public class SvgFloorEditor extends Composite {
 		});
 	}
 
+	public void deleteOutputDevice(final OutputDevice device) {
+		outputDevices.remove(device);
+		updateIcons();
+	}
+
+	@UiHandler("addFileButton")
+	void onAddFileButtonClick(final ClickEvent event) {
+		final FileUploadDialog fileUploadDialog = new FileUploadDialog();
+		fileUploadDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
+
+			public void onClose(final CloseEvent<PopupPanel> event) {
+				reloadFileList();
+			}
+		});
+		fileUploadDialog.setModal(true);
+		fileUploadDialog.center();
+	}
+
+	@UiHandler("addFloorButton")
+	void onAddFloorButtonClick(final ClickEvent event) {
+		final Floor newFloor = new Floor();
+		newFloor.setName("Floor " + floors.size());
+		// configService.updateFloors(Arrays.asList(new Floor[] { newFloor }), new
+		// AsyncCallback<Void>() {
+		//
+		// @Override
+		// public void onFailure(final Throwable caught) {
+		// // TODO Auto-generated method stub
+		//
+		// }
+		//
+		// @Override
+		// public void onSuccess(final Void result) {
+		// reloadFloorList();
+		// }
+		// });
+	}
+
+	@UiHandler("decScaleButton")
+	void onDecScaleButtonClick(final ClickEvent event) {
+		float iconScale = currentFloor.getIconSize();
+		iconScale = iconScale * 0.8f;
+		scaleIcons(iconScale);
+		currentFloor.setIconSize(iconScale);
+		saveFloor();
+	}
+
+	@UiHandler("incScaleButton")
+	void onIncScaleButtonClick(final ClickEvent event) {
+		float iconScale = currentFloor.getIconSize();
+		iconScale = iconScale * 1.25f;
+		scaleIcons(iconScale);
+		currentFloor.setIconSize(iconScale);
+		saveFloor();
+	}
+
+	@UiHandler("inputDeviceButton")
+	void onInputDeviceButtonClick(final ClickEvent event) {
+		final InputDevice inputDevice = new InputDevice();
+		inputDevice.setName("Switch " + inputDevices.size());
+		// TODO reimplement
+		// inputDevice.getFloorPlace().getPosition().setX(300f);
+		// inputDevice.getFloorPlace().getPosition().setY(300f);
+		// inputDevice.getFloorPlace().setFloor(currentFloor);
+		// inputDevice.setType(InputDeviceType.SWITCH);
+		inputDevices.add(inputDevice);
+		updateInputDevicesOnServer();
+
+	}
+
+	@UiHandler("outputDeviceButton")
+	void onOutputDeviceButtonClick(final ClickEvent event) {
+		final OutputDevice outputDevice = new OutputDevice();
+		outputDevice.setName("Lamp " + outputDevices.size());
+		// outputDevice.getFloorPlace().getPosition().setX(300f);
+		// outputDevice.getFloorPlace().getPosition().setY(300f);
+		// outputDevice.getFloorPlace().setFloor(currentFloor);
+		outputDevice.setType(OutputDeviceType.LIGHT);
+		outputDevices.add(outputDevice);
+		updateOutputDevicesOnServer();
+	}
+
+	@UiHandler("selectFileListBox")
+	void onSelectFileListBoxChange(final ChangeEvent event) {
+		final int selectedIndex = selectFileListBox.getSelectedIndex();
+		if (selectedIndex < 1)
+			currentFloor.setDrawing(null);
+		else {
+			final String filename = selectFileListBox.getValue(selectedIndex);
+			configService.getFile(filename, new AsyncCallback<FileData>() {
+
+				@Override
+				public void onFailure(final Throwable caught) {
+					// TODO Auto-generated method stub
+
+				}
+
+				@Override
+				public void onSuccess(final FileData result) {
+					currentFloor.setDrawing(result);
+					saveFloor();
+					showFloor(currentFloor);
+				}
+			});
+		}
+	}
+
+	@UiHandler("selectFloorListBox")
+	void onSelectFloorListBoxChange(final ChangeEvent event) {
+		final int selectedIndex = selectFloorListBox.getSelectedIndex();
+		System.out.println(selectedIndex);
+		if (selectedIndex < 0 || selectedIndex >= floors.size())
+			showFloor(null);
+		else {
+			System.out.println(floors.get(selectedIndex));
+			showFloor(floors.get(selectedIndex));
+		}
+	}
+
 	private void appendIcon(final OMSVGSVGElement svgDoc, final String iconId) {
 		final IconData icon = new IconData();
 		// icon.setViewPort(svgDoc.getViewport());
@@ -207,11 +326,6 @@ public class SvgFloorEditor extends Composite {
 		icon.setIcon(svgGElem);
 		// icon.setScaleTransform(scaleTransform);
 		iconTemplates.put(iconId, icon);
-	}
-
-	public void deleteOutputDevice(final OutputDevice device) {
-		outputDevices.remove(device);
-		updateIcons();
 	}
 
 	private void drawSvg() {
@@ -412,120 +526,6 @@ public class SvgFloorEditor extends Composite {
 		while ((node = svgElement.getFirstChild()) != null)
 			newGElement.appendChild(svgElement.removeChild(node));
 		return newG;
-	}
-
-	@UiHandler("addFileButton")
-	void onAddFileButtonClick(final ClickEvent event) {
-		final FileUploadDialog fileUploadDialog = new FileUploadDialog();
-		fileUploadDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
-
-			public void onClose(final CloseEvent<PopupPanel> event) {
-				reloadFileList();
-			}
-		});
-		fileUploadDialog.setModal(true);
-		fileUploadDialog.center();
-	}
-
-	@UiHandler("addFloorButton")
-	void onAddFloorButtonClick(final ClickEvent event) {
-		final Floor newFloor = new Floor();
-		newFloor.setName("Floor " + floors.size());
-		// configService.updateFloors(Arrays.asList(new Floor[] { newFloor }), new
-		// AsyncCallback<Void>() {
-		//
-		// @Override
-		// public void onFailure(final Throwable caught) {
-		// // TODO Auto-generated method stub
-		//
-		// }
-		//
-		// @Override
-		// public void onSuccess(final Void result) {
-		// reloadFloorList();
-		// }
-		// });
-	}
-
-	@UiHandler("decScaleButton")
-	void onDecScaleButtonClick(final ClickEvent event) {
-		float iconScale = currentFloor.getIconSize();
-		iconScale = iconScale * 0.8f;
-		scaleIcons(iconScale);
-		currentFloor.setIconSize(iconScale);
-		saveFloor();
-	}
-
-	@UiHandler("incScaleButton")
-	void onIncScaleButtonClick(final ClickEvent event) {
-		float iconScale = currentFloor.getIconSize();
-		iconScale = iconScale * 1.25f;
-		scaleIcons(iconScale);
-		currentFloor.setIconSize(iconScale);
-		saveFloor();
-	}
-
-	@UiHandler("inputDeviceButton")
-	void onInputDeviceButtonClick(final ClickEvent event) {
-		final InputDevice inputDevice = new InputDevice();
-		inputDevice.setName("Switch " + inputDevices.size());
-		// TODO reimplement
-		// inputDevice.getFloorPlace().getPosition().setX(300f);
-		// inputDevice.getFloorPlace().getPosition().setY(300f);
-		// inputDevice.getFloorPlace().setFloor(currentFloor);
-		// inputDevice.setType(InputDeviceType.SWITCH);
-		inputDevices.add(inputDevice);
-		updateInputDevicesOnServer();
-
-	}
-
-	@UiHandler("outputDeviceButton")
-	void onOutputDeviceButtonClick(final ClickEvent event) {
-		final OutputDevice outputDevice = new OutputDevice();
-		outputDevice.setName("Lamp " + outputDevices.size());
-		outputDevice.getFloorPlace().getPosition().setX(300f);
-		outputDevice.getFloorPlace().getPosition().setY(300f);
-		outputDevice.getFloorPlace().setFloor(currentFloor);
-		outputDevice.setType(OutputDeviceType.LIGHT);
-		outputDevices.add(outputDevice);
-		updateOutputDevicesOnServer();
-	}
-
-	@UiHandler("selectFileListBox")
-	void onSelectFileListBoxChange(final ChangeEvent event) {
-		final int selectedIndex = selectFileListBox.getSelectedIndex();
-		if (selectedIndex < 1)
-			currentFloor.setDrawing(null);
-		else {
-			final String filename = selectFileListBox.getValue(selectedIndex);
-			configService.getFile(filename, new AsyncCallback<FileData>() {
-
-				@Override
-				public void onFailure(final Throwable caught) {
-					// TODO Auto-generated method stub
-
-				}
-
-				@Override
-				public void onSuccess(final FileData result) {
-					currentFloor.setDrawing(result);
-					saveFloor();
-					showFloor(currentFloor);
-				}
-			});
-		}
-	}
-
-	@UiHandler("selectFloorListBox")
-	void onSelectFloorListBoxChange(final ChangeEvent event) {
-		final int selectedIndex = selectFloorListBox.getSelectedIndex();
-		System.out.println(selectedIndex);
-		if (selectedIndex < 0 || selectedIndex >= floors.size())
-			showFloor(null);
-		else {
-			System.out.println(floors.get(selectedIndex));
-			showFloor(floors.get(selectedIndex));
-		}
 	}
 
 	/**
@@ -760,7 +760,8 @@ public class SvgFloorEditor extends Composite {
 					iconId = BULB_OFF_ICON_ID;
 					break;
 				}
-			placeIconAt(iconId, device.getFloorPlace().getPosition(), makePopupPanelForOutputDevice(device));
+			// placeIconAt(iconId, device.getFloorPlace().getPosition(),
+			// makePopupPanelForOutputDevice(device));
 		}
 	}
 

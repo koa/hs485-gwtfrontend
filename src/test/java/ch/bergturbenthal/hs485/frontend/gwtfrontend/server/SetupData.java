@@ -20,11 +20,13 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconEntry;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSetEntry;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
@@ -53,6 +55,7 @@ public class SetupData {
 		floor.setDrawing(loadFileFromClasspath("Stockwerk1_Grundriss.svg", SVG_MIME));
 		floor.setIconSize(2000f);
 		plan.getFloors().add(floor);
+
 		final InputDevice inputDevice = new InputDevice();
 		inputDevice.setName("Saeule");
 		inputDevice.setPosition(new PositionXY(23600f, 13000f));
@@ -60,7 +63,16 @@ public class SetupData {
 		inputDevice.getConnectors().add(inputConnector);
 		inputConnector.setType(InputDeviceType.SWITCH);
 		inputConnector.setConnectorName("1L");
+
 		floor.getInputDevices().add(inputDevice);
+
+		final OutputDevice outputDevice = new OutputDevice();
+		outputDevice.setName("Kueche");
+		outputDevice.setPosition(new PositionXY(15000f, 6000f));
+		outputDevice.setType(OutputDeviceType.LIGHT);
+
+		floor.getOutputDevices().add(outputDevice);
+
 		planRepository.save(plan);
 		System.out.println(plan.getIconSet());
 
@@ -79,12 +91,12 @@ public class SetupData {
 
 	private IconSet makeIconSet() throws UnsupportedEncodingException, IOException {
 		final IconSet iconSet = new IconSet();
-		final Map<InputDeviceType, IconSetEntry> inputIcons = iconSet.getInputIcons();
-		inputIcons.put(InputDeviceType.SWITCH, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
-		inputIcons.put(InputDeviceType.PIR, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
-		inputIcons.put(InputDeviceType.HUMIDITY, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
-		inputIcons.put(InputDeviceType.PUSH, new IconSetEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
-		inputIcons.put(InputDeviceType.TEMPERATURE, new IconSetEntry(loadFileFromClasspath("symbols/fan.svg", SVG_MIME)));
+		iconSet.setInputIcon(new IconEntry(loadFileFromClasspath("symbols/switch_2.svg", SVG_MIME)));
+		final Map<OutputDeviceType, IconEntry> outputIcons = iconSet.getOutputIcons();
+		outputIcons.put(OutputDeviceType.LIGHT, new IconEntry(loadFileFromClasspath("symbols/bulb_on.svg", SVG_MIME)));
+		outputIcons.put(OutputDeviceType.FAN, new IconEntry(loadFileFromClasspath("symbols/fan.svg", SVG_MIME)));
+		outputIcons.put(OutputDeviceType.HEAT, new IconEntry(loadFileFromClasspath("symbols/glossy_flame.svg", SVG_MIME)));
+
 		iconSet.setIconsetId(UUID.randomUUID().toString());
 		return iconSetRepository.save(iconSet);
 	}

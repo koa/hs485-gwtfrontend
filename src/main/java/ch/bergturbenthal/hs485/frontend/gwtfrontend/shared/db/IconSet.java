@@ -12,25 +12,34 @@ import com.google.code.morphia.annotations.Entity;
 @Entity
 @Document
 public class IconSet implements Serializable {
-	private static final long										serialVersionUID	= -7868682272749448498L;
+	private static final long									serialVersionUID	= -7868682272749448498L;
 	@Id
-	private String															iconsetId;
-	private Map<InputDeviceType, IconSetEntry>	inputIcons				= new HashMap<InputDeviceType, IconSetEntry>();
+	private String														iconsetId;
+	private IconEntry													inputIcon;
+	private Map<OutputDeviceType, IconEntry>	outputIcons				= new HashMap<OutputDeviceType, IconEntry>();
 
 	public String getIconsetId() {
 		return iconsetId;
 	}
 
-	public Map<InputDeviceType, IconSetEntry> getInputIcons() {
-		return inputIcons;
+	public IconEntry getInputIcon() {
+		return inputIcon;
+	}
+
+	public Map<OutputDeviceType, IconEntry> getOutputIcons() {
+		return outputIcons;
 	}
 
 	public void setIconsetId(final String iconsetId) {
 		this.iconsetId = iconsetId;
 	}
 
-	public void setInputIcons(final Map<InputDeviceType, IconSetEntry> inputIcons) {
-		this.inputIcons = inputIcons;
+	public void setInputIcon(final IconEntry inputIcon) {
+		this.inputIcon = inputIcon;
+	}
+
+	public void setOutputIcons(final Map<OutputDeviceType, IconEntry> outputIcons) {
+		this.outputIcons = outputIcons;
 	}
 
 }
