@@ -10,6 +10,11 @@ public class InputAddress implements IsSerializable {
 
 	}
 
+	public InputAddress(final InputAddress address) {
+		setDeviceAddress(address.getDeviceAddress());
+		setInputAddress(address.getInputAddress());
+	}
+
 	public InputAddress(final int moduleAddress, final int inputAddress) {
 		deviceAddress = moduleAddress;
 		this.inputAddress = inputAddress;

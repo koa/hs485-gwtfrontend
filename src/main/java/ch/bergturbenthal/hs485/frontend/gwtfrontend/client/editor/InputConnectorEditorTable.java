@@ -1,14 +1,20 @@
 /**
  * 
  */
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.AbstractFullTableEditor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.EditTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.SelectionCell;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 
@@ -21,6 +27,17 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 	public InputConnectorEditorTable() {
 	}
 
+	public void setSelectKeyComposite(final SelectInputComposite selectKeyComposite) {
+		this.selectKeyComposite = selectKeyComposite;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.
+	 * AbstractFullTableEditor
+	 * #fillValueColumns(com.google.gwt.user.cellview.client.CellTable)
+	 */
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -32,13 +49,6 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 		return "add Connector";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.
-	 * AbstractFullTableEditor
-	 * #fillValueColumns(com.google.gwt.user.cellview.client.CellTable)
-	 */
 	@Override
 	protected void fillValueColumns(final CellTable<InputConnector> table) {
 		final Column<InputConnector, String> titleColumn = new Column<InputConnector, String>(new EditTextCell()) {
@@ -55,6 +65,26 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 			}
 		});
 		table.addColumn(titleColumn, "Name");
+
+		final List<String> deviceTypes = new ArrayList<String>();
+		for (final InputDeviceType type : InputDeviceType.values())
+			deviceTypes.add(type.name());
+		final Column<InputConnector, String> typeColumn = new Column<InputConnector, String>(new SelectionCell(deviceTypes)) {
+
+			@Override
+			public String getValue(final InputConnector object) {
+				return object.getType().name();
+			}
+		};
+		typeColumn.setFieldUpdater(new FieldUpdater<InputConnector, String>() {
+
+			@Override
+			public void update(final int index, final InputConnector object, final String value) {
+				object.setType(InputDeviceType.valueOf(value));
+				setEntityModified(object);
+			}
+		});
+		table.addColumn(typeColumn, "Type");
 
 		final Column<InputConnector, String> addressColumn = new Column<InputConnector, String>(new ButtonCell()) {
 
@@ -78,20 +108,11 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 		table.addColumn(addressColumn, "Address");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.
-	 * AbstractFullTableEditor#newEmptyEntry()
-	 */
 	@Override
 	protected InputConnector newEmptyEntry() {
 		final InputConnector inputConnector = new InputConnector();
+		inputConnector.setType(InputDeviceType.SWITCH);
 		inputConnector.setConnectorName("Connector " + entries.size());
 		return inputConnector;
-	}
-
-	public void setSelectKeyComposite(final SelectInputComposite selectKeyComposite) {
-		this.selectKeyComposite = selectKeyComposite;
 	}
 }

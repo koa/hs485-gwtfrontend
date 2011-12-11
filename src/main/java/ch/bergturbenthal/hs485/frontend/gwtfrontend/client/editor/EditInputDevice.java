@@ -1,10 +1,10 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -13,7 +13,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -27,30 +26,25 @@ public class EditInputDevice extends DialogBox {
 	Button																	cancelButton;
 	@UiField
 	InputConnectorEditorTable								connectorEditor;
-	private final InputDevice								device;
 	@UiField
 	TextBox																	nameTextInput;
-	private final Runnable									refreshRunnable;
 	@UiField
 	Button																	saveButton;
 	@UiField
 	SelectInputComposite										selectKeyComposite;
-	@UiField
-	ListBox																	typeListBox;
+	private final InputDevice								device;
 
-	public EditInputDevice(final InputDevice inputDevice, final Runnable refreshRunnable) {
+	public EditInputDevice(final InputDevice inputDevice) {
 		device = inputDevice;
-		this.refreshRunnable = refreshRunnable;
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
+		setTitle("Edit Input Device");
 		nameTextInput.setValue(inputDevice.getName());
-		if (device.getConnectors() == null)
-			device.setConnectors(new ArrayList<InputConnector>());
-		connectorEditor.setData(device.getConnectors());
-		for (final InputDeviceType inputDeviceType : InputDeviceType.values())
-			typeListBox.addItem(inputDeviceType.name());
-		// if (inputDeviceType.equals(inputDevice.getType()))
-		// typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
+		final List<InputConnector> inputConnectors = new ArrayList<InputConnector>();
+		if (device.getConnectors() != null)
+			for (final InputConnector inputConnector : device.getConnectors())
+				inputConnectors.add(new InputConnector(inputConnector));
+		connectorEditor.setData(inputConnectors);
 		connectorEditor.setSelectKeyComposite(selectKeyComposite);
 	}
 
@@ -63,11 +57,6 @@ public class EditInputDevice extends DialogBox {
 	void onSaveButtonClick(final ClickEvent event) {
 		device.setConnectors(connectorEditor.getEntries());
 		device.setName(nameTextInput.getValue());
-		// device.setConnectors(connectorEditor.gete)
-		final int selectedIndex = typeListBox.getSelectedIndex();
-		if (selectedIndex >= 0)
-			// device.setType(InputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));
-			hide();
-		refreshRunnable.run();
+		hide();
 	}
 }

@@ -199,7 +199,6 @@ public class FloorComposite extends Composite {
 			currentIcon.addClickHandler(new ClickHandler() {
 				@Override
 				public void onClick(final ClickEvent event) {
-					event.getX();
 					for (final FloorEventHandler handler : eventHandlers)
 						handler.onInputDeviceClick(event, inputDevice, scale, iconUpdater);
 				}

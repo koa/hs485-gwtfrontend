@@ -1,10 +1,9 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventDistributor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
@@ -66,18 +65,14 @@ public class SelectInputComposite extends Composite {
 
 	}
 
-	private final ConfigServiceAsync					configService	= ConfigServiceAsync.Util.getInstance();
-
 	private final String											groupName;
 	private final EventHandler								handler;
 	private final VerticalPanel								inputListPanel;
-	private final Plan												plan;
+	private Plan															plan;
 
 	private final Map<InputAddress, KeyData>	visibleInputs	= new HashMap<InputAddress, SelectInputComposite.KeyData>();
 
-	public SelectInputComposite(final Plan plan) {
-
-		this.plan = plan;
+	public SelectInputComposite() {
 		inputListPanel = new VerticalPanel();
 		final HorizontalPanel horizontalPanel = new HorizontalPanel();
 		horizontalPanel.add(inputListPanel);
@@ -121,27 +116,8 @@ public class SelectInputComposite extends Composite {
 		verticalPanel.add(resetButton);
 	}
 
-	private void addConnectorEntry(final InputAddress keyAddress) {
-		final String keyAddressString = Integer.toHexString(keyAddress.getDeviceAddress()) + ":" + keyAddress.getInputAddress();
-		final RadioButton displayRadioButton = new RadioButton(groupName);
-		displayRadioButton.setFormValue(keyAddressString);
-		final KeyData keyData = new KeyData(displayRadioButton);
-		visibleInputs.put(keyAddress, keyData);
-		inputListPanel.add(displayRadioButton);
-		for (final Floor floor : plan.getFloors())
-			for (final InputDevice inputDevice : floor.getInputDevices())
-				for (final InputConnector inputConnector : inputDevice.getConnectors())
-					if (keyAddress.equals(inputConnector.getAddress())) {
-						keyData.setConnectedSwitchLabel(inputDevice.getName() + "-" + inputConnector.getConnectorName());
-						updateKeyLabel(keyAddress, keyData);
-						break;
-					}
-	}
-
-	@Override
-	protected void finalize() throws Throwable {
-		stopRecording();
-		super.finalize();
+	public Plan getPlan() {
+		return plan;
 	}
 
 	public InputAddress getSelectedAddress() {
@@ -154,6 +130,10 @@ public class SelectInputComposite extends Composite {
 	public void resetVisibleEntries() {
 		inputListPanel.clear();
 		visibleInputs.clear();
+	}
+
+	public void setPlan(final Plan plan) {
+		this.plan = plan;
 	}
 
 	public void setSelectedAddress(final InputAddress address) {
@@ -181,6 +161,30 @@ public class SelectInputComposite extends Composite {
 
 	public void stopRecording() {
 		EventDistributor.removeHandler(handler);
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		stopRecording();
+		super.finalize();
+	}
+
+	private void addConnectorEntry(final InputAddress keyAddress) {
+		final String keyAddressString = Integer.toHexString(keyAddress.getDeviceAddress()) + ":" + keyAddress.getInputAddress();
+		final RadioButton displayRadioButton = new RadioButton(groupName);
+		displayRadioButton.setFormValue(keyAddressString);
+		final KeyData keyData = new KeyData(displayRadioButton);
+		visibleInputs.put(keyAddress, keyData);
+		inputListPanel.add(displayRadioButton);
+		if (plan != null)
+			for (final Floor floor : plan.getFloors())
+				for (final InputDevice inputDevice : floor.getInputDevices())
+					for (final InputConnector inputConnector : inputDevice.getConnectors())
+						if (keyAddress.equals(inputConnector.getAddress())) {
+							keyData.setConnectedSwitchLabel(inputDevice.getName() + "-" + inputConnector.getConnectorName());
+							updateKeyLabel(keyAddress, keyData);
+							break;
+						}
 	}
 
 	private void updateKeyLabel(final InputAddress keyAddress, final KeyData keyData) {

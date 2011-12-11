@@ -27,6 +27,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditInputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
@@ -409,25 +410,7 @@ public class SvgFloorEditor extends Composite {
 			@Override
 			public void execute() {
 				popupPanel.hide();
-				new EditInputDevice(device, new Runnable() {
-					@Override
-					public void run() {
-						// configService.updateInputDevices(Arrays.asList(new InputDevice[]
-						// { device }), new AsyncCallback<Iterable<InputDevice>>() {
-						//
-						// @Override
-						// public void onFailure(final Throwable caught) {
-						// // TODO Auto-generated method stub
-						// }
-						//
-						// @Override
-						// public void onSuccess(final Iterable<InputDevice> result) {
-						// updateIcons();
-						// }
-						// });
-						//
-					}
-				}).center();
+				new EditInputDevice(device).center();
 
 			}
 		});
