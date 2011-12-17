@@ -5,7 +5,9 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,9 +35,11 @@ public class TestBuildingData {
 		fileDataRepository.save(file);
 		final Iterable<FileData> filesIter = fileDataRepository.findAll();
 		final List<FileData> files = new ArrayList<FileData>();
-		for (final FileData fileData : filesIter)
+		final Set<String> filenames = new HashSet<String>();
+		for (final FileData fileData : filesIter) {
 			files.add(fileData);
-		Assert.assertEquals(1, files.size());
-		Assert.assertEquals("hello1", files.get(0).getFileName());
+			filenames.add(fileData.getFileName());
+		}
+		Assert.assertTrue(filenames.contains("hello1"));
 	}
 }

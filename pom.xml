@@ -268,6 +268,11 @@
       <url>http://www.berg-turbenthal.ch/artifactory/libs-releases-local</url>
     </repository>
     <repository>
+      <id>Neptun</id>
+      <name>Neptun-snapshots</name>
+      <url>http://www.berg-turbenthal.ch/artifactory/libs-snapshots-local</url>
+    </repository>
+    <repository>
       <id>spring-milestone</id>
       <name>Spring Maven MILESTONE Repository</name>
       <url>http://maven.springframework.org/milestone</url>
