@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -13,15 +15,23 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
 import ch.eleveneye.hs485.api.BroadcastHandler;
+import ch.eleveneye.hs485.device.Dimmer;
 import ch.eleveneye.hs485.device.Registry;
+import ch.eleveneye.hs485.device.SwitchingActor;
+import ch.eleveneye.hs485.device.TimedActor;
+import ch.eleveneye.hs485.device.physically.Actor;
 import ch.eleveneye.hs485.protocol.IMessage;
 import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
@@ -29,6 +39,64 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	private static final long																			serialVersionUID	= 8948548851433479912L;
 	private Registry																							hs485registry;
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();
+	private final Logger																					logger						= LoggerFactory.getLogger(CommunicationServiceImpl.class);
+
+	@Override
+	public Collection<Event> getEvents() {
+		try {
+			final BlockingQueue<Event> queue = getQueue();
+			try {
+				final Event event = queue.poll(10, TimeUnit.SECONDS);
+				if (event == null)
+					return Collections.emptyList();
+				final ArrayList<Event> ret = new ArrayList<Event>();
+				ret.add(event);
+				queue.drainTo(ret);
+				return ret;
+			} catch (final InterruptedException e) {
+				return Collections.emptyList();
+			}
+		} catch (final Throwable t) {
+			t.printStackTrace();
+			throw new RuntimeException(t);
+		}
+	}
+
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		final ApplicationContext ctx = SpringUtil.getSpringContext();
+		hs485registry = ctx.getBean("hs485registry", Registry.class);
+		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
+
+			@Override
+			public void handleBroadcastMessage(final IMessage message) {
+				final KeyEvent event = deceodeKeyMessage(message);
+				if (event != null)
+					distributeEvent(event);
+			}
+		});
+
+	}
+
+	@Override
+	public Map<OutputAddress, OutputDescription> listOutputDevices() {
+		try {
+			final Map<OutputAddress, OutputDescription> descriptions = new TreeMap<OutputAddress, OutputDescription>();
+			final Collection<Actor> actors = hs485registry.listPhysicallyActors();
+			for (final Actor actor : actors) {
+				final OutputDescription description = new OutputDescription();
+				description.setHasSwitch(Boolean.valueOf(actor instanceof SwitchingActor));
+				description.setHasTimer(Boolean.valueOf(actor instanceof TimedActor));
+				description.setIsDimmer(Boolean.valueOf(actor instanceof Dimmer));
+				descriptions.put(new OutputAddress(actor.getModuleAddr(), actor.getActorNr()), description);
+			}
+			return descriptions;
+		} catch (final Exception e) {
+			logger.warn("Error listing actors", e);
+			throw new RuntimeException(e);
+		}
+	}
 
 	private KeyEvent deceodeKeyMessage(final IMessage message) {
 		final byte[] data = message.getData();
@@ -66,27 +134,6 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 
 	}
 
-	@Override
-	public Collection<Event> getEvents() {
-		try {
-			final BlockingQueue<Event> queue = getQueue();
-			try {
-				final Event event = queue.poll(10, TimeUnit.SECONDS);
-				if (event == null)
-					return Collections.emptyList();
-				final ArrayList<Event> ret = new ArrayList<Event>();
-				ret.add(event);
-				queue.drainTo(ret);
-				return ret;
-			} catch (final InterruptedException e) {
-				return Collections.emptyList();
-			}
-		} catch (final Throwable t) {
-			t.printStackTrace();
-			throw new RuntimeException(t);
-		}
-	}
-
 	private BlockingQueue<Event> getQueue() {
 		final HttpServletRequest request = getThreadLocalRequest();
 		final HttpSession session = request.getSession();
@@ -98,23 +145,6 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 		session.setAttribute("queue", newQueue);
 		listeningQueues.add(new WeakReference<BlockingQueue<Event>>(newQueue));
 		return newQueue;
-	}
-
-	@Override
-	public void init() throws ServletException {
-		super.init();
-		final ApplicationContext ctx = SpringUtil.getSpringContext();
-		hs485registry = ctx.getBean("hs485registry", Registry.class);
-		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
-
-			@Override
-			public void handleBroadcastMessage(final IMessage message) {
-				final KeyEvent event = deceodeKeyMessage(message);
-				if (event != null)
-					distributeEvent(event);
-			}
-		});
-
 	}
 
 }

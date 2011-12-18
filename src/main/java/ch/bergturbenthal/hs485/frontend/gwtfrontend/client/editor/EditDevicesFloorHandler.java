@@ -31,9 +31,6 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 
 	@Override
 	public void onInputDeviceClick(final ClickEvent event, final InputDevice inputDevice, final float scale, final Runnable iconUpdater) {
-		System.out.println("Clicked on " + inputDevice.getName());
-		inputDevice.getPosition().setX(inputDevice.getPosition().getX() + 200);
-		iconUpdater.run();
 	}
 
 	@Override
@@ -99,8 +96,6 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 
 	@Override
 	public void onOutputDeviceClick(final ClickEvent event, final OutputDevice outputDevice, final float scale, final Runnable iconUpdater) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override

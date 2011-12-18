@@ -22,6 +22,14 @@
   		</g:customCell>
   	</g:row>
   	<g:row>
+  		<g:customCell>
+  			<g:Label text="Address"/>
+  		</g:customCell>
+  		<g:customCell>
+  			<g:ListBox visibleItemCount="1" ui:field="selectAddressListBox"/>
+  		</g:customCell>
+    </g:row>
+    <g:row>
   		<g:cell></g:cell>
   		<g:customCell>
   			<g:HorizontalPanel horizontalAlignment="ALIGN_RIGHT" >

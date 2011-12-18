@@ -63,5 +63,4 @@ public class EventDistributor {
 			handlers.remove(handler);
 		}
 	}
-
 }
