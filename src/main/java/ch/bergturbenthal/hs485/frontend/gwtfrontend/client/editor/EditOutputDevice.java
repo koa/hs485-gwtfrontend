@@ -1,4 +1,4 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
@@ -22,18 +22,16 @@ public class EditOutputDevice extends DialogBox {
 	private static EditOutputDeviceUiBinder	uiBinder	= GWT.create(EditOutputDeviceUiBinder.class);
 	@UiField
 	protected Button												cancelButton;
-	private final OutputDevice							device;
 	@UiField
 	protected TextBox												nameTextInput;
-	private final Runnable									refreshRunnable;
 	@UiField
 	protected Button												saveButton;
 	@UiField
 	protected ListBox												typeListBox;
+	private final OutputDevice							device;
 
-	public EditOutputDevice(final OutputDevice device, final Runnable refreshRunnable) {
+	public EditOutputDevice(final OutputDevice device) {
 		this.device = device;
-		this.refreshRunnable = refreshRunnable;
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		for (final OutputDeviceType outputDeviceType : OutputDeviceType.values()) {
@@ -56,6 +54,5 @@ public class EditOutputDevice extends DialogBox {
 		if (selectedIndex >= 0)
 			device.setType(OutputDeviceType.valueOf(typeListBox.getValue(selectedIndex)));
 		hide();
-		refreshRunnable.run();
 	}
 }

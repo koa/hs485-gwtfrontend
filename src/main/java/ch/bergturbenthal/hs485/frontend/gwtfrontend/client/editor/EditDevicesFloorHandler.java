@@ -10,6 +10,8 @@ import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseUpEvent;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.PopupPanel;
@@ -103,13 +105,43 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 
 	@Override
 	public void onOutputDeviceMouseDown(final MouseDownEvent event, final OutputDevice outputDevice, final float scale, final Runnable iconUpdater) {
-		this.outputDevice = outputDevice;
-		this.scale = scale;
-		this.iconUpdater = iconUpdater;
-		clientX = event.getClientX();
-		clientY = event.getClientY();
-		originalX = outputDevice.getPosition().getX();
-		originalY = outputDevice.getPosition().getY();
+		switch (event.getNativeButton()) {
+		case NativeEvent.BUTTON_LEFT:
+
+			this.outputDevice = outputDevice;
+			this.scale = scale;
+			this.iconUpdater = iconUpdater;
+			clientX = event.getClientX();
+			clientY = event.getClientY();
+			originalX = outputDevice.getPosition().getX();
+			originalY = outputDevice.getPosition().getY();
+			break;
+		case NativeEvent.BUTTON_RIGHT:
+			final PopupPanel inputDevicePopupPanel = new PopupPanel(true);
+			final MenuBar menuBar = new MenuBar(true);
+			menuBar.addItem("edit ...", new Command() {
+
+				@Override
+				public void execute() {
+					inputDevicePopupPanel.hide();
+					final EditOutputDevice editOutputDevice = new EditOutputDevice(outputDevice);
+					editOutputDevice.addCloseHandler(new CloseHandler<PopupPanel>() {
+
+						@Override
+						public void onClose(final CloseEvent<PopupPanel> event) {
+							iconUpdater.run();
+						}
+					});
+					editOutputDevice.center();
+				}
+			});
+			inputDevicePopupPanel.add(menuBar);
+			inputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
+			inputDevicePopupPanel.show();
+			event.stopPropagation();
+			event.preventDefault();
+			break;
+		}
 	}
 
 	private void stopDragging() {
