@@ -15,12 +15,17 @@ import com.google.code.morphia.annotations.Entity;
 public class Plan implements Serializable {
 
 	private static final long	serialVersionUID	= 3176259108886016294L;
+	private List<Connection>	connections				= new ArrayList<Connection>();
 	private List<Floor>				floors						= new ArrayList<Floor>();
 	@DBRef
 	private IconSet						iconSet;
 	private String						name;
 	@Id
 	private String						planId						= "plan";
+
+	public List<Connection> getConnections() {
+		return connections;
+	}
 
 	public List<Floor> getFloors() {
 		return floors;
@@ -36,6 +41,10 @@ public class Plan implements Serializable {
 
 	public String getPlanId() {
 		return planId;
+	}
+
+	public void setConnections(final List<Connection> connections) {
+		this.connections = connections;
 	}
 
 	public void setFloors(final List<Floor> floors) {

@@ -2,6 +2,7 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.collections15.map.HashedMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 @Transactional
@@ -56,6 +60,14 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 
 	@Override
 	public Plan savePlan(final Plan plan) {
+		for (final Connection connection : plan.getConnections()) {
+			final InputConnector inputConnector = connection.getInputConnector();
+			if (inputConnector.getConnectorId() == null)
+				inputConnector.setConnectorId(UUID.randomUUID().toString());
+			final OutputDevice outputDevice = connection.getOutputDevice();
+			if (outputDevice.getDeviceId() == null)
+				outputDevice.setDeviceId(UUID.randomUUID().toString());
+		}
 		return planRepository.save(plan);
 	}
 }

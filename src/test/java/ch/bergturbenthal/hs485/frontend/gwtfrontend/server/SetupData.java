@@ -15,9 +15,11 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.IconSetRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconEntry;
@@ -35,6 +37,8 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 public class SetupData {
 	private static final String	SVG_MIME	= "image/svg+xml";
 	@Autowired
+	private ConfigService				configService;
+	@Autowired
 	private FileDataRepository	fileDataRepository;
 	@Autowired
 	private IconSetRepository		iconSetRepository;
@@ -48,6 +52,9 @@ public class SetupData {
 		mongoOps.dropCollection(Plan.class);
 		mongoOps.dropCollection(FileData.class);
 		mongoOps.dropCollection(IconSet.class);
+		mongoOps.dropCollection(Connection.class);
+		mongoOps.dropCollection(InputConnector.class);
+		mongoOps.dropCollection(OutputDevice.class);
 		final Plan plan = new Plan();
 		plan.setIconSet(makeIconSet());
 		plan.setName("Berg");
@@ -72,8 +79,23 @@ public class SetupData {
 		outputDevice.setType(OutputDeviceType.LIGHT);
 
 		floor.getOutputDevices().add(outputDevice);
+		final Connection connection = new Connection();
+		connection.setInputConnector(inputConnector);
+		connection.setOutputDevice(outputDevice);
+		plan.getConnections().add(connection);
+		configService.savePlan(plan);
 
-		planRepository.save(plan);
+		// for (final Connection connection2 : plan.getConnections()) {
+		// final InputConnector inputConnector2 = connection2.getInputConnector();
+		// if (inputConnector2.getConnectorId() == null)
+		// inputConnector2.setConnectorId(UUID.randomUUID().toString());
+		// final OutputDevice outputDevice2 = connection2.getOutputDevice();
+		// if (outputDevice2.getDeviceId() == null)
+		// outputDevice2.setDeviceId(UUID.randomUUID().toString());
+		// }
+		//
+		// planRepository.save(plan);
+
 		System.out.println(plan.getIconSet());
 
 		final Plan foundPlan = planRepository.findOne("plan");
