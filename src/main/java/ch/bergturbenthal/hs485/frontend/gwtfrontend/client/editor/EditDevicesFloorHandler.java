@@ -128,7 +128,7 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 				@Override
 				public void execute() {
 					inputDevicePopupPanel.hide();
-					final InputFloorPropertiesDialog dialog = new InputFloorPropertiesDialog();
+					final EditFloorPropertiesDialog dialog = new EditFloorPropertiesDialog();
 					dialog.setFloor(currentFloor);
 					dialog.setCloseRunnable(new Runnable() {
 

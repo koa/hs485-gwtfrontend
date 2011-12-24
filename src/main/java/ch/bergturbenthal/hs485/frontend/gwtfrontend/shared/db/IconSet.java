@@ -16,6 +16,7 @@ public class IconSet implements Serializable {
 	@Id
 	private String														iconsetId;
 	private IconEntry													inputIcon;
+	private String														name;
 	private Map<OutputDeviceType, IconEntry>	outputIcons				= new HashMap<OutputDeviceType, IconEntry>();
 
 	public String getIconsetId() {
@@ -24,6 +25,10 @@ public class IconSet implements Serializable {
 
 	public IconEntry getInputIcon() {
 		return inputIcon;
+	}
+
+	public String getName() {
+		return name;
 	}
 
 	public Map<OutputDeviceType, IconEntry> getOutputIcons() {
@@ -36,6 +41,10 @@ public class IconSet implements Serializable {
 
 	public void setInputIcon(final IconEntry inputIcon) {
 		this.inputIcon = inputIcon;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
 	}
 
 	public void setOutputIcons(final Map<OutputDeviceType, IconEntry> outputIcons) {

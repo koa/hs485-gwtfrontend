@@ -121,6 +121,7 @@ public class SetupData {
 		outputIcons.put(OutputDeviceType.HEAT, new IconEntry(loadFileFromClasspath("symbols/glossy_flame.svg", SVG_MIME)));
 
 		iconSet.setIconsetId(UUID.randomUUID().toString());
+		iconSet.setName("Default");
 		return iconSetRepository.save(iconSet);
 	}
 

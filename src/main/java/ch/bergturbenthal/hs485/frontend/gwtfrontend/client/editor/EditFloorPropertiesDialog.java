@@ -19,27 +19,25 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 
-public class InputFloorPropertiesDialog extends DialogBox {
+public class EditFloorPropertiesDialog extends DialogBox {
 
-	interface InputFloornameDialogUiBinder extends UiBinder<Widget, InputFloorPropertiesDialog> {
+	interface EditFloorPropertiesDialogUiBinder extends UiBinder<Widget, EditFloorPropertiesDialog> {
 	}
 
-	private static InputFloornameDialogUiBinder	uiBinder			= GWT.create(InputFloornameDialogUiBinder.class);
+	private static EditFloorPropertiesDialogUiBinder	uiBinder			= GWT.create(EditFloorPropertiesDialogUiBinder.class);
 	@UiField
-	Button																			cancelButton;
+	Button																						cancelButton;
 	@UiField
-	TextBox																			floorNameTextBox;
+	TextBox																						floorNameTextBox;
 	@UiField
-	Button																			okButton;
+	Button																						okButton;
 	@UiField
-	ListBox																			selectDrawingList;
-	@UiField
-	ListBox																			selectIconSetList;
-	private Runnable														closeRunnable;
-	private final ConfigServiceAsync						configService	= ConfigServiceAsync.Util.getInstance();
-	private Floor																floor;
+	ListBox																						selectDrawingList;
+	private Runnable																	closeRunnable;
+	private final ConfigServiceAsync									configService	= ConfigServiceAsync.Util.getInstance();
+	private Floor																			floor;
 
-	public InputFloorPropertiesDialog() {
+	public EditFloorPropertiesDialog() {
 		setText("Properties of the Floor");
 		setModal(true);
 		setWidget(uiBinder.createAndBindUi(this));
@@ -86,7 +84,7 @@ public class InputFloorPropertiesDialog extends DialogBox {
 	}
 
 	@UiFactory
-	protected InputFloorPropertiesDialog createDialog() {
+	protected EditFloorPropertiesDialog createDialog() {
 		return this;
 	}
 

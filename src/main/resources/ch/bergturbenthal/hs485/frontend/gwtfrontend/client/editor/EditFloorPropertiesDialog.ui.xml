@@ -19,12 +19,6 @@
         </td>
       </tr>
       <tr>
-        <td>Icon Set</td>
-        <td>
-          <g:ListBox ui:field="selectIconSetList" width="100%" />
-        </td>
-      </tr>
-      <tr>
         <td colspan="2" align="right">
           <g:Button ui:field="cancelButton">Cancel</g:Button>
           <g:Button ui:field="okButton">Save</g:Button>

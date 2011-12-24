@@ -62,7 +62,7 @@ public class PlanEditor extends Composite {
 
 	@UiHandler("addFloorButton")
 	void onAddFloorButtonClick(final ClickEvent event) {
-		final InputFloorPropertiesDialog inputFloorPropertiesDialog = new InputFloorPropertiesDialog();
+		final EditFloorPropertiesDialog inputFloorPropertiesDialog = new EditFloorPropertiesDialog();
 		inputFloorPropertiesDialog.setFloor(null);
 		inputFloorPropertiesDialog.setCloseRunnable(new Runnable() {
 			@Override

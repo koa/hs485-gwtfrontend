@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.IconSetRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
@@ -25,15 +27,10 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 
 	@Autowired
 	private FileDataRepository	fileDataRepository;
-	// @Autowired
-	// private InputDeviceRepository inputDeviceRepository;
-	// @Autowired
-	// private OutputDeviceRepository outputDeviceRepository;
+	@Autowired
+	private IconSetRepository		iconSetRepository;
 	@Autowired
 	private PlanRepository			planRepository;
-
-	// @Autowired
-	// private TransactionTemplate transactionTemplate;
 
 	public FileData getFile(final String filename) {
 		return fileDataRepository.findOne(filename);
@@ -52,6 +49,14 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 		for (final FileData file : fileDataRepository.findAll())
 			if (file.getMimeType().equals(mime))
 				ret.add(file.getFileName());
+		return ret;
+	}
+
+	@Override
+	public List<IconSet> loadIconSets() {
+		final ArrayList<IconSet> ret = new ArrayList<IconSet>();
+		for (final IconSet iconSet : iconSetRepository.findAll())
+			ret.add(iconSet);
 		return ret;
 	}
 

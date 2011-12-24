@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
@@ -34,4 +35,6 @@ public interface ConfigService extends RemoteService {
 	public Plan readPlan(String planId);
 
 	public Plan savePlan(Plan plan);
+
+	List<IconSet> loadIconSets();
 }
