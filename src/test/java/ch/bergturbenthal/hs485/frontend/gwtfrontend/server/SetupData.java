@@ -59,6 +59,7 @@ public class SetupData {
 		plan.setIconSet(makeIconSet());
 		plan.setName("Berg");
 		final Floor floor = new Floor();
+		floor.setName("1. Stockwerk");
 		floor.setDrawing(loadFileFromClasspath("Stockwerk1_Grundriss.svg", SVG_MIME));
 		floor.setIconSize(2000f);
 		plan.getFloors().add(floor);

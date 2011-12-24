@@ -27,8 +27,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditInputDevice;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditOutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
@@ -411,7 +409,7 @@ public class SvgFloorEditor extends Composite {
 			@Override
 			public void execute() {
 				popupPanel.hide();
-				new EditInputDevice(device).center();
+				// new EditInputDevice(device).center();
 
 			}
 		});
@@ -470,7 +468,7 @@ public class SvgFloorEditor extends Composite {
 
 					}
 				};
-				new EditOutputDevice(device).center();
+				// new EditOutputDevice(device).center();
 			}
 		}));
 		menuBar.addItem(new MenuItem(messages.removeText(), new Command() {

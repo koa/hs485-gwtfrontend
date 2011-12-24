@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -32,20 +33,32 @@ public class EditInputDevice extends DialogBox {
 	Button																	saveButton;
 	@UiField
 	SelectInputComposite										selectKeyComposite;
-	private final InputDevice								device;
+	private InputDevice											inputDevice;
 
-	public EditInputDevice(final InputDevice inputDevice) {
-		device = inputDevice;
+	public EditInputDevice() {
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		setTitle("Edit Input Device");
-		nameTextInput.setValue(inputDevice.getName());
-		final List<InputConnector> inputConnectors = new ArrayList<InputConnector>();
-		if (device.getConnectors() != null)
-			for (final InputConnector inputConnector : device.getConnectors())
-				inputConnectors.add(new InputConnector(inputConnector));
-		connectorEditor.setData(inputConnectors);
+		nameTextInput.setValue("new Inputdevice");
 		connectorEditor.setSelectKeyComposite(selectKeyComposite);
+		connectorEditor.setData(new LinkedList<InputConnector>());
+
+	}
+
+	public InputDevice getInputDevice() {
+		return inputDevice;
+	}
+
+	public void setInputDevice(final InputDevice device) {
+		inputDevice = device;
+		if (device != null)
+			nameTextInput.setValue(device.getName());
+		final List<InputConnector> inputConnectors = new ArrayList<InputConnector>();
+		if (device != null)
+			if (device.getConnectors() != null)
+				for (final InputConnector inputConnector : device.getConnectors())
+					inputConnectors.add(new InputConnector(inputConnector));
+		connectorEditor.setData(inputConnectors);
 	}
 
 	@UiHandler("cancelButton")
@@ -55,8 +68,10 @@ public class EditInputDevice extends DialogBox {
 
 	@UiHandler("saveButton")
 	void onSaveButtonClick(final ClickEvent event) {
-		device.setConnectors(connectorEditor.getEntries());
-		device.setName(nameTextInput.getValue());
+		if (inputDevice == null)
+			inputDevice = new InputDevice();
+		inputDevice.setConnectors(connectorEditor.getEntries());
+		inputDevice.setName(nameTextInput.getValue());
 		hide();
 	}
 }

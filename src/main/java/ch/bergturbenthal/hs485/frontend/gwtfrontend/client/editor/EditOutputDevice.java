@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,30 +29,26 @@ public class EditOutputDevice extends DialogBox {
 	interface EditOutputDeviceUiBinder extends UiBinder<Widget, EditOutputDevice> {
 	}
 
-	private static EditOutputDeviceUiBinder	uiBinder							= GWT.create(EditOutputDeviceUiBinder.class);
+	private static EditOutputDeviceUiBinder				uiBinder							= GWT.create(EditOutputDeviceUiBinder.class);
 	@UiField
-	protected Button												cancelButton;
+	protected Button															cancelButton;
 	@UiField
-	protected TextBox												nameTextInput;
+	protected TextBox															nameTextInput;
 	@UiField
-	protected Button												saveButton;
+	protected Button															saveButton;
 	@UiField
-	protected ListBox												typeListBox;
+	protected ListBox															typeListBox;
 	@UiField
-	ListBox																	selectAddressListBox;
-	private List<OutputAddress>							addressList;
-	private final CommunicationServiceAsync	communicationService	= CommunicationServiceAsync.Util.getInstance();
-	private final OutputDevice							device;
+	ListBox																				selectAddressListBox;
+	private List<OutputAddress>										addressList;
+	private final CommunicationServiceAsync				communicationService	= CommunicationServiceAsync.Util.getInstance();
+	private OutputDevice													outputDevice;
+	private Map<OutputAddress, OutputDescription>	outputDevicesMap			= Collections.emptyMap();
 
-	public EditOutputDevice(final OutputDevice device) {
-		this.device = device;
+	public EditOutputDevice() {
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
-		for (final OutputDeviceType outputDeviceType : OutputDeviceType.values()) {
-			typeListBox.addItem(outputDeviceType.name());
-			if (outputDeviceType.equals(device.getType()))
-				typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
-		}
+		updateDeviceTypes();
 		selectAddressListBox.setVisible(false);
 		communicationService.listOutputDevices(new AsyncCallback<Map<OutputAddress, OutputDescription>>() {
 
@@ -62,34 +59,27 @@ public class EditOutputDevice extends DialogBox {
 			}
 
 			@Override
-			public void onSuccess(final Map<OutputAddress, OutputDescription> result) {
-				selectAddressListBox.clear();
-				addressList = new ArrayList<OutputAddress>(result.size());
-				System.out.println("Current address: " + device.getAddress());
-				for (final Entry<OutputAddress, OutputDescription> outputAddressEntry : result.entrySet()) {
-					final OutputAddress currentAddress = outputAddressEntry.getKey();
-					addressList.add(currentAddress);
-					final OutputDescription description = outputAddressEntry.getValue();
-					final StringBuffer entryText = new StringBuffer();
-					entryText.append(Integer.toHexString(currentAddress.getDeviceAddress().intValue()));
-					entryText.append(":");
-					entryText.append(Integer.toHexString(currentAddress.getOutputAddress().intValue()));
-					if (description.getHasSwitch())
-						entryText.append(" Switch");
-					if (description.getHasTimer())
-						entryText.append(" Timer");
-					if (description.getIsDimmer())
-						entryText.append(" Dimmer");
-					selectAddressListBox.addItem(entryText.toString());
-					if (currentAddress.equals(device.getAddress()))
-						selectAddressListBox.setSelectedIndex(selectAddressListBox.getItemCount() - 1);
-				}
-				selectAddressListBox.setVisible(true);
+			public void onSuccess(final Map<OutputAddress, OutputDescription> outputDevicesMap) {
+				EditOutputDevice.this.outputDevicesMap = outputDevicesMap;
+				updateDeviceList();
 			}
-		});
-		// for(String outputAddressEntry)
-		nameTextInput.setText(device.getName());
 
+		});
+		nameTextInput.setText("new output device");
+
+	}
+
+	public OutputDevice getOutputDevice() {
+		return outputDevice;
+	}
+
+	public void setOutputDevice(final OutputDevice device) {
+		outputDevice = device;
+		if (device == null)
+			return;
+		nameTextInput.setText(device.getName());
+		updateDeviceTypes();
+		updateDeviceList();
 	}
 
 	@UiHandler("cancelButton")
@@ -99,18 +89,52 @@ public class EditOutputDevice extends DialogBox {
 
 	@UiHandler("saveButton")
 	void onSaveButtonClick(final ClickEvent event) {
-		device.setName(nameTextInput.getValue());
+		if (outputDevice == null)
+			outputDevice = new OutputDevice();
+		outputDevice.setName(nameTextInput.getValue());
 		final int typeSelectedIndex = typeListBox.getSelectedIndex();
 		if (typeSelectedIndex >= 0)
-			device.setType(OutputDeviceType.valueOf(typeListBox.getValue(typeSelectedIndex)));
+			outputDevice.setType(OutputDeviceType.valueOf(typeListBox.getValue(typeSelectedIndex)));
 		else
-			device.setType(null);
+			outputDevice.setType(null);
 		final int addressSelectedIndex = selectAddressListBox.getSelectedIndex();
 		if (addressSelectedIndex >= 0)
-			device.setAddress(addressList.get(addressSelectedIndex));
+			outputDevice.setAddress(addressList.get(addressSelectedIndex));
 		else
-			device.setAddress(null);
-		System.out.println(device.getAddress());
+			outputDevice.setAddress(null);
 		hide();
+	}
+
+	private void updateDeviceList() {
+		selectAddressListBox.clear();
+		addressList = new ArrayList<OutputAddress>(outputDevicesMap.size());
+		for (final Entry<OutputAddress, OutputDescription> outputAddressEntry : outputDevicesMap.entrySet()) {
+			final OutputAddress currentAddress = outputAddressEntry.getKey();
+			addressList.add(currentAddress);
+			final OutputDescription description = outputAddressEntry.getValue();
+			final StringBuffer entryText = new StringBuffer();
+			entryText.append(Integer.toHexString(currentAddress.getDeviceAddress().intValue()));
+			entryText.append(":");
+			entryText.append(Integer.toHexString(currentAddress.getOutputAddress().intValue()));
+			if (description.getHasSwitch())
+				entryText.append(" Switch");
+			if (description.getHasTimer())
+				entryText.append(" Timer");
+			if (description.getIsDimmer())
+				entryText.append(" Dimmer");
+			selectAddressListBox.addItem(entryText.toString());
+			if (outputDevice != null && currentAddress.equals(outputDevice.getAddress()))
+				selectAddressListBox.setSelectedIndex(selectAddressListBox.getItemCount() - 1);
+		}
+		selectAddressListBox.setVisible(true);
+	}
+
+	private void updateDeviceTypes() {
+		typeListBox.clear();
+		for (final OutputDeviceType outputDeviceType : OutputDeviceType.values()) {
+			typeListBox.addItem(outputDeviceType.name());
+			if (outputDevice != null && outputDeviceType.equals(outputDevice.getType()))
+				typeListBox.setSelectedIndex(typeListBox.getItemCount() - 1);
+		}
 	}
 }

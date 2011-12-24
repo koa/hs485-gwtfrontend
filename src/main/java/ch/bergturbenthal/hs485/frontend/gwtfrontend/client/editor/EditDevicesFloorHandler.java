@@ -1,8 +1,12 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorEventHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.ConfirmationCallback;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.ConfirmationDialog;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -17,16 +21,21 @@ import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.PopupPanel;
 
 public final class EditDevicesFloorHandler implements FloorEventHandler {
-	private int						clientX;
-	private int						clientY;
-	private Runnable			iconUpdater	= null;
-	private InputDevice		inputDevice	= null;
-	private float					originalX;
-	private float					originalY;
-	private OutputDevice	outputDevice;
-	private float					scale;
+	private int							clientX;
+	private int							clientY;
+	private Floor						currentFloor;
+	private Plan						currentPlan;
+	private Runnable				fullRedrawRunnable;
+	private Runnable				iconUpdater	= null;
+	private InputDevice			inputDevice	= null;
+	private float						originalX;
+	private float						originalY;
+	private OutputDevice		outputDevice;
+	private float						scale;
+	private final Runnable	updateRunnable;
 
-	public EditDevicesFloorHandler() {
+	public EditDevicesFloorHandler(final Runnable updateRunnable) {
+		this.updateRunnable = updateRunnable;
 	}
 
 	@Override
@@ -48,12 +57,31 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 		case NativeEvent.BUTTON_RIGHT:
 			final PopupPanel inputDevicePopupPanel = new PopupPanel(true);
 			final MenuBar menuBar = new MenuBar(true);
-			menuBar.addItem("edit ...", new Command() {
-
+			menuBar.addItem("remove input device", new Command() {
 				@Override
 				public void execute() {
 					inputDevicePopupPanel.hide();
-					final EditInputDevice editInputDevice = new EditInputDevice(inputDevice);
+					new ConfirmationDialog("Are you sure to delete input device " + inputDevice.getName() + "?", new ConfirmationCallback() {
+
+						@Override
+						public void onConfirm() {
+							currentFloor.getInputDevices().remove(inputDevice);
+							fullRedrawRunnable.run();
+						}
+
+						@Override
+						public void onDecline() {
+							// do nothing
+						}
+					}).center();
+				}
+			});
+			menuBar.addItem("edit input device...", new Command() {
+				@Override
+				public void execute() {
+					inputDevicePopupPanel.hide();
+					final EditInputDevice editInputDevice = new EditInputDevice();
+					editInputDevice.setInputDevice(inputDevice);
 					editInputDevice.center();
 				}
 			});
@@ -92,6 +120,35 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 	@Override
 	public void onMouseUp(final MouseUpEvent event) {
 		stopDragging();
+		if (event.getNativeButton() == NativeEvent.BUTTON_RIGHT) {
+			final PopupPanel inputDevicePopupPanel = new PopupPanel(true);
+			final MenuBar menuBar = new MenuBar(true);
+			menuBar.addItem("edit plan...", new Command() {
+
+				@Override
+				public void execute() {
+					inputDevicePopupPanel.hide();
+					final InputFloorPropertiesDialog dialog = new InputFloorPropertiesDialog();
+					dialog.setFloor(currentFloor);
+					dialog.setCloseRunnable(new Runnable() {
+
+						@Override
+						public void run() {
+							if (fullRedrawRunnable != null)
+								fullRedrawRunnable.run();
+							if (updateRunnable != null)
+								updateRunnable.run();
+						}
+					});
+					dialog.center();
+				}
+			});
+			inputDevicePopupPanel.add(menuBar);
+			inputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
+			inputDevicePopupPanel.show();
+			event.stopPropagation();
+			event.preventDefault();
+		}
 	}
 
 	@Override
@@ -112,14 +169,34 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 			originalY = outputDevice.getPosition().getY();
 			break;
 		case NativeEvent.BUTTON_RIGHT:
-			final PopupPanel inputDevicePopupPanel = new PopupPanel(true);
+			final PopupPanel outputDevicePopupPanel = new PopupPanel(true);
 			final MenuBar menuBar = new MenuBar(true);
-			menuBar.addItem("edit ...", new Command() {
-
+			outputDevicePopupPanel.hide();
+			menuBar.addItem("remove input device", new Command() {
 				@Override
 				public void execute() {
-					inputDevicePopupPanel.hide();
-					final EditOutputDevice editOutputDevice = new EditOutputDevice(outputDevice);
+					outputDevicePopupPanel.hide();
+					new ConfirmationDialog("Are you sure to delete output device " + outputDevice.getName() + "?", new ConfirmationCallback() {
+
+						@Override
+						public void onConfirm() {
+							currentFloor.getOutputDevices().remove(outputDevice);
+							fullRedrawRunnable.run();
+						}
+
+						@Override
+						public void onDecline() {
+							// do nothing
+						}
+					}).center();
+				}
+			});
+			menuBar.addItem("edit output device...", new Command() {
+				@Override
+				public void execute() {
+					outputDevicePopupPanel.hide();
+					final EditOutputDevice editOutputDevice = new EditOutputDevice();
+					editOutputDevice.setOutputDevice(outputDevice);
 					editOutputDevice.addCloseHandler(new CloseHandler<PopupPanel>() {
 
 						@Override
@@ -130,18 +207,36 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 					editOutputDevice.center();
 				}
 			});
-			inputDevicePopupPanel.add(menuBar);
-			inputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
-			inputDevicePopupPanel.show();
+			outputDevicePopupPanel.add(menuBar);
+			outputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
+			outputDevicePopupPanel.show();
 			event.stopPropagation();
 			event.preventDefault();
 			break;
 		}
 	}
 
+	@Override
+	public void setCurrentFloor(final Floor floor) {
+		currentFloor = floor;
+	}
+
+	@Override
+	public void setCurrentPlan(final Plan plan) {
+		currentPlan = plan;
+	}
+
+	@Override
+	public void setFullRedrawRunnable(final Runnable runnable) {
+		fullRedrawRunnable = runnable;
+	}
+
 	private void stopDragging() {
 		inputDevice = null;
 		outputDevice = null;
 		iconUpdater = null;
+		if (updateRunnable != null)
+			updateRunnable.run();
 	}
+
 }

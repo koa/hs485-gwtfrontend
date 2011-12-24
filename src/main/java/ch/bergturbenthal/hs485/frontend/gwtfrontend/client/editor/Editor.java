@@ -1,7 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -14,9 +13,8 @@ public class Editor implements EntryPoint {
 	@Override
 	public void onModuleLoad() {
 		final RootPanel rootPanel = RootPanel.get("main");
-		final FloorComposite floor = new FloorComposite();
-		floor.addFloorEventHandler(new EditDevicesFloorHandler());
-		rootPanel.add(floor);
+		final PlanEditor planEditor = new PlanEditor();
+		rootPanel.add(planEditor);
 		configService.readPlan("plan", new AsyncCallback<Plan>() {
 
 			@Override
@@ -26,7 +24,7 @@ public class Editor implements EntryPoint {
 
 			@Override
 			public void onSuccess(final Plan result) {
-				floor.setCurrentPlan(result);
+				planEditor.setCurrentPlan(result);
 			}
 		});
 	}

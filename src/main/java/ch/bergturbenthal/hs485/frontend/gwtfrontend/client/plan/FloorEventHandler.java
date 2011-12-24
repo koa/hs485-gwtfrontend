@@ -1,7 +1,9 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.MouseDownEvent;
@@ -37,4 +39,9 @@ public interface FloorEventHandler {
 
 	void onOutputDeviceMouseDown(MouseDownEvent event, OutputDevice outputDevice, float scale, Runnable iconUpdater);
 
+	void setCurrentFloor(Floor floor);
+
+	void setCurrentPlan(Plan plan);
+
+	void setFullRedrawRunnable(Runnable runnable);
 }

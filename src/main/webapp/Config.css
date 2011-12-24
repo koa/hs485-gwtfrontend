@@ -32,7 +32,7 @@ h1 {
 #closeButton {
   margin: 15px 6px 6px;
 }
-html, body, div#main {
+html, body, div#main, div#main > div {
 	height: 100%
 }
 .selectInput {

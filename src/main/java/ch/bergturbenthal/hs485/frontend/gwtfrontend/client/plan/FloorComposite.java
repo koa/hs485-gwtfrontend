@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.vectomatic.dom.svg.OMElement;
 import org.vectomatic.dom.svg.OMNode;
+import org.vectomatic.dom.svg.OMNodeList;
 import org.vectomatic.dom.svg.OMSVGDefsElement;
 import org.vectomatic.dom.svg.OMSVGDocument;
 import org.vectomatic.dom.svg.OMSVGGElement;
@@ -51,6 +53,7 @@ public class FloorComposite extends Composite {
 	private Floor																currentFloor;
 	private Plan																currentPlan;
 	private final Collection<FloorEventHandler>	eventHandlers	= new ArrayList<FloorEventHandler>();
+	private final Runnable											fullRedrawRunnable;
 	private final OMSVGDefsElement							iconDef;
 	private final OMSVGGElement									iconG;
 	private String															inputIconId;
@@ -103,10 +106,20 @@ public class FloorComposite extends Composite {
 					handler.onMouseUp(event);
 			}
 		});
+		fullRedrawRunnable = new Runnable() {
+
+			@Override
+			public void run() {
+				repaintAll();
+			}
+		};
 	}
 
 	public void addFloorEventHandler(final FloorEventHandler handler) {
 		eventHandlers.add(handler);
+		handler.setCurrentPlan(currentPlan);
+		handler.setCurrentFloor(currentFloor);
+		handler.setFullRedrawRunnable(fullRedrawRunnable);
 	}
 
 	public Floor getCurrentFloor() {
@@ -117,65 +130,13 @@ public class FloorComposite extends Composite {
 		return currentPlan;
 	}
 
-	public void setCurrentFloor(final Floor currentFloor) {
-		this.currentFloor = currentFloor;
-		reloadDrawing();
-	}
-
-	public void setCurrentPlan(final Plan currentPlan) {
-		this.currentPlan = currentPlan;
-		if (currentPlan == null)
-			return;
-		System.out.println("Update icons");
-		updateIcons();
-		System.out.println("Updated");
-		final List<Floor> floors = currentPlan.getFloors();
-		if (floors.size() > 0)
-			setCurrentFloor(floors.get(0));
-		System.out.println("finished");
-	}
-
-	private void addIcon(final String iconId, final FileData image) {
-		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
-		final OMSVGGElement iconG = moveSvgToG(iconDoc);
-		final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
-		final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
-		final OMSVGRect viewport = iconDoc.getViewport();
-
-		centerTransform.setTranslate(-viewport.getCenterX(), -viewport.getCenterY());
-		final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
-		final float scaleX = 1 / viewport.getWidth();
-		final float scaleY = 1 / viewport.getHeight();
-		final float iconScale = Math.min(scaleX, scaleY);
-		baseScaleTransform.setScale(iconScale, iconScale);
-		transformList.appendItem(baseScaleTransform);
-		transformList.appendItem(centerTransform);
-		iconG.setId(iconId);
-
-		iconDef.appendChild(iconG);
-	}
-
-	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
-		if (!loadedFiles.contains(image.getFileName())) {
-			addIcon(iconId, image);
-			loadedFiles.add(image.getFileName());
+	public void redrawAllIcons() {
+		while (true) {
+			final OMNode firstChild = iconG.getFirstChild();
+			if (firstChild == null)
+				break;
+			iconG.removeChild(firstChild);
 		}
-	}
-
-	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
-		// SVGProcessor.normalizeIds(svg);
-		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
-		final Element svgElement = svg.getElement();
-		final Element newGElement = newG.getElement();
-		Node node;
-		while ((node = svgElement.getFirstChild()) != null)
-			newGElement.appendChild(svgElement.removeChild(node));
-		return newG;
-	}
-
-	private void placeIcons() {
-		for (final OMNode child : iconG.getChildNodes())
-			iconG.removeChild(child);
 		// System.out.println(svgDrawing.getPixelUnitToMillimeterX());
 		for (final InputDevice inputDevice : currentFloor.getInputDevices()) {
 			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
@@ -248,22 +209,90 @@ public class FloorComposite extends Composite {
 		}
 	}
 
-	private void reloadDrawing() {
-		svgDrawing = OMSVGParser.parse(currentFloor.getDrawing().getFileDataContent());
+	public void repaintAll() {
+		if (currentFloor != null && currentFloor.getDrawing() != null && currentFloor.getDrawing().getFileDataContent() != null)
+			svgDrawing = OMSVGParser.parse(currentFloor.getDrawing().getFileDataContent());
+		else
+			svgDrawing = OMSVGParser.createDocument().createSVGSVGElement();
 
 		// final OMSVGDocument currentDocument = OMSVGParser.currentDocument();
 
 		// final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
 		// final Element scaleGElement = rootG.getElement();
-		rootG.appendChild(moveSvgToG(svgDrawing));
+		final OMNodeList<OMNode> childNodes = rootG.getChildNodes();
+		for (final OMNode childNode : childNodes)
+			if ("svg-floor-drawing-g".equals(((OMElement) childNode).getId()))
+				rootG.removeChild(childNode);
+		final OMSVGGElement svgDrawingG = moveSvgToG(svgDrawing);
+		svgDrawingG.setId("svg-floor-drawing-g");
+		rootG.appendChild(svgDrawingG);
 		// scaleGElement.appendChild(moveSvgToG(svgDrawing).getElement());
 
 		scaleToFit();
-		placeIcons();
+		redrawAllIcons();
 
 	}
 
+	public void setCurrentFloor(final Floor currentFloor) {
+		this.currentFloor = currentFloor;
+		for (final FloorEventHandler handler : eventHandlers)
+			handler.setCurrentFloor(currentFloor);
+		repaintAll();
+	}
+
+	public void setCurrentPlan(final Plan currentPlan) {
+		this.currentPlan = currentPlan;
+		for (final FloorEventHandler handler : eventHandlers)
+			handler.setCurrentPlan(currentPlan);
+		if (currentPlan == null)
+			return;
+		updateIcons();
+		final List<Floor> floors = currentPlan.getFloors();
+		if (floors.size() > 0)
+			setCurrentFloor(floors.get(0));
+	}
+
+	private void addIcon(final String iconId, final FileData image) {
+		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
+		final OMSVGGElement iconG = moveSvgToG(iconDoc);
+		final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
+		final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
+		final OMSVGRect viewport = iconDoc.getViewport();
+
+		centerTransform.setTranslate(-viewport.getCenterX(), -viewport.getCenterY());
+		final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
+		final float scaleX = 1 / viewport.getWidth();
+		final float scaleY = 1 / viewport.getHeight();
+		final float iconScale = Math.min(scaleX, scaleY);
+		baseScaleTransform.setScale(iconScale, iconScale);
+		transformList.appendItem(baseScaleTransform);
+		transformList.appendItem(centerTransform);
+		iconG.setId(iconId);
+
+		iconDef.appendChild(iconG);
+	}
+
+	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
+		if (!loadedFiles.contains(image.getFileName())) {
+			addIcon(iconId, image);
+			loadedFiles.add(image.getFileName());
+		}
+	}
+
+	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
+		// SVGProcessor.normalizeIds(svg);
+		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
+		final Element svgElement = svg.getElement();
+		final Element newGElement = newG.getElement();
+		Node node;
+		while ((node = svgElement.getFirstChild()) != null)
+			newGElement.appendChild(svgElement.removeChild(node));
+		return newG;
+	}
+
 	private void scaleToFit() {
+		if (svgDrawing == null)
+			return;
 		final OMSVGTransformList xformList = rootG.getTransform().getBaseVal();
 		xformList.clear();
 		final OMSVGTransform scaleXForm = rootG.getOwnerSVGElement().createSVGTransform();

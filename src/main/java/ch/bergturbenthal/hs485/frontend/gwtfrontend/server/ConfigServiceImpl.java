@@ -1,5 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,8 +48,11 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 
 	@Override
 	public List<String> listFilesByMime(final String mime) {
-		// TODO Auto-generated method stub
-		return null;
+		final ArrayList<String> ret = new ArrayList<String>();
+		for (final FileData file : fileDataRepository.findAll())
+			if (file.getMimeType().equals(mime))
+				ret.add(file.getFileName());
+		return ret;
 	}
 
 	@Override
