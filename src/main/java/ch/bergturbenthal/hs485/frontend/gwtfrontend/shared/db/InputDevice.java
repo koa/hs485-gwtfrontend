@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import com.google.code.morphia.annotations.Entity;
 
@@ -17,6 +18,7 @@ import com.google.code.morphia.annotations.Entity;
 @Entity
 public class InputDevice implements Serializable {
 	private static final long			serialVersionUID	= 1L;
+	@DBRef
 	private List<InputConnector>	connectors				= new ArrayList<InputConnector>();
 	@Id
 	private String								inputDeviceId;

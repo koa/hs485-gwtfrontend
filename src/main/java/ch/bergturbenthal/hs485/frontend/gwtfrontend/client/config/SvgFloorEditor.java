@@ -24,9 +24,9 @@ import org.vectomatic.dom.svg.ui.SVGResource;
 import org.vectomatic.dom.svg.utils.OMSVGParser;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Resources;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;

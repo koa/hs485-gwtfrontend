@@ -25,6 +25,7 @@ public class Floor implements Serializable {
 	private Float								iconSize;
 	private List<InputDevice>		inputDevices			= new ArrayList<InputDevice>();
 	private String							name;
+	@DBRef
 	private List<OutputDevice>	outputDevices			= new ArrayList<OutputDevice>();
 
 	public FileData getDrawing() {

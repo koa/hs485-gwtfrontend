@@ -1,7 +1,14 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
+import java.util.List;
+
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.SelectPlanDialog.PlanSelectedHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
@@ -14,9 +21,12 @@ import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -25,7 +35,7 @@ public class PlanEditor extends Composite {
 	interface PlanEditorUiBinder extends UiBinder<Widget, PlanEditor> {
 	}
 
-	private static PlanEditorUiBinder	uiBinder	= GWT.create(PlanEditorUiBinder.class);
+	private static PlanEditorUiBinder	uiBinder			= GWT.create(PlanEditorUiBinder.class);
 	@UiField
 	Button														addFloorButton;
 	@UiField
@@ -35,13 +45,23 @@ public class PlanEditor extends Composite {
 	@UiField
 	Button														cancelButton;
 	@UiField
+	MenuItem													newPlanItem;
+	@UiField
+	MenuItem													openPlanItem;
+	@UiField
 	Button														removeFloorButton;
 	@UiField
 	Button														savePlanButton;
 	@UiField
+	MenuItem													savePlanItem;
+	@UiField
 	ListBox														selectFloorList;
 	@UiField
 	FloorComposite										showFloorComposite;
+	@UiField
+	MenuItem													uploadFilesItem;
+	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
+
 	private Plan											plan;
 
 	public PlanEditor() {
@@ -52,12 +72,58 @@ public class PlanEditor extends Composite {
 				updateFloorList();
 			}
 		}));
+		newPlanItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				newPlan();
+			}
+		});
+		openPlanItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				openPlan();
+			}
+		});
+		savePlanItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				savePlan();
+			}
+		});
+		uploadFilesItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				new FileUploadDialog().center();
+			}
+		});
+
 	}
 
 	public void setCurrentPlan(final Plan plan) {
 		this.plan = plan;
 		showFloorComposite.setCurrentPlan(plan);
 		updateFloorList();
+	}
+
+	protected void savePlan() {
+		configService.savePlan(plan, new AsyncCallback<Plan>() {
+
+			@Override
+			public void onFailure(final Throwable caught) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(final Plan result) {
+				// TODO Auto-generated method stub
+
+			}
+		});
 	}
 
 	@UiHandler("addFloorButton")
@@ -130,6 +196,40 @@ public class PlanEditor extends Composite {
 			showFloorComposite.setCurrentFloor(floor);
 	}
 
+	private void newPlan() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void openPlan() {
+		final SelectPlanDialog selectPlanDialog = new SelectPlanDialog(new PlanSelectedHandler() {
+
+			@Override
+			public void planSelected(final Plan selectedPlan) {
+				if (selectedPlan.getIconSet() == null) {
+					WaitIndicator.showWait();
+					configService.loadIconSets(new AsyncCallback<List<IconSet>>() {
+
+						@Override
+						public void onFailure(final Throwable caught) {
+							WaitIndicator.hideWait();
+						}
+
+						@Override
+						public void onSuccess(final List<IconSet> result) {
+							selectedPlan.setIconSet(result.get(0));
+							setCurrentPlan(selectedPlan);
+							WaitIndicator.hideWait();
+						}
+					});
+				} else
+					setCurrentPlan(selectedPlan);
+			}
+		});
+		selectPlanDialog.center();
+
+	}
+
 	private void updateFloorList() {
 		if (plan == null)
 			return;
@@ -140,6 +240,5 @@ public class PlanEditor extends Composite {
 			if (floor == visibleFloor)
 				selectFloorList.setSelectedIndex(selectFloorList.getItemCount() - 1);
 		}
-
 	}
 }

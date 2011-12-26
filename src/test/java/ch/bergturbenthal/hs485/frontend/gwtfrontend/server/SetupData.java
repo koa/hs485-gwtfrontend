@@ -100,7 +100,7 @@ public class SetupData {
 		System.out.println(plan.getIconSet());
 
 		final Plan foundPlan = planRepository.findOne("plan");
-		System.out.println(foundPlan.getIconSet());
+		System.out.println(foundPlan.getConnections());
 	}
 
 	private FileData loadFileFromClasspath(final String filename, final String mimeType) throws UnsupportedEncodingException, IOException {

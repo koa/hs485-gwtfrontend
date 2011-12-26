@@ -1,7 +1,7 @@
 /**
  * 
  */
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -26,12 +26,12 @@ public class FileUploader extends Composite {
 	@UiField
 	Button															cancelButton;
 
-	private Runnable										finishedRunnable	= null;
 	@UiField
 	FormPanel														formPanel;
-
 	@UiField
 	Button															uploadButton;
+
+	private Runnable										finishedRunnable	= null;
 
 	/**
 	 * Because this class has a default constructor, it can be used as a binder
@@ -46,6 +46,10 @@ public class FileUploader extends Composite {
 		initWidget(uiBinder.createAndBindUi(this));
 	}
 
+	public void setFinishedRunnable(final Runnable finishedRunnable) {
+		this.finishedRunnable = finishedRunnable;
+	}
+
 	@UiHandler("cancelButton")
 	void onCancelButtonClick(final ClickEvent event) {
 		if (finishedRunnable != null)
@@ -54,6 +58,7 @@ public class FileUploader extends Composite {
 
 	@UiHandler("formPanel")
 	void onFormPanelSubmitComplete(final SubmitCompleteEvent event) {
+
 		if (finishedRunnable != null)
 			finishedRunnable.run();
 	}
@@ -61,9 +66,5 @@ public class FileUploader extends Composite {
 	@UiHandler("uploadButton")
 	void onUploadButtonClick(final ClickEvent event) {
 		formPanel.submit();
-	}
-
-	public void setFinishedRunnable(final Runnable finishedRunnable) {
-		this.finishedRunnable = finishedRunnable;
 	}
 }

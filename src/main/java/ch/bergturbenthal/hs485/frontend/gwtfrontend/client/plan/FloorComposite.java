@@ -138,12 +138,13 @@ public class FloorComposite extends Composite {
 			iconG.removeChild(firstChild);
 		}
 		// System.out.println(svgDrawing.getPixelUnitToMillimeterX());
+		final float iconSize = currentFloor.getIconSize().floatValue();
 		for (final InputDevice inputDevice : currentFloor.getInputDevices()) {
 			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
 			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
 			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
 			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
-			scaleTransform.setScale(currentFloor.getIconSize(), currentFloor.getIconSize());
+			scaleTransform.setScale(iconSize, iconSize);
 			final Runnable iconUpdater = new Runnable() {
 
 				@Override
@@ -177,7 +178,7 @@ public class FloorComposite extends Composite {
 			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
 			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
 			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
-			scaleTransform.setScale(currentFloor.getIconSize(), currentFloor.getIconSize());
+			scaleTransform.setScale(iconSize, iconSize);
 			final Runnable iconUpdater = new Runnable() {
 
 				@Override

@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.SvgFloorEditor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;

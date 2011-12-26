@@ -14,11 +14,6 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
@@ -29,7 +24,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 public class FileAccessServlet extends HttpServlet {
 	private static final long		serialVersionUID	= 1L;
 	private FileDataRepository	fileDataRepository;
-	private TransactionTemplate	transactionTemplate;
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -37,6 +31,15 @@ public class FileAccessServlet extends HttpServlet {
 	public FileAccessServlet() {
 		super();
 		// TODO Auto-generated constructor stub
+	}
+
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
+
+		fileDataRepository = ctx.getBean(FileDataRepository.class);
 	}
 
 	@Override
@@ -58,12 +61,14 @@ public class FileAccessServlet extends HttpServlet {
 		try {
 			final List<FileItem> parsedRequest = upload.parseRequest(request);
 			for (final FileItem file : parsedRequest) {
+				System.out.println(file.getFieldName());
 				if (!file.getFieldName().equals("file"))
 					continue;
 				final FileData data = new FileData();
 				data.setFileName(file.getName());
 				data.setMimeType(file.getContentType());
 				data.setFileDataContent(new String(file.get(), "utf-8"));
+				System.out.println("Save: " + data.getFileName());
 				fileDataRepository.save(data);
 			}
 
@@ -71,45 +76,4 @@ public class FileAccessServlet extends HttpServlet {
 			throw new ServletException("Cannot Parse File", e);
 		}
 	}
-
-	@Override
-	public void init() throws ServletException {
-		super.init();
-		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
-				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
-		final PlatformTransactionManager transactionManager = ctx.getBean("transactionManager", JpaTransactionManager.class);
-		transactionTemplate = new TransactionTemplate(transactionManager);
-
-		fileDataRepository = ctx.getBean(FileDataRepository.class);
-	}
-
-	@Override
-	protected void service(final HttpServletRequest arg0, final HttpServletResponse arg1) throws ServletException, IOException {
-
-		try {
-			transactionTemplate.execute(new TransactionCallback<Void>() {
-
-				public Void doInTransaction(final TransactionStatus status) {
-					try {
-						FileAccessServlet.super.service(arg0, arg1);
-						return null;
-					} catch (final ServletException e) {
-						throw new RuntimeException(e);
-					} catch (final IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			});
-		} catch (final RuntimeException ex) {
-			if (ex.getCause() != null) {
-				if (ex.getCause() instanceof IOException)
-					throw (IOException) ex.getCause();
-				if (ex.getCause() instanceof ServletException)
-					throw (ServletException) ex.getCause();
-			}
-			throw ex;
-		}
-
-	}
-
 }
