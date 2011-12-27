@@ -9,19 +9,25 @@
       <tr>
         <td>Name</td>
         <td>
-          <g:TextBox ui:field="floorNameTextBox" width="100%" />
+          <g:TextBox ui:field="floorNameTextBox" width="100%" tabIndex="1" />
         </td>
       </tr>
       <tr>
         <td>Drawing</td>
         <td>
-          <g:ListBox ui:field="selectDrawingList" width="100%" />
+          <g:ListBox ui:field="selectDrawingList" width="100%" tabIndex="2" />
+        </td>
+      </tr>
+      <tr>
+        <td>Icon-Size</td>
+        <td>
+          <g:DoubleBox ui:field="iconSizeTextBox" tabIndex="3" />
         </td>
       </tr>
       <tr>
         <td colspan="2" align="right">
-          <g:Button ui:field="cancelButton">Cancel</g:Button>
-          <g:Button ui:field="okButton">Save</g:Button>
+          <g:Button ui:field="cancelButton" tabIndex="4">Cancel</g:Button>
+          <g:Button ui:field="okButton" tabIndex="5">Save</g:Button>
         </td>
       </tr>
     </table>

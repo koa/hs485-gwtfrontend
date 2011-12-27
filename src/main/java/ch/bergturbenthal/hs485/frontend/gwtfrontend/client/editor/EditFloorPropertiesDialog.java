@@ -15,6 +15,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.DoubleBox;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -30,10 +31,11 @@ public class EditFloorPropertiesDialog extends DialogBox {
 	@UiField
 	TextBox																						floorNameTextBox;
 	@UiField
+	DoubleBox																					iconSizeTextBox;
+	@UiField
 	Button																						okButton;
 	@UiField
 	ListBox																						selectDrawingList;
-	private Runnable																	closeRunnable;
 	private final ConfigServiceAsync									configService	= ConfigServiceAsync.Util.getInstance();
 	private Floor																			floor;
 
@@ -41,6 +43,7 @@ public class EditFloorPropertiesDialog extends DialogBox {
 		setText("Properties of the Floor");
 		setModal(true);
 		setWidget(uiBinder.createAndBindUi(this));
+		setFloor(null);
 		configService.listFilesByMime("image/svg+xml", new AsyncCallback<List<String>>() {
 
 			@Override
@@ -71,16 +74,15 @@ public class EditFloorPropertiesDialog extends DialogBox {
 		return floor;
 	}
 
-	public void setCloseRunnable(final Runnable closeRunnable) {
-		this.closeRunnable = closeRunnable;
-	}
-
 	public void setFloor(final Floor floor) {
 		this.floor = floor;
-		if (floor == null)
+		if (floor == null) {
 			floorNameTextBox.setValue("Name of Floor");
-		else
+			iconSizeTextBox.setValue(Double.valueOf(2000));
+		} else {
 			floorNameTextBox.setValue(floor.getName());
+			iconSizeTextBox.setValue(Double.valueOf(floor.getIconSize().doubleValue()));
+		}
 	}
 
 	@UiFactory
@@ -90,8 +92,6 @@ public class EditFloorPropertiesDialog extends DialogBox {
 
 	@UiHandler("cancelButton")
 	void onCancelButtonClick(final ClickEvent event) {
-		if (closeRunnable != null)
-			closeRunnable.run();
 		hide();
 	}
 
@@ -100,22 +100,19 @@ public class EditFloorPropertiesDialog extends DialogBox {
 		if (floor == null)
 			floor = new Floor();
 		floor.setName(floorNameTextBox.getValue());
+		floor.setIconSize(iconSizeTextBox.getValue().floatValue());
 		final String filename = selectDrawingList.getValue(selectDrawingList.getSelectedIndex());
 		configService.getFile(filename, new AsyncCallback<FileData>() {
 
 			@Override
 			public void onFailure(final Throwable caught) {
 				// TODO Auto-generated method stub
-				if (closeRunnable != null)
-					closeRunnable.run();
 				hide();
 			}
 
 			@Override
 			public void onSuccess(final FileData result) {
 				floor.setDrawing(result);
-				if (closeRunnable != null)
-					closeRunnable.run();
 				hide();
 			}
 		});

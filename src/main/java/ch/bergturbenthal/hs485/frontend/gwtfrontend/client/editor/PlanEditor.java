@@ -130,9 +130,9 @@ public class PlanEditor extends Composite {
 	void onAddFloorButtonClick(final ClickEvent event) {
 		final EditFloorPropertiesDialog inputFloorPropertiesDialog = new EditFloorPropertiesDialog();
 		inputFloorPropertiesDialog.setFloor(null);
-		inputFloorPropertiesDialog.setCloseRunnable(new Runnable() {
+		inputFloorPropertiesDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 			@Override
-			public void run() {
+			public void onClose(final CloseEvent<PopupPanel> event) {
 				final Floor floor = inputFloorPropertiesDialog.getFloor();
 				if (floor != null) {
 					plan.getFloors().add(floor);

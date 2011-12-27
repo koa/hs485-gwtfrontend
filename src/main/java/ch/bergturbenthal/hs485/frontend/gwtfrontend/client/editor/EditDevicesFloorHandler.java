@@ -130,10 +130,9 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 					inputDevicePopupPanel.hide();
 					final EditFloorPropertiesDialog dialog = new EditFloorPropertiesDialog();
 					dialog.setFloor(currentFloor);
-					dialog.setCloseRunnable(new Runnable() {
-
+					dialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 						@Override
-						public void run() {
+						public void onClose(final CloseEvent<PopupPanel> event) {
 							if (fullRedrawRunnable != null)
 								fullRedrawRunnable.run();
 							if (updateRunnable != null)
