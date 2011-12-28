@@ -1,8 +1,6 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll;
 
-import java.lang.ref.WeakReference;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
@@ -35,13 +33,8 @@ public class EventDistributor {
 			if (result.size() > 0)
 				for (final Event event : result)
 					synchronized (handlers) {
-						for (final WeakReference<EventHandler> handlerReference : handlers) {
-							final EventHandler handler = handlerReference.get();
-							if (handler == null)
-								removeHandler(handler);
-							else
-								handler.handleEvent(event);
-						}
+						for (final EventHandler handler : handlers)
+							handler.handleEvent(event);
 					}
 			if (communicationRunning)
 				new Timer() {
@@ -54,13 +47,13 @@ public class EventDistributor {
 		}
 	}
 
-	private static boolean																	communicationRunning	= false;
-	private static final CommunicationServiceAsync					communicationService	= CommunicationServiceAsync.Util.getInstance();
-	private static LinkedList<WeakReference<EventHandler>>	handlers							= new LinkedList<WeakReference<EventHandler>>();
+	private static boolean													communicationRunning	= false;
+	private static final CommunicationServiceAsync	communicationService	= CommunicationServiceAsync.Util.getInstance();
+	private static LinkedList<EventHandler>					handlers							= new LinkedList<EventHandler>();
 
 	public static void registerHandler(final EventHandler handler) {
 		synchronized (handlers) {
-			handlers.add(new WeakReference<EventHandler>(handler));
+			handlers.add(handler);
 			if (!communicationRunning) {
 				communicationService.getEvents(new PollAsyncCallback());
 				communicationRunning = true;
@@ -70,11 +63,7 @@ public class EventDistributor {
 
 	public static void removeHandler(final EventHandler handler) {
 		synchronized (handlers) {
-			for (final Iterator<WeakReference<EventHandler>> iterator = handlers.iterator(); iterator.hasNext();) {
-				final WeakReference<EventHandler> reference = iterator.next();
-				if (reference.get() == null || reference.get() == handler)
-					iterator.remove();
-			}
+			handlers.remove(handler);
 			if (handlers.size() == 0)
 				communicationRunning = false;
 		}

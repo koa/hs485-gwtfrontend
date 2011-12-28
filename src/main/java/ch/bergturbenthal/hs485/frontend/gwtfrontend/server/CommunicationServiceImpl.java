@@ -1,9 +1,11 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -21,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.InputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
@@ -28,10 +31,13 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
 import ch.eleveneye.hs485.api.BroadcastHandler;
 import ch.eleveneye.hs485.device.Dimmer;
+import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.SwitchingActor;
+import ch.eleveneye.hs485.device.TFSensor;
 import ch.eleveneye.hs485.device.TimedActor;
 import ch.eleveneye.hs485.device.physically.Actor;
+import ch.eleveneye.hs485.device.physically.PhysicallySensor;
 import ch.eleveneye.hs485.protocol.IMessage;
 import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
@@ -80,11 +86,29 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	}
 
 	@Override
+	public Map<InputAddress, InputDescription> listInputDevices() {
+		try {
+			final HashMap<InputAddress, InputDescription> ret = new HashMap<InputAddress, InputDescription>();
+			for (final PhysicallySensor sensor : hs485registry.listPhysicallySensors()) {
+				final InputDescription inputDescription = new InputDescription();
+				inputDescription.setKeySensor(sensor instanceof KeySensor);
+				final boolean isTfs = sensor instanceof TFSensor;
+				inputDescription.setHumiditySensor(isTfs);
+				inputDescription.setTemperatureSensor(isTfs);
+				ret.put(new InputAddress(sensor.getModuleAddr(), sensor.getSensorNr()), inputDescription);
+			}
+			return ret;
+		} catch (final Exception e) {
+			logger.warn("Error listing sensors", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
 	public Map<OutputAddress, OutputDescription> listOutputDevices() {
 		try {
 			final Map<OutputAddress, OutputDescription> descriptions = new TreeMap<OutputAddress, OutputDescription>();
-			final Collection<Actor> actors = hs485registry.listPhysicallyActors();
-			for (final Actor actor : actors) {
+			for (final Actor actor : hs485registry.listPhysicallyActors()) {
 				final OutputDescription description = new OutputDescription();
 				description.setHasSwitch(Boolean.valueOf(actor instanceof SwitchingActor));
 				description.setHasTimer(Boolean.valueOf(actor instanceof TimedActor));
@@ -94,6 +118,36 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			return descriptions;
 		} catch (final Exception e) {
 			logger.warn("Error listing actors", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public float readHmuidity(final InputAddress address) {
+		try {
+			final PhysicallySensor sensor = hs485registry.getPhysicallySensor(address.getDeviceAddress(), address.getInputAddress());
+			if (sensor instanceof TFSensor) {
+				final TFSensor tfsSensor = (TFSensor) sensor;
+				return tfsSensor.readTF().getHumidity();
+			}
+			return -100;
+		} catch (final IOException e) {
+			logger.warn("Error reading humidity", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public float readTemperature(final InputAddress address) {
+		try {
+			final PhysicallySensor sensor = hs485registry.getPhysicallySensor(address.getDeviceAddress(), address.getInputAddress());
+			if (sensor instanceof TFSensor) {
+				final TFSensor tfsSensor = (TFSensor) sensor;
+				return (float) tfsSensor.readTF().readTemperatur();
+			}
+			return -100;
+		} catch (final IOException e) {
+			logger.warn("Error reading temperature", e);
 			throw new RuntimeException(e);
 		}
 	}

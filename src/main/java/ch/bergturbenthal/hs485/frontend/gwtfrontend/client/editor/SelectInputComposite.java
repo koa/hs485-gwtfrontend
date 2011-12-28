@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventDistributor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.InputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
@@ -16,21 +18,31 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.CloseEvent;
+import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.HasCloseHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.i18n.client.NumberFormat;
+import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 public class SelectInputComposite extends Composite {
 	private static class KeyData {
 		private int									activationCount	= 0;
 		private String							connectedSwitchLabel;
+		private double							currentHum;
+		private double							currentTemp;
 		private final RadioButton		displayRadioButton;
 		private KeyEvent.EventType	lastState;
+		private boolean							tfsValue				= false;
 
 		public KeyData(final RadioButton displayRadioButton) {
 			super();
@@ -45,6 +57,14 @@ public class SelectInputComposite extends Composite {
 			return connectedSwitchLabel;
 		}
 
+		public double getCurrentHum() {
+			return currentHum;
+		}
+
+		public double getCurrentTemp() {
+			return currentTemp;
+		}
+
 		public RadioButton getDisplayRadioButton() {
 			return displayRadioButton;
 		}
@@ -53,8 +73,20 @@ public class SelectInputComposite extends Composite {
 			return lastState;
 		}
 
+		public boolean isTfsValue() {
+			return tfsValue;
+		}
+
 		public void setConnectedSwitchLabel(final String connectedSwitchLabel) {
 			this.connectedSwitchLabel = connectedSwitchLabel;
+		}
+
+		public void setCurrentHum(final double currentHum) {
+			this.currentHum = currentHum;
+		}
+
+		public void setCurrentTemp(final double currentTemp) {
+			this.currentTemp = currentTemp;
 		}
 
 		public void setLastState(final KeyEvent.EventType lastState) {
@@ -63,14 +95,21 @@ public class SelectInputComposite extends Composite {
 			this.lastState = lastState;
 		}
 
+		public void setTfsValue(final boolean tfsValue) {
+			this.tfsValue = tfsValue;
+		}
+
 	}
 
+	private final CommunicationServiceAsync		communicationService	= CommunicationServiceAsync.Util.getInstance();
 	private final String											groupName;
 	private final EventHandler								handler;
 	private final VerticalPanel								inputListPanel;
-	private Plan															plan;
 
-	private final Map<InputAddress, KeyData>	visibleInputs	= new HashMap<InputAddress, SelectInputComposite.KeyData>();
+	private Plan															plan;
+	private final Timer												pollTimer;
+	private final NumberFormat								tempFormat						= NumberFormat.getFormat("00.0");
+	private final Map<InputAddress, KeyData>	visibleInputs					= new HashMap<InputAddress, SelectInputComposite.KeyData>();
 
 	public SelectInputComposite() {
 		inputListPanel = new VerticalPanel();
@@ -84,9 +123,10 @@ public class SelectInputComposite extends Composite {
 			public synchronized void handleKeyEvent(final KeyEvent keyEvent) {
 				final InputAddress keyAddress = keyEvent.getKeyAddress();
 				if (!visibleInputs.containsKey(keyAddress))
-					addConnectorEntry(keyAddress);
+					addConnectorEntry(keyAddress, false);
 				final KeyData keyData = visibleInputs.get(keyAddress);
 				keyData.setLastState(keyEvent.getType());
+				keyData.setTfsValue(false);
 				updateKeyLabel(keyAddress, keyData);
 			}
 		};
@@ -114,6 +154,76 @@ public class SelectInputComposite extends Composite {
 			}
 		});
 		verticalPanel.add(resetButton);
+
+		pollTimer = new Timer() {
+
+			@Override
+			public void run() {
+				communicationService.listInputDevices(new AsyncCallback<Map<InputAddress, InputDescription>>() {
+					@Override
+					public void onFailure(final Throwable caught) {
+						// TODO Auto-generated method stub
+					}
+
+					@Override
+					public void onSuccess(final Map<InputAddress, InputDescription> result) {
+						for (final Entry<InputAddress, InputDescription> inputConnectorEntry : result.entrySet()) {
+							final InputDescription inputDescription = inputConnectorEntry.getValue();
+							final InputAddress inputAddress = inputConnectorEntry.getKey();
+							if (!visibleInputs.containsKey(inputAddress))
+								addConnectorEntry(inputAddress, true);
+							if (inputDescription.isHumiditySensor())
+								communicationService.readHmuidity(inputAddress, new AsyncCallback<Float>() {
+
+									@Override
+									public void onFailure(final Throwable caught) {
+										// TODO Auto-generated method stub
+
+									}
+
+									@Override
+									public void onSuccess(final Float result) {
+										final KeyData keyData = visibleInputs.get(inputAddress);
+										keyData.setCurrentHum(result.doubleValue());
+										keyData.setTfsValue(true);
+										updateKeyLabel(inputAddress, keyData);
+									}
+								});
+							if (inputDescription.isTemperatureSensor())
+								communicationService.readTemperature(inputAddress, new AsyncCallback<Float>() {
+
+									@Override
+									public void onFailure(final Throwable caught) {
+										// TODO Auto-generated method stub
+
+									}
+
+									@Override
+									public void onSuccess(final Float result) {
+										final KeyData keyData = visibleInputs.get(inputAddress);
+										keyData.setCurrentTemp(result.doubleValue());
+										keyData.setTfsValue(true);
+										updateKeyLabel(inputAddress, keyData);
+									}
+								});
+						}
+					}
+				});
+			}
+		};
+		Widget parentWidget = this;
+		while (parentWidget != null) {
+			if (parentWidget instanceof HasCloseHandlers) {
+				((HasCloseHandlers<Object>) parentWidget).addCloseHandler(new CloseHandler<Object>() {
+					@Override
+					public void onClose(final CloseEvent<Object> event) {
+						stopRecording();
+					}
+				});
+				break;
+			}
+			parentWidget = parentWidget.getParent();
+		}
 	}
 
 	public Plan getPlan() {
@@ -138,7 +248,7 @@ public class SelectInputComposite extends Composite {
 
 	public void setSelectedAddress(final InputAddress address) {
 		if (!visibleInputs.containsKey(address)) {
-			addConnectorEntry(address);
+			addConnectorEntry(address, false);
 			visibleInputs.get(address).getDisplayRadioButton().setText(address.toString());
 		}
 		final KeyData foundKeyData = visibleInputs.get(address);
@@ -157,10 +267,12 @@ public class SelectInputComposite extends Composite {
 	public void startRecording() {
 		// resetVisibleEntries();
 		EventDistributor.registerHandler(handler);
+		pollTimer.scheduleRepeating(1000);
 	}
 
 	public void stopRecording() {
 		EventDistributor.removeHandler(handler);
+		pollTimer.cancel();
 	}
 
 	@Override
@@ -169,11 +281,12 @@ public class SelectInputComposite extends Composite {
 		super.finalize();
 	}
 
-	private void addConnectorEntry(final InputAddress keyAddress) {
+	private void addConnectorEntry(final InputAddress keyAddress, final boolean isTfs) {
 		final String keyAddressString = Integer.toHexString(keyAddress.getDeviceAddress()) + ":" + keyAddress.getInputAddress();
 		final RadioButton displayRadioButton = new RadioButton(groupName);
 		displayRadioButton.setFormValue(keyAddressString);
 		final KeyData keyData = new KeyData(displayRadioButton);
+		keyData.setTfsValue(isTfs);
 		visibleInputs.put(keyAddress, keyData);
 		inputListPanel.add(displayRadioButton);
 		if (plan != null)
@@ -194,9 +307,16 @@ public class SelectInputComposite extends Composite {
 		labelStringBuilder.append(":");
 		labelStringBuilder.append(keyAddress.getInputAddress());
 		labelStringBuilder.append(": ");
-		labelStringBuilder.append(keyData.getLastState().name());
-		labelStringBuilder.append(", ");
-		labelStringBuilder.append(keyData.getActivationCount());
+		if (keyData.isTfsValue()) {
+			labelStringBuilder.append(tempFormat.format(keyData.getCurrentTemp()));
+			labelStringBuilder.append("°, ");
+			labelStringBuilder.append(keyData.getCurrentHum());
+			labelStringBuilder.append("%");
+		} else {
+			labelStringBuilder.append(keyData.getLastState().name());
+			labelStringBuilder.append(", ");
+			labelStringBuilder.append(keyData.getActivationCount());
+		}
 		if (keyData.getConnectedSwitchLabel() != null) {
 			labelStringBuilder.append(" [");
 			labelStringBuilder.append(keyData.getConnectedSwitchLabel());

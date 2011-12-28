@@ -24,6 +24,7 @@ public class InputConnector implements Serializable {
 		setType(inputConnector.getType());
 		setConnectorName(inputConnector.getConnectorName());
 		setAddress(new InputAddress(inputConnector.getAddress()));
+		setConnectorId(inputConnector.getConnectorId());
 	}
 
 	public InputAddress getAddress() {
