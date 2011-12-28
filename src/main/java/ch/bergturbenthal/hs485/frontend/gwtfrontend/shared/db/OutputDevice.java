@@ -5,8 +5,10 @@ import java.io.Serializable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
+
 @Document
-public class OutputDevice implements Serializable {
+public class OutputDevice implements Serializable, SelectableIcon {
 	private static final long	serialVersionUID	= 2108040144856847494L;
 
 	private OutputAddress			address						= new OutputAddress();

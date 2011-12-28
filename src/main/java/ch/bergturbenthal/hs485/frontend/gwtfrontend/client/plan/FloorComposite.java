@@ -16,13 +16,16 @@ import org.vectomatic.dom.svg.OMSVGDefsElement;
 import org.vectomatic.dom.svg.OMSVGDocument;
 import org.vectomatic.dom.svg.OMSVGGElement;
 import org.vectomatic.dom.svg.OMSVGRect;
+import org.vectomatic.dom.svg.OMSVGRectElement;
 import org.vectomatic.dom.svg.OMSVGSVGElement;
 import org.vectomatic.dom.svg.OMSVGTransform;
 import org.vectomatic.dom.svg.OMSVGTransformList;
 import org.vectomatic.dom.svg.OMSVGUseElement;
 import org.vectomatic.dom.svg.ui.SVGImage;
 import org.vectomatic.dom.svg.utils.OMSVGParser;
+import org.vectomatic.dom.svg.utils.SVGConstants;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconEntry;
@@ -60,6 +63,7 @@ public class FloorComposite extends Composite {
 	private final Map<OutputDeviceType, String>	outputIconIds	= new HashMap<OutputDeviceType, String>();
 	private final OMSVGGElement									rootG;
 	private float																scale;
+	private final Set<SelectableIcon>						selectedIcons	= new HashSet<SelectableIcon>();
 	private OMSVGSVGElement											svgDrawing;
 	private final SVGImage											svgImage;
 
@@ -150,7 +154,12 @@ public class FloorComposite extends Composite {
 				@Override
 				public void run() {
 					final PositionXY position = inputDevice.getPosition();
-					currentIcon.getHref().setBaseVal('#' + inputIconId);
+					final StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append('#');
+					stringBuilder.append(inputIconId);
+					if (selectedIcons.contains(inputDevice))
+						stringBuilder.append("-selected");
+					currentIcon.getHref().setBaseVal(stringBuilder.toString());
 					moveTransform.setTranslate(position.getX(), position.getY());
 				}
 			};
@@ -184,7 +193,12 @@ public class FloorComposite extends Composite {
 				@Override
 				public void run() {
 					final PositionXY position = outputDevice.getPosition();
-					currentIcon.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+					final StringBuilder stringBuilder = new StringBuilder();
+					stringBuilder.append('#');
+					stringBuilder.append(outputIconIds.get(outputDevice.getType()));
+					if (selectedIcons.contains(outputDevice))
+						stringBuilder.append("-selected");
+					currentIcon.getHref().setBaseVal(stringBuilder.toString());
 					moveTransform.setTranslate(position.getX(), position.getY());
 				}
 			};
@@ -253,6 +267,12 @@ public class FloorComposite extends Composite {
 			setCurrentFloor(floors.get(0));
 	}
 
+	public void setSelectedIcons(final Collection<SelectableIcon> icons) {
+		selectedIcons.clear();
+		selectedIcons.addAll(icons);
+		redrawAllIcons();
+	}
+
 	private void addIcon(final String iconId, final FileData image) {
 		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
 		final OMSVGGElement iconG = moveSvgToG(iconDoc);
@@ -273,9 +293,23 @@ public class FloorComposite extends Composite {
 		iconDef.appendChild(iconG);
 	}
 
+	private void addSelectedIcon(final String iconId) {
+		final OMSVGDocument document = OMSVGParser.currentDocument();
+		final OMSVGGElement selectedIconG = document.createSVGGElement();
+		final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+		selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+		selectedIconG.appendChild(selectedRect);
+		final OMSVGUseElement useElement = document.createSVGUseElement();
+		useElement.getHref().setBaseVal('#' + iconId);
+		selectedIconG.appendChild(useElement);
+		selectedIconG.setId(iconId + "-selected");
+		iconDef.appendChild(selectedIconG);
+	}
+
 	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
 		if (!loadedFiles.contains(image.getFileName())) {
 			addIcon(iconId, image);
+			addSelectedIcon(iconId);
 			loadedFiles.add(image.getFileName());
 		}
 	}
@@ -316,9 +350,8 @@ public class FloorComposite extends Composite {
 	}
 
 	private void updateIcons() {
-		for (final OMNode child : iconDef.getChildNodes())
-			iconDef.removeChild(child);
-		System.out.println(currentPlan.getIconSet());
+		while (iconDef.hasChildNodes())
+			iconDef.removeChild(iconDef.getFirstChild());
 		final Set<String> loadedFiles = new HashSet<String>();
 		final IconEntry inputIcon = currentPlan.getIconSet().getInputIcon();
 		final FileData image = inputIcon.getImage();

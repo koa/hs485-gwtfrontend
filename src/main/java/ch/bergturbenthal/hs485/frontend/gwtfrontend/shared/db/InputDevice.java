@@ -10,13 +10,15 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
+
 import com.google.code.morphia.annotations.Entity;
 
 /**
  * Input-Device
  */
 @Entity
-public class InputDevice implements Serializable {
+public class InputDevice implements Serializable, SelectableIcon {
 	private static final long			serialVersionUID	= 1L;
 	@DBRef
 	private List<InputConnector>	connectors				= new ArrayList<InputConnector>();

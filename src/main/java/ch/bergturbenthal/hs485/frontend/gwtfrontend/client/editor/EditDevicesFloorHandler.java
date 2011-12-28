@@ -4,6 +4,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorEventHandle
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.ConfirmationCallback;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.ConfirmationDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
@@ -18,21 +19,46 @@ import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.MenuBar;
+import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
 
-public final class EditDevicesFloorHandler implements FloorEventHandler {
-	private int							clientX;
-	private int							clientY;
-	private Floor						currentFloor;
-	private Plan						currentPlan;
-	private Runnable				fullRedrawRunnable;
-	private Runnable				iconUpdater	= null;
-	private InputDevice			inputDevice	= null;
-	private float						originalX;
-	private float						originalY;
-	private OutputDevice		outputDevice;
-	private float						scale;
-	private final Runnable	updateRunnable;
+public class EditDevicesFloorHandler implements FloorEventHandler {
+	public static interface CurrentConnectionHandler {
+		boolean hasCurrentConnection();
+
+		void setInputConnector(InputConnector inputConnector);
+
+		void setOutputDevice(OutputDevice outputDevice);
+	}
+
+	private int												clientX;
+	private int												clientY;
+	private CurrentConnectionHandler	currentConnectionHandler	= new CurrentConnectionHandler() {
+
+																																@Override
+																																public boolean hasCurrentConnection() {
+																																	return false;
+																																}
+
+																																@Override
+																																public void setInputConnector(final InputConnector inputConnector) {
+																																}
+
+																																@Override
+																																public void setOutputDevice(final OutputDevice outputDevice) {
+																																}
+
+																															};
+	private Floor											currentFloor;
+	private Plan											currentPlan;
+	private Runnable									fullRedrawRunnable;
+	private Runnable									iconUpdater								= null;
+	private InputDevice								inputDevice								= null;
+	private float											originalX;
+	private float											originalY;
+	private OutputDevice							outputDevice;
+	private float											scale;
+	private final Runnable						updateRunnable;
 
 	public EditDevicesFloorHandler(final Runnable updateRunnable) {
 		this.updateRunnable = updateRunnable;
@@ -85,6 +111,19 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 					editInputDevice.center();
 				}
 			});
+			if (currentConnectionHandler.hasCurrentConnection()) {
+				final MenuBar subMenu = new MenuBar(true);
+				menuBar.addItem(new MenuItem("Inputdevice of Connection", false, subMenu));
+				for (final InputConnector inputConnector : inputDevice.getConnectors())
+					subMenu.addItem(inputConnector.getConnectorName(), new Command() {
+
+						@Override
+						public void execute() {
+							inputDevicePopupPanel.hide();
+							currentConnectionHandler.setInputConnector(inputConnector);
+						}
+					});
+			}
 			inputDevicePopupPanel.add(menuBar);
 			inputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
 			inputDevicePopupPanel.show();
@@ -206,6 +245,16 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 					editOutputDevice.center();
 				}
 			});
+			if (currentConnectionHandler.hasCurrentConnection())
+				menuBar.addItem("Outputdevice of Connection", new Command() {
+
+					@Override
+					public void execute() {
+						currentConnectionHandler.setOutputDevice(outputDevice);
+						outputDevicePopupPanel.hide();
+					}
+				});
+
 			outputDevicePopupPanel.add(menuBar);
 			outputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
 			outputDevicePopupPanel.show();
@@ -213,6 +262,10 @@ public final class EditDevicesFloorHandler implements FloorEventHandler {
 			event.preventDefault();
 			break;
 		}
+	}
+
+	public void setCurrentConnectionHandler(final CurrentConnectionHandler currentConnectionHandler) {
+		this.currentConnectionHandler = currentConnectionHandler;
 	}
 
 	@Override
