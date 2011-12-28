@@ -1,6 +1,9 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -70,7 +73,38 @@ public class EditInputDevice extends DialogBox {
 	void onSaveButtonClick(final ClickEvent event) {
 		if (inputDevice == null)
 			inputDevice = new InputDevice();
-		inputDevice.setConnectors(connectorEditor.getEntries());
+		final LinkedHashMap<String, InputConnector> originalConnectorsById = new LinkedHashMap<String, InputConnector>();
+		final LinkedHashMap<String, InputConnector> originalConnectorsByName = new LinkedHashMap<String, InputConnector>();
+		final IdentityHashMap<InputConnector, Boolean> foundConnectors = new IdentityHashMap<InputConnector, Boolean>();
+		for (final InputConnector inputConnector : inputDevice.getConnectors()) {
+			if (inputConnector.getConnectorId() != null)
+				originalConnectorsById.put(inputConnector.getConnectorId(), inputConnector);
+			originalConnectorsByName.put(inputConnector.getConnectorName(), inputConnector);
+			foundConnectors.put(inputConnector, Boolean.FALSE);
+		}
+		final List<InputConnector> addConnectors = new ArrayList<InputConnector>();
+		for (final InputConnector newConnector : connectorEditor.getEntries()) {
+			final InputConnector connectorToOverwrite;
+			if (newConnector.getConnectorId() != null)
+				connectorToOverwrite = originalConnectorsById.get(newConnector.getConnectorId());
+			else
+				connectorToOverwrite = originalConnectorsByName.get(newConnector.getConnectorName());
+
+			if (connectorToOverwrite == null || foundConnectors.get(connectorToOverwrite).booleanValue()) {
+				newConnector.setConnectorId(null);
+				addConnectors.add(newConnector);
+				continue;
+			}
+			connectorToOverwrite.setConnectorId(newConnector.getConnectorId());
+			connectorToOverwrite.setAddress(newConnector.getAddress());
+			connectorToOverwrite.setType(newConnector.getType());
+			connectorToOverwrite.setConnectorName(newConnector.getConnectorName());
+			foundConnectors.put(connectorToOverwrite, Boolean.TRUE);
+		}
+		for (final Iterator<InputConnector> iterator = inputDevice.getConnectors().iterator(); iterator.hasNext();)
+			if (!foundConnectors.get(iterator.next()).booleanValue())
+				iterator.remove();
+		inputDevice.getConnectors().addAll(addConnectors);
 		inputDevice.setName(nameTextInput.getValue());
 		hide();
 	}
