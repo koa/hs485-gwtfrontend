@@ -55,8 +55,8 @@
               </g:Dock>
               <g:Dock direction="SOUTH">
                 <g:HorizontalPanel>
-                  <g:Button>Add Connection</g:Button>
-                  <g:Button>Remove Connection</g:Button>
+                  <g:Button ui:field="addConnectionButton">Add Connection</g:Button>
+                  <g:Button ui:field="removeConnectionButton">Remove Connection</g:Button>
                 </g:HorizontalPanel>
               </g:Dock>
             </g:DockPanel>

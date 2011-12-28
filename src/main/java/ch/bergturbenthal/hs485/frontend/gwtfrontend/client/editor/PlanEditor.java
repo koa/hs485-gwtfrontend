@@ -44,6 +44,8 @@ public class PlanEditor extends Composite {
 
 	private static PlanEditorUiBinder	uiBinder			= GWT.create(PlanEditorUiBinder.class);
 	@UiField
+	Button														addConnectionButton;
+	@UiField
 	Button														addFloorButton;
 	@UiField
 	Button														addInputDeviceButton;
@@ -55,6 +57,8 @@ public class PlanEditor extends Composite {
 	MenuItem													newPlanItem;
 	@UiField
 	MenuItem													openPlanItem;
+	@UiField
+	Button														removeConnectionButton;
 	@UiField
 	Button														removeFloorButton;
 	@UiField
@@ -154,6 +158,12 @@ public class PlanEditor extends Composite {
 		});
 	}
 
+	@UiHandler("addConnectionButton")
+	void onAddConnectionButtonClick(final ClickEvent event) {
+		plan.getConnections().add(new Connection());
+		updateConnectorList();
+	}
+
 	@UiHandler("addFloorButton")
 	void onAddFloorButtonClick(final ClickEvent event) {
 		final EditFloorPropertiesDialog inputFloorPropertiesDialog = new EditFloorPropertiesDialog();
@@ -226,6 +236,14 @@ public class PlanEditor extends Composite {
 		else
 			selectedConnection = connections.get(selectedIndex);
 		highlightSelectedConnection();
+	}
+
+	@UiHandler("removeConnectionButton")
+	void onRemoveConnectionButtonClick(final ClickEvent event) {
+		if (selectedConnection != null)
+			plan.getConnections().remove(selectedConnection);
+		selectedConnection = null;
+		updateConnectorList();
 	}
 
 	@UiHandler("selectFloorList")
