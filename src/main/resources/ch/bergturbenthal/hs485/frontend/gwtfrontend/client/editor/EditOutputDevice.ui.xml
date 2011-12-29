@@ -26,7 +26,10 @@
   			<g:Label text="Address"/>
   		</g:customCell>
   		<g:customCell>
-  			<g:ListBox visibleItemCount="1" ui:field="selectAddressListBox"/>
+  			<g:HorizontalPanel width="100%" horizontalAlignment="ALIGN_CENTER">
+  				<g:ListBox visibleItemCount="1" ui:field="selectAddressListBox" width="100%"/>
+  				<g:Button ui:field="toggleButton">Toggle</g:Button>
+  			</g:HorizontalPanel>
   		</g:customCell>
     </g:row>
     <g:row>
@@ -38,6 +41,5 @@
   			</g:HorizontalPanel>
   		</g:customCell>
   	</g:row>
-  	<g:row/>
   </g:Grid>
 </ui:UiBinder> 

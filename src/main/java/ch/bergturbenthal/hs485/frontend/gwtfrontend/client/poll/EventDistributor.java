@@ -55,8 +55,8 @@ public class EventDistributor {
 		synchronized (handlers) {
 			handlers.add(handler);
 			if (!communicationRunning) {
-				communicationService.getEvents(new PollAsyncCallback());
 				communicationRunning = true;
+				communicationService.getEvents(new PollAsyncCallback());
 			}
 		}
 	}

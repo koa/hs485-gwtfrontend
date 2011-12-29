@@ -6,8 +6,8 @@
     lazy-init="true" />
   <bean id="hs485-themisto"
     class="ch.eleveneye.hs485.protocol.HS485Impl" lazy-init="true">
-    <constructor-arg index="0" value="/dev/ttyUSB0"></constructor-arg>
-    <constructor-arg index="1" value="4"></constructor-arg>
+    <constructor-arg index="0" value="/dev/ttyUSB0"/>
+    <constructor-arg index="1" value="4"/>
   </bean>
   <bean id="hs485registry" class="ch.eleveneye.hs485.device.Registry">
     <constructor-arg index="0" ref="hs485-#{envBean}"

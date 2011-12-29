@@ -36,7 +36,7 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class SelectInputComposite extends Composite {
 	private static class KeyData {
-		private int									activationCount	= 0;
+		private int									activationCount	= 1;
 		private String							connectedSwitchLabel;
 		private double							currentHum;
 		private double							currentTemp;
@@ -170,15 +170,13 @@ public class SelectInputComposite extends Composite {
 						for (final Entry<InputAddress, InputDescription> inputConnectorEntry : result.entrySet()) {
 							final InputDescription inputDescription = inputConnectorEntry.getValue();
 							final InputAddress inputAddress = inputConnectorEntry.getKey();
-							if (!visibleInputs.containsKey(inputAddress))
-								addConnectorEntry(inputAddress, true);
-							if (inputDescription.isHumiditySensor())
+							if (inputDescription.isHumiditySensor()) {
+								if (!visibleInputs.containsKey(inputAddress))
+									addConnectorEntry(inputAddress, true);
 								communicationService.readHmuidity(inputAddress, new AsyncCallback<Float>() {
-
 									@Override
 									public void onFailure(final Throwable caught) {
 										// TODO Auto-generated method stub
-
 									}
 
 									@Override
@@ -189,13 +187,14 @@ public class SelectInputComposite extends Composite {
 										updateKeyLabel(inputAddress, keyData);
 									}
 								});
-							if (inputDescription.isTemperatureSensor())
+							}
+							if (inputDescription.isTemperatureSensor()) {
+								if (!visibleInputs.containsKey(inputAddress))
+									addConnectorEntry(inputAddress, true);
 								communicationService.readTemperature(inputAddress, new AsyncCallback<Float>() {
-
 									@Override
 									public void onFailure(final Throwable caught) {
 										// TODO Auto-generated method stub
-
 									}
 
 									@Override
@@ -206,6 +205,7 @@ public class SelectInputComposite extends Composite {
 										updateKeyLabel(inputAddress, keyData);
 									}
 								});
+							}
 						}
 					}
 				});
@@ -267,7 +267,7 @@ public class SelectInputComposite extends Composite {
 	public void startRecording() {
 		// resetVisibleEntries();
 		EventDistributor.registerHandler(handler);
-		pollTimer.scheduleRepeating(1000);
+		pollTimer.scheduleRepeating(10000);
 	}
 
 	public void stopRecording() {

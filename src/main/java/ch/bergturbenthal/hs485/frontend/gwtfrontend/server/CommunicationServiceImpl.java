@@ -13,6 +13,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -28,6 +29,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
+import ch.eleveneye.hs485.api.BroadcastHandler;
 import ch.eleveneye.hs485.device.Dimmer;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
@@ -65,6 +67,21 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			t.printStackTrace();
 			throw new RuntimeException(t);
 		}
+	}
+
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
+
+			@Override
+			public void handleBroadcastMessage(final IMessage message) {
+				final KeyEvent event = deceodeKeyMessage(message);
+				if (event != null)
+					distributeEvent(event);
+			}
+		});
+
 	}
 
 	@Override
@@ -135,6 +152,7 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	}
 
 	private KeyEvent deceodeKeyMessage(final IMessage message) {
+		logger.info("Message: " + message);
 		final byte[] data = message.getData();
 		if (data.length != 4)
 			return null;
@@ -154,6 +172,7 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			break;
 		}
 		event.setKeyAddress(new InputAddress(message.getSourceAddress(), data[1]));
+		logger.info("Event: " + event);
 		return event;
 	}
 

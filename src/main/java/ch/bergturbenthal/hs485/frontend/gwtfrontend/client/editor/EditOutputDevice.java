@@ -40,6 +40,8 @@ public class EditOutputDevice extends DialogBox {
 	protected ListBox															typeListBox;
 	@UiField
 	ListBox																				selectAddressListBox;
+	@UiField
+	Button																				toggleButton;
 	private List<OutputAddress>										addressList;
 	private final CommunicationServiceAsync				communicationService	= CommunicationServiceAsync.Util.getInstance();
 	private OutputDevice													outputDevice;
@@ -103,6 +105,10 @@ public class EditOutputDevice extends DialogBox {
 		else
 			outputDevice.setAddress(null);
 		hide();
+	}
+
+	@UiHandler("toggleButton")
+	void onToggleButtonClick(final ClickEvent event) {
 	}
 
 	private void updateDeviceList() {
