@@ -56,7 +56,7 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	public List<String> listFilesByMime(final String mime) {
 		final ArrayList<String> ret = new ArrayList<String>();
 		for (final FileData file : fileDataRepository.findAll())
-			if (file.getMimeType().equals(mime))
+			if (mime.equals(file.getMimeType()))
 				ret.add(file.getFileName());
 		return ret;
 	}

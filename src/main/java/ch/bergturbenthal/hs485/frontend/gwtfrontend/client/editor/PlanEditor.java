@@ -54,6 +54,8 @@ public class PlanEditor extends Composite {
 	@UiField
 	ListBox														connectionsList;
 	@UiField
+	MenuItem													editIconsetsItem;
+	@UiField
 	MenuItem													newPlanItem;
 	@UiField
 	MenuItem													openPlanItem;
@@ -128,6 +130,13 @@ public class PlanEditor extends Composite {
 			@Override
 			public void execute() {
 				new FileUploadDialog().center();
+			}
+		});
+		editIconsetsItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				new EditIconSetsDialog().center();
 			}
 		});
 

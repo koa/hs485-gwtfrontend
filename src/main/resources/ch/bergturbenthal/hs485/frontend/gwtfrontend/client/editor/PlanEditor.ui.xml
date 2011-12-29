@@ -15,10 +15,12 @@
             <g:MenuItem text="save" ui:field="savePlanItem" />
           </g:MenuBar>
         </g:MenuItem>
-        <g:MenuItem text="Files">
+        <g:MenuItem text="Resources">
           <g:MenuBar vertical="true">
             <g:MenuItem text="upload Files" ui:field="uploadFilesItem" />
             <g:MenuItem text="remove Files" />
+            <g:MenuItemSeparator/>
+            <g:MenuItem text="edit Iconsets" ui:field="editIconsetsItem"/>
           </g:MenuBar>
         </g:MenuItem>
       </g:MenuBar>
