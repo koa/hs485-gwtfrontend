@@ -31,7 +31,8 @@
         <g:center>
           <g:DockLayoutPanel unit="EX" height="100%">
             <g:north size="3">
-              <g:Label text="New Label" ui:field="planNameLabel" width="100%" horizontalAlignment="ALIGN_CENTER" />
+              <g:Label text="New Label" ui:field="planNameLabel"
+                width="100%" horizontalAlignment="ALIGN_CENTER" />
             </g:north>
             <g:center>
               <p1:FloorComposite ui:field="showFloorComposite"
@@ -39,12 +40,12 @@
             </g:center>
           </g:DockLayoutPanel>
         </g:center>
-        <g:west size="17.2">
+        <g:west size="22.2">
           <g:VerticalSplitPanel height="100%">
-            <g:VerticalPanel height="100%">
+            <g:VerticalPanel height="100%" width="100%">
               <g:Label text="Floors" />
               <g:Cell height="100%">
-                <g:ListBox visibleItemCount="5" ui:field="selectFloorList"
+                <g:ListBox visibleItemCount="2" ui:field="selectFloorList"
                   height="100%" width="100%" />
               </g:Cell>
               <g:HorizontalPanel>
@@ -56,21 +57,87 @@
                 <g:Button ui:field="removeFloorButton">Remove Floor</g:Button>
               </g:HorizontalPanel>
             </g:VerticalPanel>
-            <g:DockPanel height="100%" horizontalAlignment="ALIGN_CENTER">
-              <g:Dock direction="NORTH">
-                <g:Label text="Connections" />
-              </g:Dock>
-              <g:Dock direction="CENTER" width="100%" height="100%">
+            <g:VerticalPanel height="100%"
+              horizontalAlignment="ALIGN_CENTER" width="100%">
+              <g:Label text="Connections" />
+              <g:Cell height="100%">
                 <g:ListBox visibleItemCount="5" ui:field="connectionsList"
-                  width="100%" height="100%" />
-              </g:Dock>
-              <g:Dock direction="SOUTH">
-                <g:HorizontalPanel>
-                  <g:Button ui:field="addConnectionButton">Add Connection</g:Button>
-                  <g:Button ui:field="removeConnectionButton">Remove Connection</g:Button>
-                </g:HorizontalPanel>
-              </g:Dock>
-            </g:DockPanel>
+                  width="100%" height="100%"/>
+              </g:Cell>
+              <g:HorizontalPanel>
+                <g:Button ui:field="addConnectionButton">Add Connection</g:Button>
+                <g:Button ui:field="removeConnectionButton">Remove Connection</g:Button>
+              </g:HorizontalPanel>
+              <g:HTMLPanel>
+                <table width="100%">
+                  <tr>
+                    <td>Connection-Type</td>
+                    <td>
+                      <g:RadioButton name="connection-type"
+                        text="Event" formValue="event" ui:field="connectionTypeEventRadio" />
+                      <g:RadioButton name="connection-type"
+                        text="Value" formValue="value" ui:field="connectionTypeValueRadio" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2">
+                      <g:DeckPanel ui:field="connectionTypeDeckPanel">
+                        <g:Grid>
+                          <g:row>
+                            <g:customCell>
+                              <g:Label text="Action" />
+                            </g:customCell>
+                            <g:customCell>
+                              <g:ListBox ui:field="eventTypeList">
+                                <g:item>On / Dimm up</g:item>
+                                <g:item>Off / Dimm down</g:item>
+                                <g:item>Toggle</g:item>
+                              </g:ListBox>
+                            </g:customCell>
+                          </g:row>
+                          <g:row>
+                            <g:customCell>
+                              <g:Label text="Auto off" />
+                            </g:customCell>
+                            <g:customCell>
+                              <g:HorizontalPanel
+                                verticalAlignment="ALIGN_MIDDLE">
+                                <g:Cell verticalAlignment="ALIGN_MIDDLE">
+                                  <g:SimpleCheckBox ui:field="eventAutoOffEnabledCheckbox" />
+                                </g:Cell>
+                                <g:Cell verticalAlignment="ALIGN_MIDDLE">
+                                  <g:HorizontalPanel
+                                    verticalAlignment="ALIGN_MIDDLE" ui:field="eventAutoOffTimePanel">
+                                    <g:IntegerBox
+                                      visibleLength="4" ui:field="eventAutoOffTime" />
+                                    <g:Label text="s" />
+                                  </g:HorizontalPanel>
+                                </g:Cell>
+                              </g:HorizontalPanel>
+                            </g:customCell>
+                          </g:row>
+                        </g:Grid>
+                        <g:Grid>
+                          <g:row>
+                            <g:customCell>
+                              <g:Label text="Toggle value" />
+                            </g:customCell>
+                            <g:customCell>
+                              <g:DoubleBox visibleLength="3" ui:field="connectionValueTriggerTextBox" />
+                            </g:customCell>
+                          </g:row>
+                        </g:Grid>
+                      </g:DeckPanel>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" align="center">
+                      <g:Button ui:field="saveConnectionButton">Save connection</g:Button>
+                    </td>
+                  </tr>
+                </table>
+              </g:HTMLPanel>
+            </g:VerticalPanel>
           </g:VerticalSplitPanel>
         </g:west>
       </g:DockLayoutPanel>

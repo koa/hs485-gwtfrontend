@@ -13,6 +13,8 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionTargetAction;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -32,10 +34,16 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.DeckPanel;
+import com.google.gwt.user.client.ui.DoubleBox;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
+import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.SimpleCheckBox;
 import com.google.gwt.user.client.ui.Widget;
 
 public class PlanEditor extends Composite {
@@ -55,9 +63,25 @@ public class PlanEditor extends Composite {
 	@UiField
 	ListBox														connectionsList;
 	@UiField
+	DeckPanel													connectionTypeDeckPanel;
+	@UiField
+	RadioButton												connectionTypeEventRadio;
+	@UiField
+	RadioButton												connectionTypeValueRadio;
+	@UiField
+	DoubleBox													connectionValueTriggerTextBox;
+	@UiField
 	MenuItem													editIconsetsItem;
 	@UiField
 	MenuItem													editPlanPropertiesItem;
+	@UiField
+	SimpleCheckBox										eventAutoOffEnabledCheckbox;
+	@UiField
+	IntegerBox												eventAutoOffTime;
+	@UiField
+	HorizontalPanel										eventAutoOffTimePanel;
+	@UiField
+	ListBox														eventTypeList;
 	@UiField
 	MenuItem													newPlanItem;
 	@UiField
@@ -68,6 +92,8 @@ public class PlanEditor extends Composite {
 	Button														removeConnectionButton;
 	@UiField
 	Button														removeFloorButton;
+	@UiField
+	Button														saveConnectionButton;
 	@UiField
 	MenuItem													savePlanItem;
 	@UiField
@@ -90,6 +116,20 @@ public class PlanEditor extends Composite {
 			}
 		});
 		handler.setCurrentConnectionHandler(new CurrentConnectionHandler() {
+
+			@Override
+			public boolean canHandleInputconnector(final InputConnector inputConnector) {
+				if (selectedConnection == null)
+					return false;
+				return selectedConnection.canHandleInputConnector(inputConnector);
+			}
+
+			@Override
+			public boolean canHandleOutputDevice(final OutputDevice outputDevice) {
+				if (selectedConnection == null)
+					return false;
+				return selectedConnection.canHandleOutputDevice(outputDevice);
+			}
 
 			@Override
 			public boolean hasCurrentConnection() {
@@ -257,6 +297,32 @@ public class PlanEditor extends Composite {
 		else
 			selectedConnection = connections.get(selectedIndex);
 		highlightSelectedConnection();
+		loadConnectionToForm();
+	}
+
+	@UiHandler("connectionTypeEventRadio")
+	void onConnectionTypeEventRadioClick(final ClickEvent event) {
+		connectionTypeRadioChanged();
+	}
+
+	// @UiHandler("connectionTypeEventRadio")
+	// void onConnectionTypeEventRadioValueChange(final ValueChangeEvent event) {
+	// connectionTypeRadioChanged();
+	// }
+	//
+	// @UiHandler("connectionTypeValueRadio")
+	// void onConnectionTypeValueRadioValueChange(final ValueChangeEvent event) {
+	// connectionTypeRadioChanged();
+	// }
+
+	@UiHandler("connectionTypeValueRadio")
+	void onConnectionTypeValueRadioClick(final ClickEvent event) {
+		connectionTypeRadioChanged();
+	}
+
+	@UiHandler("eventAutoOffEnabledCheckbox")
+	void onEventAutoOffEnabledCheckboxClick(final ClickEvent event) {
+		autoOffCheckboxChanged();
 	}
 
 	@UiHandler("removeConnectionButton")
@@ -267,11 +333,49 @@ public class PlanEditor extends Composite {
 		updateConnectorList();
 	}
 
+	@UiHandler("saveConnectionButton")
+	void onSaveConnectionButtonClick(final ClickEvent event) {
+		if (selectedConnection == null)
+			return;
+		if (connectionTypeEventRadio.getValue().booleanValue())
+			selectedConnection.setConnectionType(ConnectionType.EVENT);
+		if (connectionTypeValueRadio.getValue().booleanValue())
+			selectedConnection.setConnectionType(ConnectionType.VALUE);
+		switch (eventTypeList.getSelectedIndex()) {
+		case 0:
+			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.ON);
+			break;
+		case 1:
+			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.OFF);
+			break;
+		case 2:
+			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.TOGGLE);
+			break;
+		}
+		selectedConnection.setConnectionTargetAutoOff(eventAutoOffEnabledCheckbox.getValue().booleanValue());
+		selectedConnection.setConnectionTargetTimeout(eventAutoOffTime.getValue().intValue());
+		selectedConnection.setConnectionSourceTriggerValue(connectionValueTriggerTextBox.getValue().floatValue());
+		saveConnectionButton.setEnabled(false);
+	}
+
 	@UiHandler("selectFloorList")
 	void onSelectFloorListChange(final ChangeEvent event) {
 		final Floor floor = plan.getFloors().get(selectFloorList.getSelectedIndex());
 		if (floor != null)
 			showFloorComposite.setCurrentFloor(floor);
+	}
+
+	private void autoOffCheckboxChanged() {
+		saveConnectionButton.setEnabled(true);
+		eventAutoOffTimePanel.setVisible(eventAutoOffEnabledCheckbox.getValue().booleanValue());
+	}
+
+	private void connectionTypeRadioChanged() {
+		saveConnectionButton.setEnabled(true);
+		if (connectionTypeEventRadio.getValue().booleanValue())
+			connectionTypeDeckPanel.showWidget(0);
+		else if (connectionTypeValueRadio.getValue().booleanValue())
+			connectionTypeDeckPanel.showWidget(1);
 	}
 
 	private void editPlanProperties() {
@@ -333,6 +437,34 @@ public class PlanEditor extends Composite {
 				selectedIcons.add(outputDevice);
 		}
 		showFloorComposite.setSelectedIcons(selectedIcons);
+	}
+
+	private void loadConnectionToForm() {
+		saveConnectionButton.setEnabled(false);
+		if (selectedConnection == null)
+			return;
+		connectionTypeEventRadio.setValue(selectedConnection.getConnectionType() == ConnectionType.EVENT);
+		connectionTypeValueRadio.setValue(selectedConnection.getConnectionType() == ConnectionType.VALUE);
+		if (selectedConnection.getConnectionTargetAction() == null)
+			eventTypeList.setSelectedIndex(0);
+		else
+			switch (selectedConnection.getConnectionTargetAction()) {
+			case ON:
+				eventTypeList.setSelectedIndex(0);
+				break;
+			case OFF:
+				eventTypeList.setSelectedIndex(1);
+				break;
+			case TOGGLE:
+				eventTypeList.setSelectedIndex(3);
+				break;
+			}
+		eventAutoOffEnabledCheckbox.setValue(selectedConnection.isConnectionTargetAutoOff());
+		eventAutoOffTime.setValue(selectedConnection.getConnectionTargetTimeout());
+		connectionValueTriggerTextBox.setValue(Double.valueOf(selectedConnection.getConnectionSourceTriggerValue()));
+		autoOffCheckboxChanged();
+		connectionTypeRadioChanged();
+		saveConnectionButton.setEnabled(false);
 	}
 
 	private void newPlan() {

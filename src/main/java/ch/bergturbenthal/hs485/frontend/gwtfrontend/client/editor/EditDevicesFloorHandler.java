@@ -24,6 +24,10 @@ import com.google.gwt.user.client.ui.PopupPanel;
 
 public class EditDevicesFloorHandler implements FloorEventHandler {
 	public static interface CurrentConnectionHandler {
+		boolean canHandleInputconnector(InputConnector inputConnector);
+
+		boolean canHandleOutputDevice(OutputDevice outputDevice);
+
 		boolean hasCurrentConnection();
 
 		void setInputConnector(InputConnector inputConnector);
@@ -34,6 +38,19 @@ public class EditDevicesFloorHandler implements FloorEventHandler {
 	private int												clientX;
 	private int												clientY;
 	private CurrentConnectionHandler	currentConnectionHandler	= new CurrentConnectionHandler() {
+
+																																@Override
+																																public boolean canHandleInputconnector(final InputConnector inputConnector) {
+																																	return false;
+																																}
+
+																																@Override
+																																public boolean canHandleOutputDevice(final OutputDevice outputDevice) {
+																																	// TODO
+																																	// Auto-generated
+																																	// method stub
+																																	return false;
+																																}
 
 																																@Override
 																																public boolean hasCurrentConnection() {
@@ -111,19 +128,21 @@ public class EditDevicesFloorHandler implements FloorEventHandler {
 					editInputDevice.center();
 				}
 			});
-			if (currentConnectionHandler.hasCurrentConnection()) {
-				final MenuBar subMenu = new MenuBar(true);
-				menuBar.addItem(new MenuItem("Inputdevice of Connection", false, subMenu));
-				for (final InputConnector inputConnector : inputDevice.getConnectors())
+			final MenuBar subMenu = new MenuBar(true);
+			boolean inputDeviceAdded = false;
+			for (final InputConnector inputConnector : inputDevice.getConnectors())
+				if (currentConnectionHandler.canHandleInputconnector(inputConnector)) {
+					inputDeviceAdded = true;
 					subMenu.addItem(inputConnector.getConnectorName(), new Command() {
-
 						@Override
 						public void execute() {
 							inputDevicePopupPanel.hide();
 							currentConnectionHandler.setInputConnector(inputConnector);
 						}
 					});
-			}
+				}
+			if (inputDeviceAdded)
+				menuBar.addItem(new MenuItem("Inputdevice of Connection", false, subMenu));
 			inputDevicePopupPanel.add(menuBar);
 			inputDevicePopupPanel.setPopupPosition(event.getClientX(), event.getClientY());
 			inputDevicePopupPanel.show();
@@ -245,7 +264,7 @@ public class EditDevicesFloorHandler implements FloorEventHandler {
 					editOutputDevice.center();
 				}
 			});
-			if (currentConnectionHandler.hasCurrentConnection())
+			if (currentConnectionHandler.canHandleOutputDevice(outputDevice))
 				menuBar.addItem("Outputdevice of Connection", new Command() {
 
 					@Override
