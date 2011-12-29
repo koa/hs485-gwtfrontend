@@ -141,6 +141,8 @@ public class FloorComposite extends Composite {
 				break;
 			iconG.removeChild(firstChild);
 		}
+		if (currentFloor == null)
+			return;
 		// System.out.println(svgDrawing.getPixelUnitToMillimeterX());
 		final float iconSize = currentFloor.getIconSize().floatValue();
 		for (final InputDevice inputDevice : currentFloor.getInputDevices()) {
@@ -265,6 +267,8 @@ public class FloorComposite extends Composite {
 		final List<Floor> floors = currentPlan.getFloors();
 		if (floors.size() > 0)
 			setCurrentFloor(floors.get(0));
+		else
+			setCurrentFloor(null);
 	}
 
 	public void setSelectedIcons(final Collection<SelectableIcon> icons) {

@@ -32,6 +32,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
@@ -56,9 +57,13 @@ public class PlanEditor extends Composite {
 	@UiField
 	MenuItem													editIconsetsItem;
 	@UiField
+	MenuItem													editPlanPropertiesItem;
+	@UiField
 	MenuItem													newPlanItem;
 	@UiField
 	MenuItem													openPlanItem;
+	@UiField
+	Label															planNameLabel;
 	@UiField
 	Button														removeConnectionButton;
 	@UiField
@@ -118,6 +123,13 @@ public class PlanEditor extends Composite {
 				openPlan();
 			}
 		});
+		editPlanPropertiesItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				editPlanProperties();
+			}
+		});
 		savePlanItem.setCommand(new Command() {
 
 			@Override
@@ -148,6 +160,7 @@ public class PlanEditor extends Composite {
 		showFloorComposite.setCurrentPlan(plan);
 		updateFloorList();
 		updateConnectorList();
+		planNameLabel.setText(plan.getName());
 	}
 
 	protected void savePlan() {
@@ -161,8 +174,7 @@ public class PlanEditor extends Composite {
 
 			@Override
 			public void onSuccess(final Plan result) {
-				// TODO Auto-generated method stub
-
+				setCurrentPlan(result);
 			}
 		});
 	}
@@ -262,6 +274,18 @@ public class PlanEditor extends Composite {
 			showFloorComposite.setCurrentFloor(floor);
 	}
 
+	private void editPlanProperties() {
+		final EditPlanPropertiesDialog editPlanPropertiesDialog = new EditPlanPropertiesDialog();
+		editPlanPropertiesDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
+			@Override
+			public void onClose(final CloseEvent<PopupPanel> event) {
+				setCurrentPlan(editPlanPropertiesDialog.getCurrentPlan());
+			}
+		});
+		editPlanPropertiesDialog.setCurrentPlan(plan);
+		editPlanPropertiesDialog.center();
+	}
+
 	private InputDevice findInputDeviceOfConnector(final InputConnector inputConnector) {
 		if (inputConnector == null)
 			return null;
@@ -312,8 +336,17 @@ public class PlanEditor extends Composite {
 	}
 
 	private void newPlan() {
-		// TODO Auto-generated method stub
+		final EditPlanPropertiesDialog editPlanPropertiesDialog = new EditPlanPropertiesDialog();
+		editPlanPropertiesDialog.addCloseHandler(new CloseHandler<PopupPanel>() {
 
+			@Override
+			public void onClose(final CloseEvent<PopupPanel> event) {
+				final Plan currentPlan = editPlanPropertiesDialog.getCurrentPlan();
+				if (currentPlan != null)
+					setCurrentPlan(currentPlan);
+			}
+		});
+		editPlanPropertiesDialog.center();
 	}
 
 	private void openPlan() {

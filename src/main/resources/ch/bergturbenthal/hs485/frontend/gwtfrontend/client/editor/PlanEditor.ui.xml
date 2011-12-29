@@ -12,6 +12,7 @@
           <g:MenuBar vertical="true">
             <g:MenuItem text="new" ui:field="newPlanItem" />
             <g:MenuItem text="open" ui:field="openPlanItem" />
+            <g:MenuItem text="edit Properties" ui:field="editPlanPropertiesItem" />
             <g:MenuItem text="save" ui:field="savePlanItem" />
           </g:MenuBar>
         </g:MenuItem>
@@ -19,8 +20,8 @@
           <g:MenuBar vertical="true">
             <g:MenuItem text="upload Files" ui:field="uploadFilesItem" />
             <g:MenuItem text="remove Files" />
-            <g:MenuItemSeparator/>
-            <g:MenuItem text="edit Iconsets" ui:field="editIconsetsItem"/>
+            <g:MenuItemSeparator />
+            <g:MenuItem text="edit Iconsets" ui:field="editIconsetsItem" />
           </g:MenuBar>
         </g:MenuItem>
       </g:MenuBar>
@@ -28,15 +29,23 @@
     <g:center>
       <g:DockLayoutPanel unit="EM" height="100%">
         <g:center>
-          <p1:FloorComposite ui:field="showFloorComposite" />
+          <g:DockLayoutPanel unit="EX" height="100%">
+            <g:north size="3">
+              <g:Label text="New Label" ui:field="planNameLabel" width="100%" horizontalAlignment="ALIGN_CENTER" />
+            </g:north>
+            <g:center>
+              <p1:FloorComposite ui:field="showFloorComposite"
+                width="100%" height="100%" />
+            </g:center>
+          </g:DockLayoutPanel>
         </g:center>
         <g:west size="17.2">
           <g:VerticalSplitPanel height="100%">
             <g:VerticalPanel height="100%">
               <g:Label text="Floors" />
               <g:Cell height="100%">
-              	<g:ListBox visibleItemCount="5" ui:field="selectFloorList"
-                height="100%" width="100%" />
+                <g:ListBox visibleItemCount="5" ui:field="selectFloorList"
+                  height="100%" width="100%" />
               </g:Cell>
               <g:HorizontalPanel>
                 <g:Button ui:field="addInputDeviceButton">Add Inputdevice</g:Button>
