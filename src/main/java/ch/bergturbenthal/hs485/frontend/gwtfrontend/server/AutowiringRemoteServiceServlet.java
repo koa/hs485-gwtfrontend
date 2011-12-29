@@ -22,17 +22,6 @@ public abstract class AutowiringRemoteServiceServlet extends RemoteServiceServle
 		final WebApplicationContext requiredWebApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
 		final AutowireCapableBeanFactory autowireCapableBeanFactory = requiredWebApplicationContext.getAutowireCapableBeanFactory();
 		autowireCapableBeanFactory.autowireBean(this);
-		// final WebApplicationContext ctx =
-		// WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-		//
-		// if (ctx == null)
-		// throw new
-		// IllegalStateException("No Spring web application context found");
-		//
-		// ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this,
-		// AutowireCapableBeanFactory.AUTOWIRE_NO, true);
-		// System.out.println("Autowired: " + this.getClass().getName() + ": " +
-		// this);
 	}
 
 }

@@ -138,7 +138,7 @@
           <hostedWebapp>${webappDirectory}</hostedWebapp>
           <webappDirectory>${webappDirectory}</webappDirectory>
           <i18nMessagesBundle>ch.bergturbenthal.hs485.frontend.gwtfrontend.client.Messages</i18nMessagesBundle>
-          <logLevel>DEBUG</logLevel>
+          <logLevel>INFO</logLevel>
           <style>DETAILED</style>
           <extraParam>true</extraParam>
         </configuration>

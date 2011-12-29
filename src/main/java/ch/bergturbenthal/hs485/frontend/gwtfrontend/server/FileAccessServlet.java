@@ -13,7 +13,10 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
@@ -23,23 +26,15 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
  */
 public class FileAccessServlet extends HttpServlet {
 	private static final long		serialVersionUID	= 1L;
+	@Autowired
 	private FileDataRepository	fileDataRepository;
-
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public FileAccessServlet() {
-		super();
-		// TODO Auto-generated constructor stub
-	}
 
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		final ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext(
-				"ch/bergturbenthal/hs485/frontend/gwtfrontend/server/webappContext.xml");
-
-		fileDataRepository = ctx.getBean(FileDataRepository.class);
+		final WebApplicationContext requiredWebApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext());
+		final AutowireCapableBeanFactory autowireCapableBeanFactory = requiredWebApplicationContext.getAutowireCapableBeanFactory();
+		autowireCapableBeanFactory.autowireBean(this);
 	}
 
 	@Override

@@ -90,7 +90,6 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	@Override
 	public Plan savePlan(final Plan plan) {
 		try {
-			System.out.println(plan.getConnections());
 			final Map<InputConnector, Boolean> inputConnectorMap = new IdentityHashMap<InputConnector, Boolean>();
 			final Map<OutputDevice, Boolean> outputDeviceMap = new IdentityHashMap<OutputDevice, Boolean>();
 

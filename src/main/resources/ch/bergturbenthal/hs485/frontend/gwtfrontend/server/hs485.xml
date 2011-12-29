@@ -2,12 +2,16 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-
-
-  <bean id="hs485" class="ch.eleveneye.hs485.dummy.HS485Dummy"></bean>
+  <bean id="hs485-test" class="ch.eleveneye.hs485.dummy.HS485Dummy"
+    lazy-init="true" />
+  <bean id="hs485-themisto"
+    class="ch.eleveneye.hs485.protocol.HS485Impl" lazy-init="true">
+    <constructor-arg index="0" value="/dev/ttyUSB0"></constructor-arg>
+    <constructor-arg index="1" value="4"></constructor-arg>
+  </bean>
   <bean id="hs485registry" class="ch.eleveneye.hs485.device.Registry">
-    <constructor-arg index="0" ref="hs485"
+    <constructor-arg index="0" ref="hs485-#{envBean}"
       type="ch.eleveneye.hs485.api.HS485">
     </constructor-arg>
   </bean>
-</beans>
+</beans> 

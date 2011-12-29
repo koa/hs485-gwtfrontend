@@ -13,13 +13,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
@@ -29,7 +28,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
-import ch.eleveneye.hs485.api.BroadcastHandler;
 import ch.eleveneye.hs485.device.Dimmer;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
@@ -43,6 +41,7 @@ import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
 public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet implements CommunicationService {
 	private static final long																			serialVersionUID	= 8948548851433479912L;
+	@Autowired
 	private Registry																							hs485registry;
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();
 	private final Logger																					logger						= LoggerFactory.getLogger(CommunicationServiceImpl.class);
@@ -66,23 +65,6 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			t.printStackTrace();
 			throw new RuntimeException(t);
 		}
-	}
-
-	@Override
-	public void init() throws ServletException {
-		super.init();
-		final ApplicationContext ctx = SpringUtil.getSpringContext();
-		hs485registry = ctx.getBean("hs485registry", Registry.class);
-		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
-
-			@Override
-			public void handleBroadcastMessage(final IMessage message) {
-				final KeyEvent event = deceodeKeyMessage(message);
-				if (event != null)
-					distributeEvent(event);
-			}
-		});
-
 	}
 
 	@Override
