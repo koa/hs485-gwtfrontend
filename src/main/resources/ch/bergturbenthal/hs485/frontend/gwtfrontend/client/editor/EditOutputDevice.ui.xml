@@ -28,7 +28,7 @@
   		<g:customCell>
   			<g:HorizontalPanel width="100%" horizontalAlignment="ALIGN_CENTER">
   				<g:ListBox visibleItemCount="1" ui:field="selectAddressListBox" width="100%"/>
-  				<g:Button ui:field="toggleButton">Toggle</g:Button>
+  				<g:ToggleButton text="Toggle" ui:field="toggleButton"/>
   			</g:HorizontalPanel>
   		</g:customCell>
     </g:row>

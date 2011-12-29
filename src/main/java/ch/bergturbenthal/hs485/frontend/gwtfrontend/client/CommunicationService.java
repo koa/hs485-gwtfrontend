@@ -16,6 +16,8 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 public interface CommunicationService extends RemoteService {
 	Collection<Event> getEvents();
 
+	Boolean getOutputSwitchState(OutputAddress device);
+
 	Map<InputAddress, InputDescription> listInputDevices();
 
 	Map<OutputAddress, OutputDescription> listOutputDevices();
@@ -24,4 +26,5 @@ public interface CommunicationService extends RemoteService {
 
 	float readTemperature(InputAddress address);
 
+	void setOutputSwitchState(OutputAddress device, boolean state);
 }

@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,11 +43,17 @@ import ch.eleveneye.hs485.protocol.IMessage;
 import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
 public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet implements CommunicationService {
+	private static class OutputData {
+		private Actor							actor;
+		private OutputDescription	outputDescription;
+	}
+
 	private static final long																			serialVersionUID	= 8948548851433479912L;
 	@Autowired
 	private Registry																							hs485registry;
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();
 	private final Logger																					logger						= LoggerFactory.getLogger(CommunicationServiceImpl.class);
+	private Map<OutputAddress, OutputData>												outputTable				= null;
 
 	@Override
 	public Collection<Event> getEvents() {
@@ -66,6 +73,19 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 		} catch (final Throwable t) {
 			t.printStackTrace();
 			throw new RuntimeException(t);
+		}
+	}
+
+	@Override
+	public Boolean getOutputSwitchState(final OutputAddress device) {
+		final OutputData outputData = loadOutputTable().get(device);
+		if (outputData == null)
+			return null;
+		try {
+			return ((SwitchingActor) outputData.actor).isOn();
+		} catch (final Exception e) {
+			logger.warn("Error reading actor state", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -105,20 +125,10 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 
 	@Override
 	public Map<OutputAddress, OutputDescription> listOutputDevices() {
-		try {
-			final Map<OutputAddress, OutputDescription> descriptions = new TreeMap<OutputAddress, OutputDescription>();
-			for (final Actor actor : hs485registry.listPhysicallyActors()) {
-				final OutputDescription description = new OutputDescription();
-				description.setHasSwitch(Boolean.valueOf(actor instanceof SwitchingActor));
-				description.setHasTimer(Boolean.valueOf(actor instanceof TimedActor));
-				description.setIsDimmer(Boolean.valueOf(actor instanceof Dimmer));
-				descriptions.put(new OutputAddress(actor.getModuleAddr(), actor.getActorNr()), description);
-			}
-			return descriptions;
-		} catch (final Exception e) {
-			logger.warn("Error listing actors", e);
-			throw new RuntimeException(e);
-		}
+		final Map<OutputAddress, OutputDescription> descriptions = new TreeMap<OutputAddress, OutputDescription>();
+		for (final Entry<OutputAddress, OutputData> outputEntry : loadOutputTable().entrySet())
+			descriptions.put(outputEntry.getKey(), outputEntry.getValue().outputDescription);
+		return descriptions;
 	}
 
 	@Override
@@ -147,6 +157,23 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			return -100;
 		} catch (final IOException e) {
 			logger.warn("Error reading temperature", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public void setOutputSwitchState(final OutputAddress device, final boolean state) {
+		final OutputData outputData = loadOutputTable().get(device);
+		if (outputData == null)
+			return;
+		try {
+			final SwitchingActor switchingActor = (SwitchingActor) outputData.actor;
+			if (state)
+				switchingActor.setOn();
+			else
+				switchingActor.setOff();
+		} catch (final Exception e) {
+			logger.warn("Error setting actor state", e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -200,6 +227,34 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 		session.setAttribute("queue", newQueue);
 		listeningQueues.add(new WeakReference<BlockingQueue<Event>>(newQueue));
 		return newQueue;
+	}
+
+	private Map<OutputAddress, OutputData> loadOutputTable() {
+		if (outputTable != null)
+			return outputTable;
+		synchronized (this) {
+			if (outputTable != null)
+				return outputTable;
+			outputTable = new HashMap<OutputAddress, CommunicationServiceImpl.OutputData>();
+			try {
+				for (final Actor actor : hs485registry.listPhysicallyActors()) {
+					final OutputDescription description = new OutputDescription();
+					description.setHasSwitch(Boolean.valueOf(actor instanceof SwitchingActor));
+					description.setHasTimer(Boolean.valueOf(actor instanceof TimedActor));
+					description.setIsDimmer(Boolean.valueOf(actor instanceof Dimmer));
+					final OutputAddress address = new OutputAddress(actor.getModuleAddr(), actor.getActorNr());
+					final OutputData outputData = new OutputData();
+					outputData.actor = actor;
+					outputData.outputDescription = description;
+					outputTable.put(address, outputData);
+				}
+				return outputTable;
+			} catch (final Exception e) {
+				outputTable = null;
+				logger.warn("Error listing output-table", e);
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 }
