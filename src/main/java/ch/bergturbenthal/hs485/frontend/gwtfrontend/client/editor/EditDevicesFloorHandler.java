@@ -253,6 +253,7 @@ public class EditDevicesFloorHandler implements FloorEventHandler {
 				public void execute() {
 					outputDevicePopupPanel.hide();
 					final EditOutputDevice editOutputDevice = new EditOutputDevice();
+					editOutputDevice.setPlan(currentPlan);
 					editOutputDevice.setOutputDevice(outputDevice);
 					editOutputDevice.addCloseHandler(new CloseHandler<PopupPanel>() {
 

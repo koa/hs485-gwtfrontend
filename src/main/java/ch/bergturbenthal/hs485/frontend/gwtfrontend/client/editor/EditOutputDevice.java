@@ -8,9 +8,11 @@ import java.util.Map.Entry;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -49,6 +51,7 @@ public class EditOutputDevice extends DialogBox {
 	private final CommunicationServiceAsync				communicationService	= CommunicationServiceAsync.Util.getInstance();
 	private OutputDevice													outputDevice;
 	private Map<OutputAddress, OutputDescription>	outputDevicesMap			= Collections.emptyMap();
+	private Plan																	plan;
 
 	public EditOutputDevice() {
 		setWidget(uiBinder.createAndBindUi(this));
@@ -84,6 +87,11 @@ public class EditOutputDevice extends DialogBox {
 			return;
 		nameTextInput.setText(device.getName());
 		updateDeviceTypes();
+		updateDeviceList();
+	}
+
+	public void setPlan(final Plan plan) {
+		this.plan = plan;
 		updateDeviceList();
 	}
 
@@ -161,12 +169,19 @@ public class EditOutputDevice extends DialogBox {
 			entryText.append(Integer.toHexString(currentAddress.getDeviceAddress().intValue()));
 			entryText.append(":");
 			entryText.append(Integer.toHexString(currentAddress.getOutputAddress().intValue()));
-			if (description.getHasSwitch())
-				entryText.append(" Switch");
-			if (description.getHasTimer())
-				entryText.append(" Timer");
+			// if (description.getHasSwitch())
+			// entryText.append(" Switch");
+			// if (description.getHasTimer())
+			// entryText.append(" Timer");
 			if (description.getIsDimmer())
 				entryText.append(" Dimmer");
+			if (plan != null)
+				for (final Floor floor : plan.getFloors())
+					for (final OutputDevice outputDevice : floor.getOutputDevices())
+						if (currentAddress.equals(outputDevice.getAddress())) {
+							entryText.append(" ");
+							entryText.append(outputDevice.getName());
+						}
 			selectAddressListBox.addItem(entryText.toString());
 			if (outputDevice != null && currentAddress.equals(outputDevice.getAddress()))
 				selectAddressListBox.setSelectedIndex(selectAddressListBox.getItemCount() - 1);

@@ -272,6 +272,7 @@ public class PlanEditor extends Composite {
 			return;
 
 		final EditOutputDevice editOutputDevice = new EditOutputDevice();
+		editOutputDevice.setPlan(plan);
 		editOutputDevice.addCloseHandler(new CloseHandler<PopupPanel>() {
 
 			@Override
@@ -324,6 +325,11 @@ public class PlanEditor extends Composite {
 	void onEventAutoOffEnabledCheckboxClick(final ClickEvent event) {
 		autoOffCheckboxChanged();
 	}
+
+	// @UiHandler("eventAutoOffTime")
+	// void onEventAutoOffTimeValueChange(final ValueChangeEvent event) {
+	// saveConnectionButton.setEnabled(true);
+	// }
 
 	@UiHandler("removeConnectionButton")
 	void onRemoveConnectionButtonClick(final ClickEvent event) {
