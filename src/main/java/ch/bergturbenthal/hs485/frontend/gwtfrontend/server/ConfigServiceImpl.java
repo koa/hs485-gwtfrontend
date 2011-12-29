@@ -2,9 +2,11 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +74,17 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	@Override
 	public Plan readPlan(final String planId) {
 		final Plan plan = planRepository.findOne(planId);
-		System.out.println(plan.getConnections());
 		return plan;
+	}
+
+	@Override
+	public void saveIconsets(final List<IconSet> iconSets) {
+		final Set<String> savedIconSets = new HashSet<String>();
+		for (final IconSet iconSet : iconSetRepository.save(iconSets))
+			savedIconSets.add(iconSet.getIconsetId());
+		for (final IconSet iconSet : iconSetRepository.findAll())
+			if (!savedIconSets.contains(iconSet.getIconsetId()))
+				iconSetRepository.delete(iconSet);
 	}
 
 	@Override

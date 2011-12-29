@@ -26,15 +26,17 @@ public interface ConfigService extends RemoteService {
 		}
 	}
 
-	public FileData getFile(String filename);
+	FileData getFile(String filename);
 
-	public Map<String, String> listAllPlans();
+	Map<String, String> listAllPlans();
 
-	public List<String> listFilesByMime(String mime);
-
-	public Plan readPlan(String planId);
-
-	public Plan savePlan(Plan plan);
+	List<String> listFilesByMime(String mime);
 
 	List<IconSet> loadIconSets();
+
+	Plan readPlan(String planId);
+
+	void saveIconsets(List<IconSet> iconSets);
+
+	Plan savePlan(Plan plan);
 }

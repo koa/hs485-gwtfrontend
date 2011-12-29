@@ -44,12 +44,11 @@ public class EditIconSetsDialog extends DialogBox {
 
 		selectIconsetListbox = new ListBox();
 		selectIconsetListbox.addChangeHandler(new ChangeHandler() {
+
 			public void onChange(final ChangeEvent event) {
-				final int selectedIndex = selectIconsetListbox.getSelectedIndex();
-				if (selectedIndex < 0 || selectedIndex >= iconSets.size())
-					return;
-				currentIconSet = iconSets.get(selectedIndex);
-				updateDialog();
+				if (currentIconSet != null)
+					updateCurrentIconSet();
+				showCurrentSelectedIconset();
 			}
 		});
 		final ChangeHandler updateIconsetChangeHandler = new ChangeHandler() {
@@ -117,10 +116,37 @@ public class EditIconSetsDialog extends DialogBox {
 		btnAddIconset.setWidth("100%");
 
 		final Button btnRemoveIconset = new Button("Remove Iconset");
+		btnRemoveIconset.addClickHandler(new ClickHandler() {
+			public void onClick(final ClickEvent event) {
+				final int selectedIndex = selectIconsetListbox.getSelectedIndex();
+				if (selectedIndex < 0 || selectedIndex >= iconSets.size())
+					return;
+				iconSets.remove(selectedIndex);
+				updateIconSetListboxContent();
+				showCurrentSelectedIconset();
+			}
+		});
 		grid.setWidget(0, 1, btnRemoveIconset);
 		btnRemoveIconset.setWidth("100%");
 
 		final Button btnSave = new Button("Save");
+		btnSave.addClickHandler(new ClickHandler() {
+			public void onClick(final ClickEvent event) {
+				configService.saveIconsets(iconSets, new AsyncCallback<Void>() {
+
+					@Override
+					public void onFailure(final Throwable caught) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void onSuccess(final Void result) {
+						hide();
+					}
+				});
+			}
+		});
 		grid.setWidget(1, 1, btnSave);
 		btnSave.setWidth("100%");
 
@@ -162,32 +188,56 @@ public class EditIconSetsDialog extends DialogBox {
 			public void onSuccess(final List<String> fileListResult) {
 				svgFiles = new ArrayList<IconEntry>();
 				filenames = new ArrayList<String>();
-				for (final String filename : fileListResult)
-					configService.getFile(filename, new AsyncCallback<FileData>() {
-
-						@Override
-						public void onFailure(final Throwable caught) {
-							// TODO Auto-generated method stub
-
-						}
-
-						@Override
-						public void onSuccess(final FileData fileDataResult) {
-							final IconEntry iconEntry = new IconEntry();
-							iconEntry.setImage(fileDataResult);
-							svgFiles.add(iconEntry);
-							filenames.add(filename);
-							final List<ListBox> selecttionListboxes = new ArrayList<ListBox>(outputListboxes.values());
-							selecttionListboxes.add(selectInputIconList);
-							for (final ListBox listBox : selecttionListboxes)
-								listBox.clear();
-							for (final String filename : filenames)
-								for (final ListBox listBox : selecttionListboxes)
-									listBox.addItem(filename);
-						}
-					});
+				for (final String filename : fileListResult) {
+					final IconEntry iconEntry = new IconEntry();
+					final FileData image = new FileData();
+					image.setFileName(filename);
+					iconEntry.setImage(image);
+					svgFiles.add(iconEntry);
+					filenames.add(filename);
+				}
+				final List<ListBox> selecttionListboxes = new ArrayList<ListBox>(outputListboxes.values());
+				selecttionListboxes.add(selectInputIconList);
+				for (final ListBox listBox : selecttionListboxes)
+					listBox.clear();
+				for (final String filename : filenames)
+					for (final ListBox listBox : selecttionListboxes)
+						listBox.addItem(filename);
+				// for (final String filename : fileListResult)
+				// configService.getFile(filename, new AsyncCallback<FileData>() {
+				//
+				// @Override
+				// public void onFailure(final Throwable caught) {
+				// // TODO Auto-generated method stub
+				//
+				// }
+				//
+				// @Override
+				// public void onSuccess(final FileData fileDataResult) {
+				// final IconEntry iconEntry = new IconEntry();
+				// iconEntry.setImage(fileDataResult);
+				// svgFiles.add(iconEntry);
+				// filenames.add(filename);
+				// final List<ListBox> selecttionListboxes = new
+				// ArrayList<ListBox>(outputListboxes.values());
+				// selecttionListboxes.add(selectInputIconList);
+				// for (final ListBox listBox : selecttionListboxes)
+				// listBox.clear();
+				// for (final String filename : filenames)
+				// for (final ListBox listBox : selecttionListboxes)
+				// listBox.addItem(filename);
+				// }
+				// });
 			}
 		});
+	}
+
+	private void showCurrentSelectedIconset() {
+		final int selectedIndex = selectIconsetListbox.getSelectedIndex();
+		if (selectedIndex < 0 || selectedIndex >= iconSets.size())
+			return;
+		currentIconSet = iconSets.get(selectedIndex);
+		updateDialog();
 	}
 
 	private void updateCurrentIconSet() {
