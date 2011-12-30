@@ -317,11 +317,16 @@ public class SelectInputComposite extends Composite {
 			labelStringBuilder.append(", ");
 			labelStringBuilder.append(keyData.getActivationCount());
 		}
-		if (keyData.getConnectedSwitchLabel() != null) {
-			labelStringBuilder.append(" [");
-			labelStringBuilder.append(keyData.getConnectedSwitchLabel());
-			labelStringBuilder.append("]");
-		}
+		if (plan != null)
+			for (final Floor floor : plan.getFloors())
+				for (final InputDevice inputDevice : floor.getInputDevices())
+					for (final InputConnector inputConnector : inputDevice.getConnectors())
+						if (keyAddress.equals(inputConnector.getAddress())) {
+							labelStringBuilder.append(" [");
+							labelStringBuilder.append(inputDevice.getName() + "-" + inputConnector.getConnectorName());
+							labelStringBuilder.append("]");
+							break;
+						}
 		keyData.getDisplayRadioButton().setText(labelStringBuilder.toString());
 	}
 

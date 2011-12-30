@@ -249,6 +249,7 @@ public class PlanEditor extends Composite {
 		if (currentFloor == null)
 			return;
 		final EditInputDevice editInputDevice = new EditInputDevice();
+		editInputDevice.setPlan(plan);
 		editInputDevice.addCloseHandler(new CloseHandler<PopupPanel>() {
 
 			@Override

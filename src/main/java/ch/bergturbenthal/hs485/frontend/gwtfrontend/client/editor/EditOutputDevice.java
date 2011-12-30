@@ -174,13 +174,14 @@ public class EditOutputDevice extends DialogBox {
 			// if (description.getHasTimer())
 			// entryText.append(" Timer");
 			if (description.getIsDimmer())
-				entryText.append(" Dimmer");
+				entryText.append(" (Dimmer)");
 			if (plan != null)
 				for (final Floor floor : plan.getFloors())
 					for (final OutputDevice outputDevice : floor.getOutputDevices())
 						if (currentAddress.equals(outputDevice.getAddress())) {
-							entryText.append(" ");
+							entryText.append(" <");
 							entryText.append(outputDevice.getName());
+							entryText.append(">");
 						}
 			selectAddressListBox.addItem(entryText.toString());
 			if (outputDevice != null && currentAddress.equals(outputDevice.getAddress()))

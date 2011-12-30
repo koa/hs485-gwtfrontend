@@ -9,6 +9,7 @@ import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -62,6 +63,10 @@ public class EditInputDevice extends DialogBox {
 				for (final InputConnector inputConnector : device.getConnectors())
 					inputConnectors.add(new InputConnector(inputConnector));
 		connectorEditor.setData(inputConnectors);
+	}
+
+	public void setPlan(final Plan plan) {
+		connectorEditor.setPlan(plan);
 	}
 
 	@UiHandler("cancelButton")

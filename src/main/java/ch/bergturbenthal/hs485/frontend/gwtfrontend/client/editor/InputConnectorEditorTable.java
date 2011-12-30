@@ -10,6 +10,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.AbstractFullTa
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDeviceType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.EditTextCell;
@@ -27,23 +28,14 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 	public InputConnectorEditorTable() {
 	}
 
+	public void setPlan(final Plan plan) {
+		selectKeyComposite.setPlan(plan);
+	}
+
 	public void setSelectKeyComposite(final SelectInputComposite selectKeyComposite) {
 		this.selectKeyComposite = selectKeyComposite;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.
-	 * AbstractFullTableEditor
-	 * #fillValueColumns(com.google.gwt.user.cellview.client.CellTable)
-	 */
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see ch.bergturbenthal.hs485.frontend.gwtfrontend.client.config.
-	 * AbstractFullTableEditor#addEntryString()
-	 */
 	@Override
 	protected String addEntryString() {
 		return "add Connector";

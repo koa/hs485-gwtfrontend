@@ -124,6 +124,7 @@ public class EditDevicesFloorHandler implements FloorEventHandler {
 				public void execute() {
 					inputDevicePopupPanel.hide();
 					final EditInputDevice editInputDevice = new EditInputDevice();
+					editInputDevice.setPlan(currentPlan);
 					editInputDevice.setInputDevice(inputDevice);
 					editInputDevice.center();
 				}
