@@ -24,6 +24,11 @@
             <g:MenuItem text="edit Iconsets" ui:field="editIconsetsItem" />
           </g:MenuBar>
         </g:MenuItem>
+        <g:MenuItem text="Utils">
+        	<g:MenuBar vertical="true">
+        		<g:MenuItem text="load existing Connections" ui:field="loadExistingConnctionsMenuItem"/>
+        	</g:MenuBar>
+        </g:MenuItem>
       </g:MenuBar>
     </g:north>
     <g:center>

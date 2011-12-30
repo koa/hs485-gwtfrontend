@@ -33,6 +33,8 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	private static final long					serialVersionUID	= 5816537750102063151L;
 
 	@Autowired
+	private ConfigurationService			configurationService;
+	@Autowired
 	private FileDataRepository				fileDataRepository;
 	@Autowired
 	private IconSetRepository					iconSetRepository;
@@ -69,6 +71,12 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 		for (final IconSet iconSet : iconSetRepository.findAll())
 			ret.add(iconSet);
 		return ret;
+	}
+
+	@Override
+	public Plan readExistingConnections(final Plan plan) {
+		configurationService.appendExistingConnections(plan);
+		return plan;
 	}
 
 	@Override

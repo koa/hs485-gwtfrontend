@@ -19,6 +19,7 @@ public class Plan implements Serializable {
 	private List<Floor>				floors						= new ArrayList<Floor>();
 	@DBRef
 	private IconSet						iconSet;
+	private Integer						maximumOnTime;
 	private String						name;
 	@Id
 	private String						planId						= "plan";
@@ -33,6 +34,10 @@ public class Plan implements Serializable {
 
 	public IconSet getIconSet() {
 		return iconSet;
+	}
+
+	public Integer getMaximumOnTime() {
+		return maximumOnTime;
 	}
 
 	public String getName() {
@@ -53,6 +58,10 @@ public class Plan implements Serializable {
 
 	public void setIconSet(final IconSet iconSet) {
 		this.iconSet = iconSet;
+	}
+
+	public void setMaximumOnTime(final Integer maximumOnTime) {
+		this.maximumOnTime = maximumOnTime;
 	}
 
 	public void setName(final String name) {

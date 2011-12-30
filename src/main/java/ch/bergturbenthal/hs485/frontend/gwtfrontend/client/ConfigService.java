@@ -34,6 +34,8 @@ public interface ConfigService extends RemoteService {
 
 	List<IconSet> loadIconSets();
 
+	Plan readExistingConnections(Plan plan);
+
 	Plan readPlan(String planId);
 
 	void saveIconsets(List<IconSet> iconSets);

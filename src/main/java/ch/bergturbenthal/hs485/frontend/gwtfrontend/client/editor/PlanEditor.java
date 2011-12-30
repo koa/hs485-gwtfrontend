@@ -24,9 +24,11 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -82,6 +84,8 @@ public class PlanEditor extends Composite {
 	HorizontalPanel										eventAutoOffTimePanel;
 	@UiField
 	ListBox														eventTypeList;
+	@UiField
+	MenuItem													loadExistingConnctionsMenuItem;
 	@UiField
 	MenuItem													newPlanItem;
 	@UiField
@@ -191,7 +195,37 @@ public class PlanEditor extends Composite {
 				new EditIconSetsDialog().center();
 			}
 		});
+		loadExistingConnctionsMenuItem.setCommand(new Command() {
 
+			@Override
+			public void execute() {
+				WaitIndicator.showWait();
+				configService.readExistingConnections(plan, new AsyncCallback<Plan>() {
+
+					@Override
+					public void onFailure(final Throwable caught) {
+						WaitIndicator.hideWait();
+					}
+
+					@Override
+					public void onSuccess(final Plan result) {
+						setCurrentPlan(result);
+						WaitIndicator.hideWait();
+					}
+				});
+			}
+		});
+		final ChangeHandler enableSaveButtonChangeHandler = new ChangeHandler() {
+
+			@Override
+			public void onChange(final ChangeEvent event) {
+				saveConnectionButton.setEnabled(true);
+			}
+		};
+		eventAutoOffTime.addChangeHandler(enableSaveButtonChangeHandler);
+		eventTypeList.addChangeHandler(enableSaveButtonChangeHandler);
+		eventAutoOffTime.addChangeHandler(enableSaveButtonChangeHandler);
+		connectionValueTriggerTextBox.addChangeHandler(enableSaveButtonChangeHandler);
 	}
 
 	public void setCurrentPlan(final Plan plan) {
@@ -204,17 +238,19 @@ public class PlanEditor extends Composite {
 	}
 
 	protected void savePlan() {
+		WaitIndicator.showWait();
 		configService.savePlan(plan, new AsyncCallback<Plan>() {
 
 			@Override
 			public void onFailure(final Throwable caught) {
 				// TODO Auto-generated method stub
-
+				WaitIndicator.hideWait();
 			}
 
 			@Override
 			public void onSuccess(final Plan result) {
 				setCurrentPlan(result);
+				WaitIndicator.hideWait();
 			}
 		});
 	}
@@ -317,20 +353,30 @@ public class PlanEditor extends Composite {
 	// connectionTypeRadioChanged();
 	// }
 
+	@UiHandler("connectionTypeEventRadio")
+	void onConnectionTypeEventRadioValueChange(final ValueChangeEvent<Boolean> event) {
+		saveConnectionButton.setEnabled(true);
+	}
+
 	@UiHandler("connectionTypeValueRadio")
 	void onConnectionTypeValueRadioClick(final ClickEvent event) {
 		connectionTypeRadioChanged();
-	}
-
-	@UiHandler("eventAutoOffEnabledCheckbox")
-	void onEventAutoOffEnabledCheckboxClick(final ClickEvent event) {
-		autoOffCheckboxChanged();
 	}
 
 	// @UiHandler("eventAutoOffTime")
 	// void onEventAutoOffTimeValueChange(final ValueChangeEvent event) {
 	// saveConnectionButton.setEnabled(true);
 	// }
+
+	@UiHandler("eventAutoOffEnabledCheckbox")
+	void onEventAutoOffEnabledCheckboxClick(final ClickEvent event) {
+		autoOffCheckboxChanged();
+	}
+
+	@UiHandler("eventTypeList")
+	void onEventTypeListChange(final ChangeEvent event) {
+		saveConnectionButton.setEnabled(true);
+	}
 
 	@UiHandler("removeConnectionButton")
 	void onRemoveConnectionButtonClick(final ClickEvent event) {
@@ -463,7 +509,7 @@ public class PlanEditor extends Composite {
 				eventTypeList.setSelectedIndex(1);
 				break;
 			case TOGGLE:
-				eventTypeList.setSelectedIndex(3);
+				eventTypeList.setSelectedIndex(2);
 				break;
 			}
 		eventAutoOffEnabledCheckbox.setValue(selectedConnection.isConnectionTargetAutoOff());
