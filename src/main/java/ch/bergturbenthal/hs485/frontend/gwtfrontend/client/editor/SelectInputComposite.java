@@ -37,7 +37,6 @@ import com.google.gwt.user.client.ui.Widget;
 public class SelectInputComposite extends Composite {
 	private static class KeyData {
 		private int									activationCount	= 1;
-		private String							connectedSwitchLabel;
 		private double							currentHum;
 		private double							currentTemp;
 		private final RadioButton		displayRadioButton;
@@ -51,10 +50,6 @@ public class SelectInputComposite extends Composite {
 
 		public int getActivationCount() {
 			return activationCount;
-		}
-
-		public String getConnectedSwitchLabel() {
-			return connectedSwitchLabel;
 		}
 
 		public double getCurrentHum() {
@@ -75,10 +70,6 @@ public class SelectInputComposite extends Composite {
 
 		public boolean isTfsValue() {
 			return tfsValue;
-		}
-
-		public void setConnectedSwitchLabel(final String connectedSwitchLabel) {
-			this.connectedSwitchLabel = connectedSwitchLabel;
 		}
 
 		public void setCurrentHum(final double currentHum) {
@@ -289,15 +280,6 @@ public class SelectInputComposite extends Composite {
 		keyData.setTfsValue(isTfs);
 		visibleInputs.put(keyAddress, keyData);
 		inputListPanel.add(displayRadioButton);
-		if (plan != null)
-			for (final Floor floor : plan.getFloors())
-				for (final InputDevice inputDevice : floor.getInputDevices())
-					for (final InputConnector inputConnector : inputDevice.getConnectors())
-						if (keyAddress.equals(inputConnector.getAddress())) {
-							keyData.setConnectedSwitchLabel(inputDevice.getName() + "-" + inputConnector.getConnectorName());
-							updateKeyLabel(keyAddress, keyData);
-							break;
-						}
 	}
 
 	private void updateKeyLabel(final InputAddress keyAddress, final KeyData keyData) {
