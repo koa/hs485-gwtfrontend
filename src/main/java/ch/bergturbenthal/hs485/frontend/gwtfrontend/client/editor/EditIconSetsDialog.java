@@ -72,10 +72,12 @@ public class EditIconSetsDialog extends DialogBox {
 		final ListBox selectFanList = new ListBox();
 		final ListBox selectHeatList = new ListBox();
 		final ListBox selectLightList = new ListBox();
+		final ListBox selectSocketList = new ListBox();
 		selectLightList.addChangeHandler(updateIconsetChangeHandler);
 		outputListboxes.put(OutputDeviceType.FAN, selectFanList);
 		outputListboxes.put(OutputDeviceType.HEAT, selectHeatList);
 		outputListboxes.put(OutputDeviceType.LIGHT, selectLightList);
+		outputListboxes.put(OutputDeviceType.SOCKET, selectSocketList);
 		for (final ListBox listbox : outputListboxes.values())
 			listbox.addChangeHandler(updateIconsetChangeHandler);
 
@@ -99,8 +101,13 @@ public class EditIconSetsDialog extends DialogBox {
 		flexTable.setWidget(4, 2, selectFanList);
 		selectFanList.setWidth("100%");
 
+		flexTable.setWidget(5, 1, new Label("Socket Icon"));
+
+		flexTable.setWidget(5, 2, selectSocketList);
+		selectSocketList.setWidth("100%");
+
 		final Grid grid = new Grid(2, 2);
-		flexTable.setWidget(5, 0, grid);
+		flexTable.setWidget(6, 0, grid);
 		grid.setSize("100%", "100%");
 
 		final Button btnAddIconset = new Button("Add iconset");
@@ -158,8 +165,8 @@ public class EditIconSetsDialog extends DialogBox {
 		});
 		grid.setWidget(1, 0, btnCancel);
 		btnCancel.setWidth("100%");
-		flexTable.getFlexCellFormatter().setRowSpan(0, 0, 5);
-		flexTable.getFlexCellFormatter().setColSpan(5, 0, 3);
+		flexTable.getFlexCellFormatter().setColSpan(6, 0, 3);
+		flexTable.getFlexCellFormatter().setRowSpan(0, 0, 6);
 		FlexTableHelper.fixRowSpan(flexTable);
 
 		configService.loadIconSets(new AsyncCallback<List<IconSet>>() {

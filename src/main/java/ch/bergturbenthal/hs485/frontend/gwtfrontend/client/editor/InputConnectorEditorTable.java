@@ -103,8 +103,9 @@ public class InputConnectorEditorTable extends AbstractFullTableEditor<InputConn
 	@Override
 	protected InputConnector newEmptyEntry() {
 		final InputConnector inputConnector = new InputConnector();
-		inputConnector.setType(InputDeviceType.SWITCH);
-		inputConnector.setConnectorName("Connector " + entries.size());
+		inputConnector.setType(InputDeviceType.PUSH);
+		final int row = entries.size() / 2 + 1;
+		inputConnector.setConnectorName(row + (entries.size() % 2 == 0 ? "L" : "R"));
 		return inputConnector;
 	}
 }

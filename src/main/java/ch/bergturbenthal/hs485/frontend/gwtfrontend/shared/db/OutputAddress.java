@@ -84,7 +84,7 @@ public class OutputAddress implements IsSerializable, Comparable<OutputAddress> 
 		if (outputAddress == null)
 			builder.append("null");
 		else
-			builder.append(Integer.toHexString(outputAddress.intValue()));
+			builder.append(outputAddress.intValue());
 		return builder.toString();
 	}
 

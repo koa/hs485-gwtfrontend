@@ -43,6 +43,7 @@ public class EditInputDevice extends DialogBox {
 		setWidget(uiBinder.createAndBindUi(this));
 		setModal(true);
 		setTitle("Edit Input Device");
+		setText("Edit Input Device");
 		nameTextInput.setValue("new Inputdevice");
 		connectorEditor.setSelectKeyComposite(selectKeyComposite);
 		connectorEditor.setData(new LinkedList<InputConnector>());

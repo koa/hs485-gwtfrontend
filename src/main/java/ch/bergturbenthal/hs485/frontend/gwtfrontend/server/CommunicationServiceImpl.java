@@ -38,7 +38,9 @@ import ch.eleveneye.hs485.device.SwitchingActor;
 import ch.eleveneye.hs485.device.TFSensor;
 import ch.eleveneye.hs485.device.TimedActor;
 import ch.eleveneye.hs485.device.physically.Actor;
+import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
+import ch.eleveneye.hs485.device.utils.AbstractDevice;
 import ch.eleveneye.hs485.protocol.IMessage;
 import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
@@ -101,6 +103,17 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 					distributeEvent(event);
 			}
 		});
+		try {
+			final Collection<PhysicallyDevice> physicalDevices = hs485registry.listPhysicalDevices();
+			for (final PhysicallyDevice physicallyDevice : physicalDevices)
+				if (physicallyDevice instanceof AbstractDevice) {
+					logger.info("Device : " + Integer.toHexString(physicallyDevice.getAddress()));
+					final AbstractDevice abstractDevice = (AbstractDevice) physicallyDevice;
+					abstractDevice.dumpVariables();
+				}
+		} catch (final IOException e) {
+			logger.warn("Cannot read devices ", e);
+		}
 
 	}
 

@@ -29,6 +29,8 @@ public class Connection implements IsSerializable {
 				return true;
 			case SWITCH:
 				return true;
+			case PIR:
+				return true;
 			default:
 				return false;
 			}
