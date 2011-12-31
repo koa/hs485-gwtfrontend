@@ -23,14 +23,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationService;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.InputDescription;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.OutputDescription;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
-import ch.eleveneye.hs485.api.BroadcastHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.EventType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType;
+import ch.eleveneye.hs485.api.MessageHandler;
+import ch.eleveneye.hs485.api.data.KeyMessage;
 import ch.eleveneye.hs485.device.Dimmer;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
@@ -41,8 +43,6 @@ import ch.eleveneye.hs485.device.physically.Actor;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
 import ch.eleveneye.hs485.device.utils.AbstractDevice;
-import ch.eleveneye.hs485.protocol.IMessage;
-import ch.eleveneye.hs485.protocol.IMessage.KeyEventType;
 
 public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet implements CommunicationService {
 	private static class OutputData {
@@ -94,13 +94,14 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		hs485registry.getBus().addBroadcastHandler(new BroadcastHandler() {
+		hs485registry.getBus().addBroadcastHandler(new MessageHandler() {
 
 			@Override
-			public void handleBroadcastMessage(final IMessage message) {
-				final KeyEvent event = deceodeKeyMessage(message);
+			public void handleMessage(final KeyMessage keyMessage) {
+				final KeyEvent event = decodeKeyMessage(keyMessage);
 				if (event != null)
 					distributeEvent(event);
+
 			}
 		});
 		try {
@@ -191,27 +192,32 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 		}
 	}
 
-	private KeyEvent deceodeKeyMessage(final IMessage message) {
-		logger.info("Message: " + message);
-		final byte[] data = message.getData();
-		if (data.length != 4)
-			return null;
-		if (data[0] != 'K')
-			return null;
+	private KeyEvent decodeKeyMessage(final KeyMessage keyMessage) {
+		logger.info("Message: " + keyMessage);
 		final KeyEvent event = new KeyEvent();
-		final KeyEventType eventType = message.readKeyEventType();
-		switch (eventType) {
+		switch (keyMessage.getKeyEventType()) {
 		case PRESS:
-			event.setType(EventType.DOWN);
+			event.setEventType(EventType.DOWN);
 			break;
 		case HOLD:
-			event.setType(EventType.HOLD);
+			event.setEventType(EventType.HOLD);
 			break;
 		case RELEASE:
-			event.setType(EventType.UP);
+			event.setEventType(EventType.UP);
 			break;
 		}
-		event.setKeyAddress(new InputAddress(message.getSourceAddress(), data[1]));
+		switch (keyMessage.getKeyType()) {
+		case UP:
+			event.setKeyType(KeyType.ON);
+			break;
+		case DOWN:
+			event.setKeyType(KeyType.OFF);
+			break;
+		case TOGGLE:
+			event.setKeyType(KeyType.TOGGLE);
+			break;
+		}
+		event.setKeyAddress(new InputAddress(keyMessage.getSourceAddress(), keyMessage.getSourceSensor()));
 		logger.info("Event: " + event);
 		return event;
 	}

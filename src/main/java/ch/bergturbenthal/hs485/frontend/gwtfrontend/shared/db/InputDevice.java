@@ -12,12 +12,9 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
 
-import com.google.code.morphia.annotations.Entity;
-
 /**
  * Input-Device
  */
-@Entity
 public class InputDevice implements Serializable, SelectableIcon {
 	private static final long			serialVersionUID	= 1L;
 	@DBRef

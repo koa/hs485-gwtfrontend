@@ -10,13 +10,10 @@ import java.util.List;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.code.morphia.annotations.Entity;
-
 /**
  * a Floor of a Building.
  */
 @Document
-@Entity
 public class Floor implements Serializable {
 
 	private static final long		serialVersionUID	= 2901805918126067682L;

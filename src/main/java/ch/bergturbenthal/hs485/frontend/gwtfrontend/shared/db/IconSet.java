@@ -7,9 +7,6 @@ import java.util.Map;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.code.morphia.annotations.Entity;
-
-@Entity
 @Document
 public class IconSet implements Serializable {
 	private static final long									serialVersionUID	= -7868682272749448498L;

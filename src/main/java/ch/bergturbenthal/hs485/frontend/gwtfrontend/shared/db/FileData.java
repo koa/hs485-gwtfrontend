@@ -8,10 +8,7 @@ import java.io.Serializable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.code.morphia.annotations.Entity;
-
 @Document
-@Entity
 public class FileData implements Serializable {
 	private static final long	serialVersionUID	= 720587507323632368L;
 	private String						fileDataContent;

@@ -8,13 +8,13 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceA
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventDistributor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll.EventHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.InputDescription;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent.EventType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.EventType;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -116,7 +116,7 @@ public class SelectInputComposite extends Composite {
 				if (!visibleInputs.containsKey(keyAddress))
 					addConnectorEntry(keyAddress, false);
 				final KeyData keyData = visibleInputs.get(keyAddress);
-				keyData.setLastState(keyEvent.getType());
+				keyData.setLastState(keyEvent.getEventType());
 				keyData.setTfsValue(false);
 				updateKeyLabel(keyAddress, keyData);
 			}

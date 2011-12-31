@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Timer;

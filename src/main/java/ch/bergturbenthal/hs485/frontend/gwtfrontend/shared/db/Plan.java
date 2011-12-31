@@ -8,10 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import com.google.code.morphia.annotations.Entity;
-
 @Document
-@Entity
 public class Plan implements Serializable {
 
 	private static final long	serialVersionUID	= 3176259108886016294L;

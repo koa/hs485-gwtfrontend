@@ -1,7 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.poll;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.Event;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.KeyEvent;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 
 public class EventHandler {
 	/**
