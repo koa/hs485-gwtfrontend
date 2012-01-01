@@ -313,22 +313,11 @@ public class PlanEditor extends Composite {
 		highlightSelectedConnection();
 		if (selectedAction == null)
 			return;
-		final int actionIndex = eventTypes.indexOf(selectedAction.getEventType());
+		final String selectedEventType = selectedAction.getEventType();
+		final int actionIndex = eventTypes.indexOf(selectedEventType);
 		eventTypeListBox.setSelectedIndex(actionIndex);
-		sourcePanelsForCurrentEvent = new ArrayList<EventSourceManager<Event, EventSource<Event>>>(
-				actionComponentPanelBuilder.listInputPanelsForEvent(selectedAction.getEventType()));
-		addInputConnectorList.clear();
-		for (final EventSourceManager<Event, EventSource<Event>> panelBuilder : sourcePanelsForCurrentEvent)
-			addInputConnectorList.addItem(panelBuilder.getName());
 
-		updateInputList();
-
-		sinkPanelsForCurrentEvent = new ArrayList<EventSinkManager<Event, EventSink<Event>>>(
-				actionComponentPanelBuilder.listOutputPanelsForEvent(selectedAction.getEventType()));
-		appendOutputDeviceList.clear();
-		for (final EventSinkManager<Event, EventSink<Event>> sinkManager : sinkPanelsForCurrentEvent)
-			appendOutputDeviceList.addItem(sinkManager.getName());
-		updateOutputList();
+		updateActionPanel(selectedEventType);
 	}
 
 	@UiHandler("addConnectionButton")
@@ -422,6 +411,17 @@ public class PlanEditor extends Composite {
 		final EventSinkManager<Event, EventSink<Event>> panelBuilder = sinkPanelsForCurrentEvent.get(selectedIndex);
 		selectedAction.getSinks().add(panelBuilder.makeNewEventSink());
 		updateOutputList();
+	}
+
+	@UiHandler("eventTypeListBox")
+	void onEventTypeListBoxChange(final ChangeEvent event) {
+		final int selectedIndex = eventTypeListBox.getSelectedIndex();
+		if (selectedIndex < 0 || selectedIndex >= eventTypes.size())
+			return;
+
+		if (selectedAction != null)
+			selectedAction.setEventType(eventTypes.get(selectedIndex));
+		updateActionPanel(eventTypes.get(selectedIndex));
 	}
 
 	@UiHandler("removeConnectionButton")
@@ -575,6 +575,23 @@ public class PlanEditor extends Composite {
 				actionList.setSelectedIndex(actionList.getItemCount() - 1);
 		}
 		highlightSelectedConnection();
+	}
+
+	private void updateActionPanel(final String eventType) {
+		sourcePanelsForCurrentEvent = new ArrayList<EventSourceManager<Event, EventSource<Event>>>(
+				actionComponentPanelBuilder.listInputPanelsForEvent(eventType));
+		addInputConnectorList.clear();
+		for (final EventSourceManager<Event, EventSource<Event>> panelBuilder : sourcePanelsForCurrentEvent)
+			addInputConnectorList.addItem(panelBuilder.getName());
+
+		updateInputList();
+
+		sinkPanelsForCurrentEvent = new ArrayList<EventSinkManager<Event, EventSink<Event>>>(
+				actionComponentPanelBuilder.listOutputPanelsForEvent(eventType));
+		appendOutputDeviceList.clear();
+		for (final EventSinkManager<Event, EventSink<Event>> sinkManager : sinkPanelsForCurrentEvent)
+			appendOutputDeviceList.addItem(sinkManager.getName());
+		updateOutputList();
 	}
 
 	private void updateFloorList() {

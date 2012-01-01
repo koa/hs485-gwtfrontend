@@ -28,6 +28,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSourc
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.KeyPairEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ToggleKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.Sensor;
@@ -243,6 +244,7 @@ public class ConfigurationService {
 				actorKeySink.setAutoOffTime(Integer.valueOf(timedActor.getTimeValue()));
 		}
 		action.getSinks().add(actorKeySink);
+		action.setEventType(KeyEvent.class.getName());
 		actions.add(action);
 	}
 }
