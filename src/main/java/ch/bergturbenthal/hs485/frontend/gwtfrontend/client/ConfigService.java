@@ -3,6 +3,7 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.client;
 import java.util.List;
 import java.util.Map;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.dummy.SerializationHelperDummy;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
@@ -25,6 +26,8 @@ public interface ConfigService extends RemoteService {
 			return instance;
 		}
 	}
+
+	void dummyOperation(SerializationHelperDummy dummyRequest);
 
 	FileData getFile(String filename);
 

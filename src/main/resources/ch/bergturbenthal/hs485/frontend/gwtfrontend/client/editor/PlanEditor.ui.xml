@@ -25,9 +25,10 @@
           </g:MenuBar>
         </g:MenuItem>
         <g:MenuItem text="Utils">
-        	<g:MenuBar vertical="true">
-        		<g:MenuItem text="load existing Connections" ui:field="loadExistingConnctionsMenuItem"/>
-        	</g:MenuBar>
+          <g:MenuBar vertical="true">
+            <g:MenuItem text="load existing Connections"
+              ui:field="loadExistingConnctionsMenuItem" />
+          </g:MenuBar>
         </g:MenuItem>
       </g:MenuBar>
     </g:north>
@@ -66,82 +67,28 @@
               horizontalAlignment="ALIGN_CENTER" width="100%">
               <g:Label text="Connections" />
               <g:Cell height="100%">
-                <g:ListBox visibleItemCount="5" ui:field="connectionsList"
-                  width="100%" height="100%"/>
+                <g:ListBox visibleItemCount="5" ui:field="actionList"
+                  width="100%" height="100%" />
               </g:Cell>
               <g:HorizontalPanel>
-                <g:Button ui:field="addConnectionButton">Add Connection</g:Button>
-                <g:Button ui:field="removeConnectionButton">Remove Connection</g:Button>
+                <g:Button ui:field="addConnectionButton">Add Action</g:Button>
+                <g:Button ui:field="removeConnectionButton">Remove Action</g:Button>
               </g:HorizontalPanel>
-              <g:HTMLPanel>
-                <table width="100%">
-                  <tr>
-                    <td>Connection-Type</td>
-                    <td>
-                      <g:RadioButton name="connection-type"
-                        text="Event" formValue="event" ui:field="connectionTypeEventRadio" />
-                      <g:RadioButton name="connection-type"
-                        text="Value" formValue="value" ui:field="connectionTypeValueRadio" />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2">
-                      <g:DeckPanel ui:field="connectionTypeDeckPanel">
-                        <g:Grid>
-                          <g:row>
-                            <g:customCell>
-                              <g:Label text="Action" />
-                            </g:customCell>
-                            <g:customCell>
-                              <g:ListBox ui:field="eventTypeList">
-                                <g:item>On / Dimm up</g:item>
-                                <g:item>Off / Dimm down</g:item>
-                                <g:item>Toggle</g:item>
-                              </g:ListBox>
-                            </g:customCell>
-                          </g:row>
-                          <g:row>
-                            <g:customCell>
-                              <g:Label text="Auto off" />
-                            </g:customCell>
-                            <g:customCell>
-                              <g:HorizontalPanel
-                                verticalAlignment="ALIGN_MIDDLE">
-                                <g:Cell verticalAlignment="ALIGN_MIDDLE">
-                                  <g:SimpleCheckBox ui:field="eventAutoOffEnabledCheckbox" />
-                                </g:Cell>
-                                <g:Cell verticalAlignment="ALIGN_MIDDLE">
-                                  <g:HorizontalPanel
-                                    verticalAlignment="ALIGN_MIDDLE" ui:field="eventAutoOffTimePanel">
-                                    <g:IntegerBox
-                                      visibleLength="4" ui:field="eventAutoOffTime" />
-                                    <g:Label text="s" />
-                                  </g:HorizontalPanel>
-                                </g:Cell>
-                              </g:HorizontalPanel>
-                            </g:customCell>
-                          </g:row>
-                        </g:Grid>
-                        <g:Grid>
-                          <g:row>
-                            <g:customCell>
-                              <g:Label text="Toggle value" />
-                            </g:customCell>
-                            <g:customCell>
-                              <g:DoubleBox visibleLength="3" ui:field="connectionValueTriggerTextBox" />
-                            </g:customCell>
-                          </g:row>
-                        </g:Grid>
-                      </g:DeckPanel>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="2" align="center">
-                      <g:Button ui:field="saveConnectionButton">Save connection</g:Button>
-                    </td>
-                  </tr>
-                </table>
-              </g:HTMLPanel>
+              <g:Cell width="100%">
+              	<g:HorizontalPanel width="100%">
+                <g:Label text="Event Type" />
+                <g:ListBox ui:field="eventTypeListBox" />
+              </g:HorizontalPanel>
+              </g:Cell>
+              <g:Label text="Inputs" />
+              <g:VerticalPanel ui:field="inputConfigPanel" width="100%"></g:VerticalPanel>
+              <g:HorizontalPanel width="100%">
+              	<g:Label text="Add InputConnector"/>
+              	<g:ListBox ui:field="addInputConnectorList" />
+              	<g:Button ui:field="addInputConnectorButton">Add</g:Button>
+              </g:HorizontalPanel>
+              <g:Label text="Outputs" />
+              <g:VerticalPanel ui:field="outputConfigPanel" width="100%"></g:VerticalPanel>
             </g:VerticalPanel>
           </g:VerticalSplitPanel>
         </g:west>

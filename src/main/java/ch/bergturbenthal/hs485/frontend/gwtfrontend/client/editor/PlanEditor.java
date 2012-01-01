@@ -1,6 +1,7 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,27 +9,32 @@ import java.util.Map;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditDevicesFloorHandler.CurrentConnectionHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.SelectPlanDialog.PlanSelectedHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceConfigPanel;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourcePanelBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.PanelBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionTargetAction;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.CloseEvent;
 import com.google.gwt.event.logical.shared.CloseHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
@@ -36,16 +42,12 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.DoubleBox;
 import com.google.gwt.user.client.ui.HorizontalPanel;
-import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
-import com.google.gwt.user.client.ui.RadioButton;
-import com.google.gwt.user.client.ui.SimpleCheckBox;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
 
 public class PlanEditor extends Composite {
@@ -53,63 +55,85 @@ public class PlanEditor extends Composite {
 	interface PlanEditorUiBinder extends UiBinder<Widget, PlanEditor> {
 	}
 
-	private static PlanEditorUiBinder	uiBinder			= GWT.create(PlanEditorUiBinder.class);
+	private static PlanEditorUiBinder																	uiBinder				= GWT.create(PlanEditorUiBinder.class);
 	@UiField
-	Button														addConnectionButton;
+	Button																														addConnectionButton;
 	@UiField
-	Button														addFloorButton;
+	Button																														addFloorButton;
 	@UiField
-	Button														addInputDeviceButton;
+	Button																														addInputDeviceButton;
 	@UiField
-	Button														addOutputDeviceButton;
+	Button																														addOutputDeviceButton;
 	@UiField
-	ListBox														connectionsList;
+	ListBox																														actionList;
 	@UiField
-	DeckPanel													connectionTypeDeckPanel;
+	MenuItem																													editIconsetsItem;
 	@UiField
-	RadioButton												connectionTypeEventRadio;
+	MenuItem																													editPlanPropertiesItem;
 	@UiField
-	RadioButton												connectionTypeValueRadio;
+	MenuItem																													loadExistingConnctionsMenuItem;
 	@UiField
-	DoubleBox													connectionValueTriggerTextBox;
+	MenuItem																													newPlanItem;
 	@UiField
-	MenuItem													editIconsetsItem;
+	MenuItem																													openPlanItem;
 	@UiField
-	MenuItem													editPlanPropertiesItem;
+	Label																															planNameLabel;
 	@UiField
-	SimpleCheckBox										eventAutoOffEnabledCheckbox;
+	Button																														removeConnectionButton;
 	@UiField
-	IntegerBox												eventAutoOffTime;
+	Button																														removeFloorButton;
 	@UiField
-	HorizontalPanel										eventAutoOffTimePanel;
+	MenuItem																													savePlanItem;
 	@UiField
-	ListBox														eventTypeList;
+	ListBox																														selectFloorList;
 	@UiField
-	MenuItem													loadExistingConnctionsMenuItem;
+	FloorComposite																										showFloorComposite;
 	@UiField
-	MenuItem													newPlanItem;
+	MenuItem																													uploadFilesItem;
 	@UiField
-	MenuItem													openPlanItem;
+	ListBox																														eventTypeListBox;
 	@UiField
-	Label															planNameLabel;
+	VerticalPanel																											inputConfigPanel;
 	@UiField
-	Button														removeConnectionButton;
+	VerticalPanel																											outputConfigPanel;
 	@UiField
-	Button														removeFloorButton;
+	ListBox																														addInputConnectorList;
 	@UiField
-	Button														saveConnectionButton;
-	@UiField
-	MenuItem													savePlanItem;
-	@UiField
-	ListBox														selectFloorList;
-	@UiField
-	FloorComposite										showFloorComposite;
-	@UiField
-	MenuItem													uploadFilesItem;
-	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
+	Button																														addInputConnectorButton;
+	private final ConfigServiceAsync																	configService		= ConfigServiceAsync.Util.getInstance();
 
-	private Plan											plan;
-	private Connection								selectedConnection;
+	private Plan																											plan;
+	private Action																										selectedAction;
+	private final LabelGenerator																			labelGenerator	= new LabelGenerator() {
+
+																																											@Override
+																																											public String makeLabelForInputConnector(
+																																													final InputConnector inputConnector) {
+																																												if (inputConnector == null)
+																																													return "<unset>";
+																																												else {
+																																													final InputDevice foundDevice = findInputDeviceOfConnector(inputConnector);
+																																													if (foundDevice == null)
+																																														return "<orphan>";
+																																													else
+																																														return foundDevice.getName() + ": "
+																																																+ inputConnector.getConnectorName();
+																																												}
+																																											}
+
+																																											@Override
+																																											public String makeLabelForOutputDevice(
+																																													final OutputDevice outputDevice) {
+																																												if (outputDevice == null)
+																																													return "<unset>";
+																																												else
+																																													return outputDevice.getName();
+																																											}
+																																										};
+	private PanelBuilder																							actionComponentPanelBuilder;
+	private List<String>																							eventTypes;
+	private List<EventSourcePanelBuilder<Event, EventSource<Event>>>	panelsForCurrentEvent;
+	private List<EventSourceConfigPanel>															visibleInputPanels;
 
 	public PlanEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
@@ -123,33 +147,39 @@ public class PlanEditor extends Composite {
 
 			@Override
 			public boolean canHandleInputconnector(final InputConnector inputConnector) {
-				if (selectedConnection == null)
+				if (selectedAction == null)
 					return false;
-				return selectedConnection.canHandleInputConnector(inputConnector);
+				for (final EventSourceConfigPanel sourcePanel : visibleInputPanels)
+					if (sourcePanel.canReceiveInputConnector(inputConnector))
+						return true;
+				return false;
 			}
 
 			@Override
 			public boolean canHandleOutputDevice(final OutputDevice outputDevice) {
-				if (selectedConnection == null)
-					return false;
-				return selectedConnection.canHandleOutputDevice(outputDevice);
+				// if (selectedConnection == null)
+				return false;
+				// return selectedConnection.canHandleOutputDevice(outputDevice);
 			}
 
 			@Override
 			public boolean hasCurrentConnection() {
-				return selectedConnection != null;
+				return selectedAction != null;
 			}
 
 			@Override
 			public void setInputConnector(final InputConnector inputConnector) {
-				selectedConnection.setInputConnector(inputConnector);
-				updateConnectorList();
+				if (selectedAction == null)
+					return;
+				for (final EventSourceConfigPanel sourcePanel : visibleInputPanels)
+					if (sourcePanel.canReceiveInputConnector(inputConnector))
+						sourcePanel.takeInputConnector(inputConnector);
+				updateActionList();
 			}
 
 			@Override
 			public void setOutputDevice(final OutputDevice outputDevice) {
-				selectedConnection.setOutputDevice(outputDevice);
-				updateConnectorList();
+				updateActionList();
 			}
 		});
 		showFloorComposite.addFloorEventHandler(handler);
@@ -215,17 +245,13 @@ public class PlanEditor extends Composite {
 				});
 			}
 		});
-		final ChangeHandler enableSaveButtonChangeHandler = new ChangeHandler() {
-
-			@Override
-			public void onChange(final ChangeEvent event) {
-				saveConnectionButton.setEnabled(true);
-			}
-		};
-		eventAutoOffTime.addChangeHandler(enableSaveButtonChangeHandler);
-		eventTypeList.addChangeHandler(enableSaveButtonChangeHandler);
-		eventAutoOffTime.addChangeHandler(enableSaveButtonChangeHandler);
-		connectionValueTriggerTextBox.addChangeHandler(enableSaveButtonChangeHandler);
+		actionComponentPanelBuilder = new PanelBuilder(labelGenerator);
+		eventTypes = new ArrayList<String>(actionComponentPanelBuilder.listAvailableEvents());
+		for (final String eventClass : eventTypes) {
+			final int lastPt = eventClass.lastIndexOf('.');
+			eventTypeListBox.addItem(eventClass.substring(lastPt + 1));
+		}
+		visibleInputPanels = new ArrayList<EventSourceConfigPanel>();
 	}
 
 	public void setCurrentPlan(final Plan plan) {
@@ -233,32 +259,58 @@ public class PlanEditor extends Composite {
 		fixPlanReferences();
 		showFloorComposite.setCurrentPlan(plan);
 		updateFloorList();
-		updateConnectorList();
+		updateActionList();
 		planNameLabel.setText(plan.getName());
 	}
 
 	protected void savePlan() {
+		GWT.log("Save");
 		WaitIndicator.showWait();
 		configService.savePlan(plan, new AsyncCallback<Plan>() {
 
 			@Override
 			public void onFailure(final Throwable caught) {
+				GWT.log("Error: ", caught);
 				// TODO Auto-generated method stub
 				WaitIndicator.hideWait();
 			}
 
 			@Override
 			public void onSuccess(final Plan result) {
+				GWT.log("Ok");
 				setCurrentPlan(result);
 				WaitIndicator.hideWait();
 			}
 		});
 	}
 
+	@UiHandler("actionList")
+	void onActionListChange(final ChangeEvent event) {
+		final int selectedIndex = actionList.getSelectedIndex();
+		final List<Action> actions = plan.getActions();
+		if (selectedIndex < 0 || selectedIndex >= actions.size())
+			selectedAction = null;
+		else
+			selectedAction = actions.get(selectedIndex);
+		highlightSelectedConnection();
+		if (selectedAction == null)
+			return;
+		final int actionIndex = eventTypes.indexOf(selectedAction.getEventType());
+		eventTypeListBox.setSelectedIndex(actionIndex);
+		panelsForCurrentEvent = new ArrayList<EventSourcePanelBuilder<Event, EventSource<Event>>>(
+				actionComponentPanelBuilder.listInputPanelsForEvent(selectedAction.getEventType()));
+		addInputConnectorList.clear();
+		for (final EventSourcePanelBuilder<Event, EventSource<Event>> panelBuilder : panelsForCurrentEvent)
+			addInputConnectorList.addItem(panelBuilder.getName());
+		updateInputList();
+	}
+
 	@UiHandler("addConnectionButton")
 	void onAddConnectionButtonClick(final ClickEvent event) {
-		plan.getConnections().add(new Connection());
-		updateConnectorList();
+		final Action action = new Action();
+		action.setEventType(KeyEvent.class.getName());
+		plan.getActions().add(action);
+		updateActionList();
 	}
 
 	@UiHandler("addFloorButton")
@@ -277,6 +329,16 @@ public class PlanEditor extends Composite {
 			}
 		});
 		inputFloorPropertiesDialog.center();
+	}
+
+	@UiHandler("addInputConnectorButton")
+	void onAddInputConnectorButtonClick(final ClickEvent event) {
+		final int selectedIndex = addInputConnectorList.getSelectedIndex();
+		if (selectedIndex < 0 || selectedIndex >= panelsForCurrentEvent.size())
+			return;
+		final EventSourcePanelBuilder<Event, EventSource<Event>> panelBuilder = panelsForCurrentEvent.get(selectedIndex);
+		selectedAction.getSources().add(panelBuilder.makeNewEventSource());
+		updateInputList();
 	}
 
 	@UiHandler("addInputDeviceButton")
@@ -326,89 +388,12 @@ public class PlanEditor extends Composite {
 		editOutputDevice.center();
 	}
 
-	@UiHandler("connectionsList")
-	void onConnectionsListChange(final ChangeEvent event) {
-		final int selectedIndex = connectionsList.getSelectedIndex();
-		final List<Connection> connections = plan.getConnections();
-		if (selectedIndex < 0 || selectedIndex >= connections.size())
-			selectedConnection = null;
-		else
-			selectedConnection = connections.get(selectedIndex);
-		highlightSelectedConnection();
-		loadConnectionToForm();
-	}
-
-	@UiHandler("connectionTypeEventRadio")
-	void onConnectionTypeEventRadioClick(final ClickEvent event) {
-		connectionTypeRadioChanged();
-	}
-
-	// @UiHandler("connectionTypeEventRadio")
-	// void onConnectionTypeEventRadioValueChange(final ValueChangeEvent event) {
-	// connectionTypeRadioChanged();
-	// }
-	//
-	// @UiHandler("connectionTypeValueRadio")
-	// void onConnectionTypeValueRadioValueChange(final ValueChangeEvent event) {
-	// connectionTypeRadioChanged();
-	// }
-
-	@UiHandler("connectionTypeEventRadio")
-	void onConnectionTypeEventRadioValueChange(final ValueChangeEvent<Boolean> event) {
-		saveConnectionButton.setEnabled(true);
-	}
-
-	@UiHandler("connectionTypeValueRadio")
-	void onConnectionTypeValueRadioClick(final ClickEvent event) {
-		connectionTypeRadioChanged();
-	}
-
-	// @UiHandler("eventAutoOffTime")
-	// void onEventAutoOffTimeValueChange(final ValueChangeEvent event) {
-	// saveConnectionButton.setEnabled(true);
-	// }
-
-	@UiHandler("eventAutoOffEnabledCheckbox")
-	void onEventAutoOffEnabledCheckboxClick(final ClickEvent event) {
-		autoOffCheckboxChanged();
-	}
-
-	@UiHandler("eventTypeList")
-	void onEventTypeListChange(final ChangeEvent event) {
-		saveConnectionButton.setEnabled(true);
-	}
-
 	@UiHandler("removeConnectionButton")
 	void onRemoveConnectionButtonClick(final ClickEvent event) {
-		if (selectedConnection != null)
-			plan.getConnections().remove(selectedConnection);
-		selectedConnection = null;
-		updateConnectorList();
-	}
-
-	@UiHandler("saveConnectionButton")
-	void onSaveConnectionButtonClick(final ClickEvent event) {
-		if (selectedConnection == null)
-			return;
-		if (connectionTypeEventRadio.getValue().booleanValue())
-			selectedConnection.setConnectionType(ConnectionType.EVENT);
-		if (connectionTypeValueRadio.getValue().booleanValue())
-			selectedConnection.setConnectionType(ConnectionType.VALUE);
-		switch (eventTypeList.getSelectedIndex()) {
-		case 0:
-			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.ON);
-			break;
-		case 1:
-			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.OFF);
-			break;
-		case 2:
-			selectedConnection.setConnectionTargetAction(ConnectionTargetAction.TOGGLE);
-			break;
-		}
-		selectedConnection.setConnectionTargetAutoOff(eventAutoOffEnabledCheckbox.getValue().booleanValue());
-		selectedConnection.setConnectionTargetTimeout(eventAutoOffTime.getValue().intValue());
-		selectedConnection.setConnectionSourceTriggerValue(connectionValueTriggerTextBox.getValue().floatValue());
-		saveConnectionButton.setEnabled(false);
+		if (selectedAction != null)
+			plan.getActions().remove(selectedAction);
+		selectedAction = null;
+		updateActionList();
 	}
 
 	@UiHandler("selectFloorList")
@@ -416,19 +401,6 @@ public class PlanEditor extends Composite {
 		final Floor floor = plan.getFloors().get(selectFloorList.getSelectedIndex());
 		if (floor != null)
 			showFloorComposite.setCurrentFloor(floor);
-	}
-
-	private void autoOffCheckboxChanged() {
-		saveConnectionButton.setEnabled(true);
-		eventAutoOffTimePanel.setVisible(eventAutoOffEnabledCheckbox.getValue().booleanValue());
-	}
-
-	private void connectionTypeRadioChanged() {
-		saveConnectionButton.setEnabled(true);
-		if (connectionTypeEventRadio.getValue().booleanValue())
-			connectionTypeDeckPanel.showWidget(0);
-		else if (connectionTypeValueRadio.getValue().booleanValue())
-			connectionTypeDeckPanel.showWidget(1);
 	}
 
 	private void editPlanProperties() {
@@ -477,47 +449,16 @@ public class PlanEditor extends Composite {
 	}
 
 	private void highlightSelectedConnection() {
-		final List<SelectableIcon> selectedIcons = new ArrayList<SelectableIcon>(2);
-		if (selectedConnection != null) {
-			final InputConnector inputConnector = selectedConnection.getInputConnector();
-			if (inputConnector != null) {
-				final InputDevice foundInputDeviceOfConnector = findInputDeviceOfConnector(inputConnector);
-				if (foundInputDeviceOfConnector != null)
-					selectedIcons.add(foundInputDeviceOfConnector);
+		final List<SelectableIcon> selectedIcons = new ArrayList<SelectableIcon>();
+		if (selectedAction != null) {
+			final Collection<EventSource<?>> sources = selectedAction.getSources();
+			for (final EventSource source : sources) {
+				final Collection<InputConnector> connectors = actionComponentPanelBuilder.inputConnectorsOf(source);
+				for (final InputConnector inputConnector : connectors)
+					selectedIcons.add(findInputDeviceOfConnector(inputConnector));
 			}
-			final OutputDevice outputDevice = selectedConnection.getOutputDevice();
-			if (outputDevice != null)
-				selectedIcons.add(outputDevice);
 		}
 		showFloorComposite.setSelectedIcons(selectedIcons);
-	}
-
-	private void loadConnectionToForm() {
-		saveConnectionButton.setEnabled(false);
-		if (selectedConnection == null)
-			return;
-		connectionTypeEventRadio.setValue(selectedConnection.getConnectionType() == ConnectionType.EVENT);
-		connectionTypeValueRadio.setValue(selectedConnection.getConnectionType() == ConnectionType.VALUE);
-		if (selectedConnection.getConnectionTargetAction() == null)
-			eventTypeList.setSelectedIndex(0);
-		else
-			switch (selectedConnection.getConnectionTargetAction()) {
-			case ON:
-				eventTypeList.setSelectedIndex(0);
-				break;
-			case OFF:
-				eventTypeList.setSelectedIndex(1);
-				break;
-			case TOGGLE:
-				eventTypeList.setSelectedIndex(2);
-				break;
-			}
-		eventAutoOffEnabledCheckbox.setValue(selectedConnection.isConnectionTargetAutoOff());
-		eventAutoOffTime.setValue(selectedConnection.getConnectionTargetTimeout());
-		connectionValueTriggerTextBox.setValue(Double.valueOf(selectedConnection.getConnectionSourceTriggerValue()));
-		autoOffCheckboxChanged();
-		connectionTypeRadioChanged();
-		saveConnectionButton.setEnabled(false);
 	}
 
 	private void newPlan() {
@@ -563,31 +504,23 @@ public class PlanEditor extends Composite {
 
 	}
 
-	private void updateConnectorList() {
+	private void updateActionList() {
 		if (plan == null)
 			return;
-		connectionsList.clear();
-		for (final Connection connection : plan.getConnections()) {
+		actionList.clear();
+		for (final Action connection : plan.getActions()) {
 			final StringBuffer connectionLabel = new StringBuffer();
-			final InputConnector inputConnector = connection.getInputConnector();
-			if (inputConnector == null)
-				connectionLabel.append("<unset>");
-			else {
-				final InputDevice foundDevice = findInputDeviceOfConnector(inputConnector);
-				if (foundDevice == null)
-					connectionLabel.append("<orphan>");
-				else
-					connectionLabel.append(foundDevice.getName() + ": " + inputConnector.getConnectorName());
-			}
-			connectionLabel.append(" -> ");
-			final OutputDevice outputDevice = connection.getOutputDevice();
-			if (outputDevice == null)
+			final Collection<EventSource<?>> sources = connection.getSources();
+			if (sources.size() == 0)
 				connectionLabel.append("<unset>");
 			else
-				connectionLabel.append(outputDevice.getName());
-			connectionsList.addItem(connectionLabel.toString());
-			if (connection == selectedConnection)
-				connectionsList.setSelectedIndex(connectionsList.getItemCount() - 1);
+				for (final EventSource eventSource : sources) {
+					connectionLabel.append(actionComponentPanelBuilder.describeEventSource(eventSource));
+					connectionLabel.append(" ");
+				}
+			actionList.addItem(connectionLabel.toString());
+			if (connection == selectedAction)
+				actionList.setSelectedIndex(actionList.getItemCount() - 1);
 		}
 		highlightSelectedConnection();
 	}
@@ -601,6 +534,31 @@ public class PlanEditor extends Composite {
 			selectFloorList.addItem(floor.getName());
 			if (floor == visibleFloor)
 				selectFloorList.setSelectedIndex(selectFloorList.getItemCount() - 1);
+		}
+	}
+
+	private void updateInputList() {
+		inputConfigPanel.clear();
+		visibleInputPanels.clear();
+		for (final EventSource source : selectedAction.getSources()) {
+			final EventSourcePanelBuilder builder = actionComponentPanelBuilder.getBuilderFor(source.getClass());
+			final EventSourceConfigPanel panel = builder.buildPanel();
+			panel.setEventSource(source);
+			final HorizontalPanel horizontalPanel = new HorizontalPanel();
+			horizontalPanel.add(panel);
+			final Button removeButton = new Button("X");
+			removeButton.addClickHandler(new ClickHandler() {
+
+				@Override
+				public void onClick(final ClickEvent event) {
+					selectedAction.getSources().remove(source);
+					updateInputList();
+					updateActionList();
+				}
+			});
+			horizontalPanel.add(removeButton);
+			inputConfigPanel.add(horizontalPanel);
+			visibleInputPanels.add(panel);
 		}
 	}
 }

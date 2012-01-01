@@ -1,11 +1,15 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler;
 
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
 public class KeyPairEventSource extends KeyEventSource implements IsSerializable {
+	@DBRef
 	private InputConnector	offInputConnector;
+	@DBRef
 	private InputConnector	onInputConnector;
 
 	public InputConnector getOffInputConnector() {

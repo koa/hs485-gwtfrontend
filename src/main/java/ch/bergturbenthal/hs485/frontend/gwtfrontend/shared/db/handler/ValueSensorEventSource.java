@@ -1,11 +1,11 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.ValueEvent;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class ValueSensorEventSource implements EventSource, IsSerializable {
+public class ValueSensorEventSource implements EventSource<ValueEvent>, IsSerializable {
 	private InputConnector	inputConnector;
 	private int							pollIntervall;
 
@@ -15,12 +15,6 @@ public class ValueSensorEventSource implements EventSource, IsSerializable {
 
 	public int getPollIntervall() {
 		return pollIntervall;
-	}
-
-	@Override
-	public Class<? extends Event> getSendingEventType() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	public void setInputConnector(final InputConnector inputConnector) {

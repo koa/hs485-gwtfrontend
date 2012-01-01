@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.dummy.SerializationHelperDummy;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.IconSetRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.InputConnectorRepository;
@@ -45,10 +46,18 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	@Autowired
 	private PlanRepository						planRepository;
 
+	@Override
+	public void dummyOperation(final SerializationHelperDummy dummyRequest) {
+		// Dummy for solving serialization-problems
+
+	}
+
+	@Override
 	public FileData getFile(final String filename) {
 		return fileDataRepository.findOne(filename);
 	}
 
+	@Override
 	public Map<String, String> listAllPlans() {
 		final HashMap<String, String> ret = new HashMap<String, String>();
 		for (final Plan plan : planRepository.findAll())

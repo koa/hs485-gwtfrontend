@@ -8,11 +8,14 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
+
 @Document
 public class Plan implements Serializable {
 
 	private static final long	serialVersionUID	= 3176259108886016294L;
 	private List<Connection>	connections				= new ArrayList<Connection>();
+	private List<Action>			actions						= new ArrayList<Action>();
 	private List<Floor>				floors						= new ArrayList<Floor>();
 	@DBRef
 	private IconSet						iconSet;
@@ -20,6 +23,10 @@ public class Plan implements Serializable {
 	private String						name;
 	@Id
 	private String						planId						= "plan";
+
+	public List<Action> getActions() {
+		return actions;
+	}
 
 	public List<Connection> getConnections() {
 		return connections;
@@ -43,6 +50,10 @@ public class Plan implements Serializable {
 
 	public String getPlanId() {
 		return planId;
+	}
+
+	public void setActions(final List<Action> actions) {
+		this.actions = actions;
 	}
 
 	public void setConnections(final List<Connection> connections) {
