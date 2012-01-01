@@ -6,7 +6,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourcePanelBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -31,10 +31,10 @@ public class EventBuilderTest {
 				return "";
 			}
 		});
-		final Collection<EventSourcePanelBuilder<ValueEvent, EventSource<ValueEvent>>> valueBuilders = panelBuilder
+		final Collection<EventSourceManager<ValueEvent, EventSource<ValueEvent>>> valueBuilders = panelBuilder
 				.listInputPanelsForEvent(ValueEvent.class.getName());
 		Assert.assertEquals(0, valueBuilders.size());
-		final Collection<EventSourcePanelBuilder<KeyEvent, EventSource<KeyEvent>>> keyBuilders = panelBuilder.listInputPanelsForEvent(KeyEvent.class
+		final Collection<EventSourceManager<KeyEvent, EventSource<KeyEvent>>> keyBuilders = panelBuilder.listInputPanelsForEvent(KeyEvent.class
 				.getName());
 		Assert.assertEquals(1, keyBuilders.size());
 

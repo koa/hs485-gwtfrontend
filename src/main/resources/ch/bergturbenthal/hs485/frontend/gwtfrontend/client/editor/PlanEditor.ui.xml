@@ -75,20 +75,32 @@
                 <g:Button ui:field="removeConnectionButton">Remove Action</g:Button>
               </g:HorizontalPanel>
               <g:Cell width="100%">
-              	<g:HorizontalPanel width="100%">
-                <g:Label text="Event Type" />
-                <g:ListBox ui:field="eventTypeListBox" />
-              </g:HorizontalPanel>
+                <g:HorizontalPanel width="100%">
+                  <g:Label text="Event Type" />
+                  <g:ListBox ui:field="eventTypeListBox" />
+                </g:HorizontalPanel>
               </g:Cell>
               <g:Label text="Inputs" />
-              <g:VerticalPanel ui:field="inputConfigPanel" width="100%"></g:VerticalPanel>
+              <g:VerticalPanel ui:field="inputConfigPanel"
+                width="100%"></g:VerticalPanel>
               <g:HorizontalPanel width="100%">
-              	<g:Label text="Add InputConnector"/>
-              	<g:ListBox ui:field="addInputConnectorList" />
-              	<g:Button ui:field="addInputConnectorButton">Add</g:Button>
+              	<g:Cell width="50%">
+              		<g:Label text="Add InputConnector" />
+              	</g:Cell>
+                <g:ListBox ui:field="addInputConnectorList" />
+                <g:Button ui:field="addInputConnectorButton">Add</g:Button>
               </g:HorizontalPanel>
               <g:Label text="Outputs" />
-              <g:VerticalPanel ui:field="outputConfigPanel" width="100%"></g:VerticalPanel>
+              <g:VerticalPanel ui:field="outputConfigPanel"
+                width="100%">
+              </g:VerticalPanel>
+              <g:HorizontalPanel width="100%" >
+              	<g:Cell width="50%">
+              		<g:Label text="Add Outputdevice"/>
+              	</g:Cell>
+              	<g:ListBox ui:field="appendOutputDeviceList"/>
+              	<g:Button ui:field="appendOutputDeviceButton">Add</g:Button>
+              </g:HorizontalPanel>
             </g:VerticalPanel>
           </g:VerticalSplitPanel>
         </g:west>

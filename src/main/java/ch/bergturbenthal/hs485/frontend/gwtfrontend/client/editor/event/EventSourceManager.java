@@ -8,7 +8,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
-public interface EventSourcePanelBuilder<E extends Event, T extends EventSource<E>> {
+public interface EventSourceManager<E extends Event, T extends EventSource<E>> {
 	EventSourceConfigPanel<E, T> buildPanel();
 
 	String describeSource(T eventSource);
@@ -24,5 +24,4 @@ public interface EventSourcePanelBuilder<E extends Event, T extends EventSource<
 	Collection<InputConnector> listInputConnectorsForSource(T eventSource);
 
 	T makeNewEventSource();
-
 }

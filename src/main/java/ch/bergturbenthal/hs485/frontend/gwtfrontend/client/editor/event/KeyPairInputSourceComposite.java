@@ -15,10 +15,10 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ToggleButton;
 
 public class KeyPairInputSourceComposite extends EventSourceConfigPanel<KeyEvent, KeyPairEventSource> {
-	public static final class PanelBuilder implements EventSourcePanelBuilder<KeyEvent, KeyPairEventSource> {
+	public static final class SourceManager implements EventSourceManager<KeyEvent, KeyPairEventSource> {
 		private final LabelGenerator	labelGenerator;
 
-		public PanelBuilder(final LabelGenerator labelGenerator) {
+		public SourceManager(final LabelGenerator labelGenerator) {
 			this.labelGenerator = labelGenerator;
 		}
 

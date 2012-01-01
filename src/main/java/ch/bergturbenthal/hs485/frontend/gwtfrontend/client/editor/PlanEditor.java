@@ -9,8 +9,10 @@ import java.util.Map;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditDevicesFloorHandler.CurrentConnectionHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.SelectPlanDialog.PlanSelectedHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSinkConfigPanel;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSinkManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceConfigPanel;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourcePanelBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
@@ -43,6 +45,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
@@ -56,85 +59,90 @@ public class PlanEditor extends Composite {
 	interface PlanEditorUiBinder extends UiBinder<Widget, PlanEditor> {
 	}
 
-	private static PlanEditorUiBinder																	uiBinder				= GWT.create(PlanEditorUiBinder.class);
+	private static PlanEditorUiBinder														uiBinder				= GWT.create(PlanEditorUiBinder.class);
 	@UiField
-	Button																														addConnectionButton;
+	Button																											addConnectionButton;
 	@UiField
-	Button																														addFloorButton;
+	Button																											addFloorButton;
 	@UiField
-	Button																														addInputDeviceButton;
+	Button																											addInputDeviceButton;
 	@UiField
-	Button																														addOutputDeviceButton;
+	Button																											addOutputDeviceButton;
 	@UiField
-	ListBox																														actionList;
+	ListBox																											actionList;
 	@UiField
-	MenuItem																													editIconsetsItem;
+	MenuItem																										editIconsetsItem;
 	@UiField
-	MenuItem																													editPlanPropertiesItem;
+	MenuItem																										editPlanPropertiesItem;
 	@UiField
-	MenuItem																													loadExistingConnctionsMenuItem;
+	MenuItem																										loadExistingConnctionsMenuItem;
 	@UiField
-	MenuItem																													newPlanItem;
+	MenuItem																										newPlanItem;
 	@UiField
-	MenuItem																													openPlanItem;
+	MenuItem																										openPlanItem;
 	@UiField
-	Label																															planNameLabel;
+	Label																												planNameLabel;
 	@UiField
-	Button																														removeConnectionButton;
+	Button																											removeConnectionButton;
 	@UiField
-	Button																														removeFloorButton;
+	Button																											removeFloorButton;
 	@UiField
-	MenuItem																													savePlanItem;
+	MenuItem																										savePlanItem;
 	@UiField
-	ListBox																														selectFloorList;
+	ListBox																											selectFloorList;
 	@UiField
-	FloorComposite																										showFloorComposite;
+	FloorComposite																							showFloorComposite;
 	@UiField
-	MenuItem																													uploadFilesItem;
+	MenuItem																										uploadFilesItem;
 	@UiField
-	ListBox																														eventTypeListBox;
+	ListBox																											eventTypeListBox;
 	@UiField
-	VerticalPanel																											inputConfigPanel;
+	VerticalPanel																								inputConfigPanel;
 	@UiField
-	VerticalPanel																											outputConfigPanel;
+	VerticalPanel																								outputConfigPanel;
 	@UiField
-	ListBox																														addInputConnectorList;
+	ListBox																											addInputConnectorList;
 	@UiField
-	Button																														addInputConnectorButton;
-	private final ConfigServiceAsync																	configService		= ConfigServiceAsync.Util.getInstance();
+	Button																											addInputConnectorButton;
+	@UiField
+	ListBox																											appendOutputDeviceList;
+	@UiField
+	Button																											appendOutputDeviceButton;
+	private final ConfigServiceAsync														configService		= ConfigServiceAsync.Util.getInstance();
 
-	private Plan																											plan;
-	private Action																										selectedAction;
-	private final LabelGenerator																			labelGenerator	= new LabelGenerator() {
+	private Plan																								plan;
+	private Action																							selectedAction;
+	private final LabelGenerator																labelGenerator	= new LabelGenerator() {
 
-																																											@Override
-																																											public String makeLabelForInputConnector(
-																																													final InputConnector inputConnector) {
-																																												if (inputConnector == null)
-																																													return "<unset>";
-																																												else {
-																																													final InputDevice foundDevice = findInputDeviceOfConnector(inputConnector);
-																																													if (foundDevice == null)
-																																														return "<orphan>";
-																																													else
-																																														return foundDevice.getName() + ": "
-																																																+ inputConnector.getConnectorName();
-																																												}
-																																											}
+																																								@Override
+																																								public String makeLabelForInputConnector(
+																																										final InputConnector inputConnector) {
+																																									if (inputConnector == null)
+																																										return "<unset>";
+																																									else {
+																																										final InputDevice foundDevice = findInputDeviceOfConnector(inputConnector);
+																																										if (foundDevice == null)
+																																											return "<orphan>";
+																																										else
+																																											return foundDevice.getName() + ": "
+																																													+ inputConnector.getConnectorName();
+																																									}
+																																								}
 
-																																											@Override
-																																											public String makeLabelForOutputDevice(
-																																													final OutputDevice outputDevice) {
-																																												if (outputDevice == null)
-																																													return "<unset>";
-																																												else
-																																													return outputDevice.getName();
-																																											}
-																																										};
-	private EventTypeManager																					actionComponentPanelBuilder;
-	private List<String>																							eventTypes;
-	private List<EventSourcePanelBuilder<Event, EventSource<Event>>>	panelsForCurrentEvent;
-	private List<EventSourceConfigPanel>															visibleInputPanels;
+																																								@Override
+																																								public String makeLabelForOutputDevice(final OutputDevice outputDevice) {
+																																									if (outputDevice == null)
+																																										return "<unset>";
+																																									else
+																																										return outputDevice.getName();
+																																								}
+																																							};
+	private EventTypeManager																		actionComponentPanelBuilder;
+	private List<String>																				eventTypes;
+	private List<EventSourceManager<Event, EventSource<Event>>>	sourcePanelsForCurrentEvent;
+	private List<EventSinkManager<Event, EventSink<Event>>>			sinkPanelsForCurrentEvent;
+	private List<EventSourceConfigPanel>												visibleInputPanels;
+	private List<EventSinkConfigPanel>													visibleOutputPanels;
 
 	public PlanEditor() {
 		initWidget(uiBinder.createAndBindUi(this));
@@ -158,9 +166,12 @@ public class PlanEditor extends Composite {
 
 			@Override
 			public boolean canHandleOutputDevice(final OutputDevice outputDevice) {
-				// if (selectedConnection == null)
+				if (selectedAction == null)
+					return false;
+				for (final EventSinkConfigPanel sinkPanel : visibleOutputPanels)
+					if (sinkPanel.canReceiveOutputDevice(outputDevice))
+						return true;
 				return false;
-				// return selectedConnection.canHandleOutputDevice(outputDevice);
 			}
 
 			@Override
@@ -180,6 +191,9 @@ public class PlanEditor extends Composite {
 
 			@Override
 			public void setOutputDevice(final OutputDevice outputDevice) {
+				for (final EventSinkConfigPanel sinkPanel : visibleOutputPanels)
+					if (sinkPanel.canReceiveOutputDevice(outputDevice))
+						sinkPanel.takeOutputDevice(outputDevice);
 				updateActionList();
 			}
 		});
@@ -253,6 +267,7 @@ public class PlanEditor extends Composite {
 			eventTypeListBox.addItem(eventClass.substring(lastPt + 1));
 		}
 		visibleInputPanels = new ArrayList<EventSourceConfigPanel>();
+		visibleOutputPanels = new ArrayList<EventSinkConfigPanel>();
 	}
 
 	public void setCurrentPlan(final Plan plan) {
@@ -298,12 +313,20 @@ public class PlanEditor extends Composite {
 			return;
 		final int actionIndex = eventTypes.indexOf(selectedAction.getEventType());
 		eventTypeListBox.setSelectedIndex(actionIndex);
-		panelsForCurrentEvent = new ArrayList<EventSourcePanelBuilder<Event, EventSource<Event>>>(
+		sourcePanelsForCurrentEvent = new ArrayList<EventSourceManager<Event, EventSource<Event>>>(
 				actionComponentPanelBuilder.listInputPanelsForEvent(selectedAction.getEventType()));
 		addInputConnectorList.clear();
-		for (final EventSourcePanelBuilder<Event, EventSource<Event>> panelBuilder : panelsForCurrentEvent)
+		for (final EventSourceManager<Event, EventSource<Event>> panelBuilder : sourcePanelsForCurrentEvent)
 			addInputConnectorList.addItem(panelBuilder.getName());
+
 		updateInputList();
+
+		sinkPanelsForCurrentEvent = new ArrayList<EventSinkManager<Event, EventSink<Event>>>(
+				actionComponentPanelBuilder.listOutputPanelsForEvent(selectedAction.getEventType()));
+		appendOutputDeviceList.clear();
+		for (final EventSinkManager<Event, EventSink<Event>> sinkManager : sinkPanelsForCurrentEvent)
+			appendOutputDeviceList.addItem(sinkManager.getName());
+		updateOutputList();
 	}
 
 	@UiHandler("addConnectionButton")
@@ -335,9 +358,9 @@ public class PlanEditor extends Composite {
 	@UiHandler("addInputConnectorButton")
 	void onAddInputConnectorButtonClick(final ClickEvent event) {
 		final int selectedIndex = addInputConnectorList.getSelectedIndex();
-		if (selectedIndex < 0 || selectedIndex >= panelsForCurrentEvent.size())
+		if (selectedIndex < 0 || selectedIndex >= sourcePanelsForCurrentEvent.size())
 			return;
-		final EventSourcePanelBuilder<Event, EventSource<Event>> panelBuilder = panelsForCurrentEvent.get(selectedIndex);
+		final EventSourceManager<Event, EventSource<Event>> panelBuilder = sourcePanelsForCurrentEvent.get(selectedIndex);
 		selectedAction.getSources().add(panelBuilder.makeNewEventSource());
 		updateInputList();
 	}
@@ -387,6 +410,16 @@ public class PlanEditor extends Composite {
 			}
 		});
 		editOutputDevice.center();
+	}
+
+	@UiHandler("appendOutputDeviceButton")
+	void onAppendOutputDeviceButtonClick(final ClickEvent event) {
+		final int selectedIndex = appendOutputDeviceList.getSelectedIndex();
+		if (selectedIndex < 0 || selectedIndex >= sinkPanelsForCurrentEvent.size())
+			return;
+		final EventSinkManager<Event, EventSink<Event>> panelBuilder = sinkPanelsForCurrentEvent.get(selectedIndex);
+		selectedAction.getSinks().add(panelBuilder.makeNewEventSink());
+		updateOutputList();
 	}
 
 	@UiHandler("removeConnectionButton")
@@ -459,12 +492,13 @@ public class PlanEditor extends Composite {
 	private void highlightSelectedConnection() {
 		final List<SelectableIcon> selectedIcons = new ArrayList<SelectableIcon>();
 		if (selectedAction != null) {
-			final Collection<EventSource<?>> sources = selectedAction.getSources();
-			for (final EventSource source : sources) {
+			for (final EventSource source : selectedAction.getSources()) {
 				final Collection<InputConnector> connectors = actionComponentPanelBuilder.inputConnectorsOf(source);
 				for (final InputConnector inputConnector : connectors)
 					selectedIcons.add(findInputDeviceOfConnector(inputConnector));
 			}
+			for (final EventSink sink : selectedAction.getSinks())
+				selectedIcons.addAll(actionComponentPanelBuilder.outputDevicesOf(sink));
 		}
 		showFloorComposite.setSelectedIcons(selectedIcons);
 	}
@@ -520,12 +554,21 @@ public class PlanEditor extends Composite {
 			final StringBuffer connectionLabel = new StringBuffer();
 			final Collection<EventSource<?>> sources = connection.getSources();
 			if (sources.size() == 0)
-				connectionLabel.append("<unset>");
+				connectionLabel.append("<unset> ");
 			else
 				for (final EventSource eventSource : sources) {
 					connectionLabel.append(actionComponentPanelBuilder.describeEventSource(eventSource));
 					connectionLabel.append(" ");
 				}
+			final List<EventSink> sinks = connection.getSinks();
+			if (sinks.size() > 0) {
+				connectionLabel.append("->");
+				for (final EventSink eventSink : sinks) {
+					connectionLabel.append(" ");
+					connectionLabel.append(actionComponentPanelBuilder.describeEventSink(eventSink));
+				}
+			}
+
 			actionList.addItem(connectionLabel.toString());
 			if (connection == selectedAction)
 				actionList.setSelectedIndex(actionList.getItemCount() - 1);
@@ -549,10 +592,11 @@ public class PlanEditor extends Composite {
 		inputConfigPanel.clear();
 		visibleInputPanels.clear();
 		for (final EventSource source : selectedAction.getSources()) {
-			final EventSourcePanelBuilder builder = actionComponentPanelBuilder.getBuilderFor(source.getClass());
+			final EventSourceManager builder = actionComponentPanelBuilder.getSourceManagerFor(source.getClass());
 			final EventSourceConfigPanel panel = builder.buildPanel();
 			panel.setEventSource(source);
 			final HorizontalPanel horizontalPanel = new HorizontalPanel();
+			horizontalPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
 			horizontalPanel.setWidth("100%");
 			horizontalPanel.add(panel);
 			final Button removeButton = new Button("X");
@@ -569,5 +613,33 @@ public class PlanEditor extends Composite {
 			inputConfigPanel.add(horizontalPanel);
 			visibleInputPanels.add(panel);
 		}
+	}
+
+	private void updateOutputList() {
+		outputConfigPanel.clear();
+		visibleOutputPanels.clear();
+		for (final EventSink sink : selectedAction.getSinks()) {
+			final EventSinkManager builder = actionComponentPanelBuilder.getSinkManagerFor(sink.getClass());
+			final EventSinkConfigPanel panel = builder.buildPanel();
+			panel.setEventSink(sink);
+			final HorizontalPanel horizontalPanel = new HorizontalPanel();
+			horizontalPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+			horizontalPanel.setWidth("100%");
+			horizontalPanel.add(panel);
+			final Button removeButton = new Button("X");
+			removeButton.addClickHandler(new ClickHandler() {
+
+				@Override
+				public void onClick(final ClickEvent event) {
+					selectedAction.getSinks().remove(sink);
+					updateOutputList();
+					updateActionList();
+				}
+			});
+			horizontalPanel.add(removeButton);
+			outputConfigPanel.add(horizontalPanel);
+			visibleOutputPanels.add(panel);
+		}
+
 	}
 }

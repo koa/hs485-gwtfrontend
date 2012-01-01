@@ -8,53 +8,97 @@ import java.util.Map;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
 public class EventTypeManager {
 
-	private final Collection<EventSourcePanelBuilder<?, ?>>	inputPanelBuilders	= new ArrayList<EventSourcePanelBuilder<?, ?>>();
-	private final Map<Class, EventSourcePanelBuilder>				builderIndex				= new HashMap<Class, EventSourcePanelBuilder>();
+	private final Collection<EventSourceManager<?, ?>>	inputPanelManagers	= new ArrayList<EventSourceManager<?, ?>>();
+	private final Map<Class, EventSourceManager>				sourceIndex					= new HashMap<Class, EventSourceManager>();
+	private final Collection<EventSinkManager<?, ?>>		sinkManagers				= new ArrayList<EventSinkManager<?, ?>>();
+	private final Map<Class, EventSinkManager>					sinkIndex						= new HashMap<Class, EventSinkManager>();
 
 	@SuppressWarnings("unchecked")
 	public EventTypeManager(final LabelGenerator labelGenerator) {
-		inputPanelBuilders.add(new ToggleInputSourceComposite.PanelBuilder(labelGenerator));
-		inputPanelBuilders.add(new KeyPairInputSourceComposite.PanelBuilder(labelGenerator));
-		for (final EventSourcePanelBuilder<?, ?> builder : inputPanelBuilders)
-			builderIndex.put(builder.getConfigureSourceType(), builder);
+		inputPanelManagers.add(new ToggleInputSourceComposite.SourceManager(labelGenerator));
+		inputPanelManagers.add(new KeyPairInputSourceComposite.SourceManager(labelGenerator));
+
+		sinkManagers.add(new KeyOutputDeviceSinkComposite.SinkManager(labelGenerator));
+
+		for (final EventSourceManager<?, ?> builder : inputPanelManagers)
+			sourceIndex.put(builder.getConfigureSourceType(), builder);
+		for (final EventSinkManager<?, ?> manager : sinkManagers)
+			sinkIndex.put(manager.getConfigureSinkType(), manager);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public String describeEventSink(final EventSink sink) {
+		return getSinkManagerFor(sink.getClass()).describeSink(sink);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public String describeEventSource(final EventSource source) {
-		return getBuilderFor(source.getClass()).describeSource(source);
-	}
-
-	public void fixReferences(final EventSource<?> source, final Map<String, InputConnector> inputConnectors,
-			final Map<String, OutputDevice> outputDevices) {
-		getBuilderFor(source.getClass()).fixReferences(source, inputConnectors, outputDevices);
+		return getSourceManagerFor(source.getClass()).describeSource(source);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <E extends Event, T extends EventSource<E>> EventSourcePanelBuilder<E, T> getBuilderFor(final Class<T> type) {
-		return builderIndex.get(type);
+	public void fixReferences(final EventSink<?> sink, final Map<String, InputConnector> inputConnectors, final Map<String, OutputDevice> outputDevices) {
+		getSinkManagerFor(sink.getClass()).fixReferences(sink, inputConnectors, outputDevices);
 	}
 
+	@SuppressWarnings("unchecked")
+	public void fixReferences(final EventSource<?> source, final Map<String, InputConnector> inputConnectors,
+			final Map<String, OutputDevice> outputDevices) {
+		getSourceManagerFor(source.getClass()).fixReferences(source, inputConnectors, outputDevices);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <E extends Event, T extends EventSink<E>> EventSinkManager<E, T> getSinkManagerFor(final Class<T> sinkClass) {
+		return sinkIndex.get(sinkClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <E extends Event, T extends EventSource<E>> EventSourceManager<E, T> getSourceManagerFor(final Class<T> type) {
+		return sourceIndex.get(type);
+	}
+
+	@SuppressWarnings("unchecked")
 	public Collection<InputConnector> inputConnectorsOf(final EventSource<?> source) {
-		return getBuilderFor(source.getClass()).listInputConnectorsForSource(source);
+		return getSourceManagerFor(source.getClass()).listInputConnectorsForSource(source);
 	}
 
 	public Collection<String> listAvailableEvents() {
 		final Collection<String> ret = new HashSet<String>();
-		for (final EventSourcePanelBuilder<?, ?> builder : inputPanelBuilders)
+		for (final EventSourceManager<?, ?> builder : inputPanelManagers)
 			ret.add(builder.getEventType().getName());
+		final HashSet<String> outputTypes = new HashSet<String>();
+		for (final EventSinkManager<?, ?> outputManager : sinkManagers)
+			outputTypes.add(outputManager.getEventType().getName());
+		ret.retainAll(outputTypes);
 		return ret;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends Event> Collection<EventSourcePanelBuilder<T, EventSource<T>>> listInputPanelsForEvent(final String className) {
-		final Collection<EventSourcePanelBuilder<T, EventSource<T>>> ret = new ArrayList<EventSourcePanelBuilder<T, EventSource<T>>>();
-		for (final EventSourcePanelBuilder<?, ?> builder : inputPanelBuilders)
+	public <T extends Event> Collection<EventSourceManager<T, EventSource<T>>> listInputPanelsForEvent(final String className) {
+		final Collection<EventSourceManager<T, EventSource<T>>> ret = new ArrayList<EventSourceManager<T, EventSource<T>>>();
+		for (final EventSourceManager<?, ?> builder : inputPanelManagers)
 			if (builder.getEventType().getName().equals(className))
-				ret.add((EventSourcePanelBuilder<T, EventSource<T>>) builder);
+				ret.add((EventSourceManager<T, EventSource<T>>) builder);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends Event> Collection<EventSinkManager<T, EventSink<T>>> listOutputPanelsForEvent(final String className) {
+		final Collection<EventSinkManager<T, EventSink<T>>> ret = new ArrayList<EventSinkManager<T, EventSink<T>>>();
+		for (final EventSinkManager<?, ?> manager : sinkManagers)
+			if (manager.getEventType().getName().equals(className))
+				ret.add((EventSinkManager<T, EventSink<T>>) manager);
+		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	public Collection<OutputDevice> outputDevicesOf(final EventSink<?> sink) {
+		return getSinkManagerFor(sink.getClass()).listOutputDevicesForSink(sink);
 	}
 }
