@@ -3,16 +3,14 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionTargetAction;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
@@ -111,64 +109,10 @@ public class ConfigurationService {
 						}
 					}
 			}
-			final Map<Set<EventSink<? extends Event>>, Action> actionsBySink = new HashMap<Set<EventSink<? extends Event>>, Action>();
-			for (final Action action : actions) {
-				final Set<EventSink<? extends Event>> actionKey = new HashSet<EventSink<? extends Event>>(action.getSinks());
-				final Action oldAction = actionsBySink.get(actionKey);
-				if (oldAction == null) {
-					action.setSinks(new ArrayList<EventSink<? extends Event>>(actionKey));
-					actionsBySink.put(actionKey, action);
-					continue;
-				}
-				final Collection<EventSource<? extends Event>> oldSources = new HashSet<EventSource<? extends Event>>(oldAction.getSources());
-				for (final EventSource<? extends Event> source : action.getSources())
-					if (source instanceof KeyPairEventSource) {
-						final KeyPairEventSource newKeyPairEventSource = (KeyPairEventSource) source;
-						if (newKeyPairEventSource.getOffInputConnector() == null && newKeyPairEventSource.getOnInputConnector() == null)
-							continue;
-						if (newKeyPairEventSource.getOffInputConnector() != null && newKeyPairEventSource.getOnInputConnector() != null) {
-							oldSources.add(newKeyPairEventSource);
-							continue;
-						}
-						boolean found = false;
-						for (final EventSource<? extends Event> oldSource : oldSources)
-							if (oldSource instanceof KeyPairEventSource) {
-								final KeyPairEventSource oldEventSource = (KeyPairEventSource) oldSource;
-								if (newKeyPairEventSource.getOnInputConnector() != null && oldEventSource.getOnInputConnector() == null) {
-									oldEventSource.setOnInputConnector(newKeyPairEventSource.getOnInputConnector());
-									found = true;
-								}
-								if (newKeyPairEventSource.getOffInputConnector() != null && oldEventSource.getOffInputConnector() == null) {
-									oldEventSource.setOffInputConnector(newKeyPairEventSource.getOffInputConnector());
-									found = true;
-								}
-								if (found)
-									break;
-							}
-						if (!found)
-							oldSources.add(newKeyPairEventSource);
-					} else
-						oldSources.add(source);
-				oldAction.setSources(new ArrayList<EventSource<? extends Event>>(oldSources));
-			}
-			final Map<Set<EventSource<? extends Event>>, Action> actionsBySource = new HashMap<Set<EventSource<? extends Event>>, Action>();
-			for (final Action action : actionsBySink.values()) {
-				final Set<EventSource<? extends Event>> actionKey = new HashSet<EventSource<? extends Event>>(action.getSources());
-				final Action oldAction = actionsBySource.get(actionKey);
-				if (oldAction == null) {
-					action.setSources(new ArrayList<EventSource<? extends Event>>(actionKey));
-					actionsBySource.put(actionKey, action);
-					continue;
-				}
-				final Collection<EventSink<? extends Event>> sinks = new HashSet<EventSink<? extends Event>>(oldAction.getSinks());
-				sinks.addAll(action.getSinks());
-				oldAction.setSinks(new ArrayList<EventSink<? extends Event>>(sinks));
-			}
-			plan.setActions(new ArrayList<Action>(actionsBySource.values()));
+			plan.setActions(compactActions(actions));
 		} catch (final IOException e) {
 			throw new RuntimeException("Problem reading existing connections", e);
 		}
-
 	}
 
 	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action> actions, final KeySensor keySensor,
@@ -184,8 +128,61 @@ public class ConfigurationService {
 		}
 	}
 
-	private void appendIncompleteConnection(final Map<String, Connection> connections, final Connection connection) {
-		connections.put(UUID.randomUUID().toString(), connection);
+	private ArrayList<Action> compactActions(final ArrayList<Action> actions) {
+		final Map<Set<EventSink<? extends Event>>, Action> actionsBySink = new LinkedHashMap<Set<EventSink<? extends Event>>, Action>();
+		for (final Action action : actions) {
+			final Set<EventSink<? extends Event>> actionKey = new HashSet<EventSink<? extends Event>>(action.getSinks());
+			final Action oldAction = actionsBySink.get(actionKey);
+			if (oldAction == null) {
+				action.setSinks(new ArrayList<EventSink<? extends Event>>(actionKey));
+				actionsBySink.put(actionKey, action);
+				continue;
+			}
+			final Collection<EventSource<? extends Event>> oldSources = new HashSet<EventSource<? extends Event>>(oldAction.getSources());
+			for (final EventSource<? extends Event> source : action.getSources())
+				if (source instanceof KeyPairEventSource) {
+					final KeyPairEventSource newKeyPairEventSource = (KeyPairEventSource) source;
+					if (newKeyPairEventSource.getOffInputConnector() == null && newKeyPairEventSource.getOnInputConnector() == null)
+						continue;
+					if (newKeyPairEventSource.getOffInputConnector() != null && newKeyPairEventSource.getOnInputConnector() != null) {
+						oldSources.add(newKeyPairEventSource);
+						continue;
+					}
+					boolean found = false;
+					for (final EventSource<? extends Event> oldSource : oldSources)
+						if (oldSource instanceof KeyPairEventSource) {
+							final KeyPairEventSource oldEventSource = (KeyPairEventSource) oldSource;
+							if (newKeyPairEventSource.getOnInputConnector() != null && oldEventSource.getOnInputConnector() == null) {
+								oldEventSource.setOnInputConnector(newKeyPairEventSource.getOnInputConnector());
+								found = true;
+							}
+							if (newKeyPairEventSource.getOffInputConnector() != null && oldEventSource.getOffInputConnector() == null) {
+								oldEventSource.setOffInputConnector(newKeyPairEventSource.getOffInputConnector());
+								found = true;
+							}
+							if (found)
+								break;
+						}
+					if (!found)
+						oldSources.add(newKeyPairEventSource);
+				} else
+					oldSources.add(source);
+			oldAction.setSources(new ArrayList<EventSource<? extends Event>>(oldSources));
+		}
+		final Map<Set<EventSource<? extends Event>>, Action> actionsBySource = new LinkedHashMap<Set<EventSource<? extends Event>>, Action>();
+		for (final Action action : actionsBySink.values()) {
+			final Set<EventSource<? extends Event>> actionKey = new HashSet<EventSource<? extends Event>>(action.getSources());
+			final Action oldAction = actionsBySource.get(actionKey);
+			if (oldAction == null) {
+				action.setSources(new ArrayList<EventSource<? extends Event>>(actionKey));
+				actionsBySource.put(actionKey, action);
+				continue;
+			}
+			final Collection<EventSink<? extends Event>> sinks = new HashSet<EventSink<? extends Event>>(oldAction.getSinks());
+			sinks.addAll(action.getSinks());
+			oldAction.setSinks(new ArrayList<EventSink<? extends Event>>(sinks));
+		}
+		return new ArrayList<Action>(actionsBySource.values());
 	}
 
 	private InputConnector findInputConnector(final Plan plan, final PhysicallySensor sensor) {
