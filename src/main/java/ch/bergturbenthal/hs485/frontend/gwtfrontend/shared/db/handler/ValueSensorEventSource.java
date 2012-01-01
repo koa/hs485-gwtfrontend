@@ -9,12 +9,40 @@ public class ValueSensorEventSource implements EventSource<ValueEvent>, IsSerial
 	private InputConnector	inputConnector;
 	private int							pollIntervall;
 
+	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		final ValueSensorEventSource other = (ValueSensorEventSource) obj;
+		if (inputConnector == null) {
+			if (other.inputConnector != null)
+				return false;
+		} else if (!inputConnector.equals(other.inputConnector))
+			return false;
+		if (pollIntervall != other.pollIntervall)
+			return false;
+		return true;
+	}
+
 	public InputConnector getInputConnector() {
 		return inputConnector;
 	}
 
 	public int getPollIntervall() {
 		return pollIntervall;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (inputConnector == null ? 0 : inputConnector.hashCode());
+		result = prime * result + pollIntervall;
+		return result;
 	}
 
 	public void setInputConnector(final InputConnector inputConnector) {

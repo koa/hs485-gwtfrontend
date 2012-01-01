@@ -273,6 +273,8 @@ public class PlanEditor extends Composite {
 	public void setCurrentPlan(final Plan plan) {
 		this.plan = plan;
 		fixPlanReferences();
+		inputConfigPanel.clear();
+		outputConfigPanel.clear();
 		showFloorComposite.setCurrentPlan(plan);
 		updateFloorList();
 		updateActionList();
@@ -483,21 +485,20 @@ public class PlanEditor extends Composite {
 		for (final Action action : plan.getActions()) {
 			for (final EventSource<?> source : action.getSources())
 				actionComponentPanelBuilder.fixReferences(source, inputConnectors, outputDevices);
-			for (final EventSink sink : action.getSinks()) {
-
-			}
+			for (final EventSink<?> sink : action.getSinks())
+				actionComponentPanelBuilder.fixReferences(sink, inputConnectors, outputDevices);
 		}
 	}
 
 	private void highlightSelectedConnection() {
 		final List<SelectableIcon> selectedIcons = new ArrayList<SelectableIcon>();
 		if (selectedAction != null) {
-			for (final EventSource source : selectedAction.getSources()) {
+			for (final EventSource<?> source : selectedAction.getSources()) {
 				final Collection<InputConnector> connectors = actionComponentPanelBuilder.inputConnectorsOf(source);
 				for (final InputConnector inputConnector : connectors)
 					selectedIcons.add(findInputDeviceOfConnector(inputConnector));
 			}
-			for (final EventSink sink : selectedAction.getSinks())
+			for (final EventSink<?> sink : selectedAction.getSinks())
 				selectedIcons.addAll(actionComponentPanelBuilder.outputDevicesOf(sink));
 		}
 		showFloorComposite.setSelectedIcons(selectedIcons);
@@ -547,23 +548,23 @@ public class PlanEditor extends Composite {
 	}
 
 	private void updateActionList() {
+		actionList.clear();
 		if (plan == null)
 			return;
-		actionList.clear();
 		for (final Action connection : plan.getActions()) {
 			final StringBuffer connectionLabel = new StringBuffer();
 			final Collection<EventSource<?>> sources = connection.getSources();
 			if (sources.size() == 0)
 				connectionLabel.append("<unset> ");
 			else
-				for (final EventSource eventSource : sources) {
+				for (final EventSource<?> eventSource : sources) {
 					connectionLabel.append(actionComponentPanelBuilder.describeEventSource(eventSource));
 					connectionLabel.append(" ");
 				}
-			final List<EventSink> sinks = connection.getSinks();
+			final List<EventSink<? extends Event>> sinks = connection.getSinks();
 			if (sinks.size() > 0) {
 				connectionLabel.append("->");
-				for (final EventSink eventSink : sinks) {
+				for (final EventSink<?> eventSink : sinks) {
 					connectionLabel.append(" ");
 					connectionLabel.append(actionComponentPanelBuilder.describeEventSink(eventSink));
 				}
@@ -591,8 +592,8 @@ public class PlanEditor extends Composite {
 	private void updateInputList() {
 		inputConfigPanel.clear();
 		visibleInputPanels.clear();
-		for (final EventSource source : selectedAction.getSources()) {
-			final EventSourceManager builder = actionComponentPanelBuilder.getSourceManagerFor(source.getClass());
+		for (final EventSource<?> source : selectedAction.getSources()) {
+			final EventSourceManager<?, ?> builder = actionComponentPanelBuilder.getSourceManagerFor(source.getClass());
 			final EventSourceConfigPanel panel = builder.buildPanel();
 			panel.setEventSource(source);
 			final HorizontalPanel horizontalPanel = new HorizontalPanel();
