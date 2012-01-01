@@ -4,13 +4,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.FlexTableHelper;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ActorKeySink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.user.client.ui.HorizontalPanel;
+import com.google.gwt.user.client.ui.IntegerBox;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ToggleButton;
 
@@ -74,6 +80,7 @@ public class KeyOutputDeviceSinkComposite extends EventSinkConfigPanel<KeyEvent,
 	private ActorKeySink				sink;
 	private final Label					outputDeviceLabel;
 	private final ToggleButton	assignButton;
+	private final IntegerBox		timeoutTimeBox;
 
 	public KeyOutputDeviceSinkComposite() {
 
@@ -89,10 +96,32 @@ public class KeyOutputDeviceSinkComposite extends EventSinkConfigPanel<KeyEvent,
 
 		outputDeviceLabel = new Label("New label");
 		flexTable.setWidget(1, 1, outputDeviceLabel);
+		flexTable.getFlexCellFormatter().setColSpan(0, 0, 3);
+		flexTable.getFlexCellFormatter().setRowSpan(1, 0, 2);
 
 		assignButton = new ToggleButton("Assign");
 		flexTable.setWidget(1, 2, assignButton);
-		flexTable.getFlexCellFormatter().setColSpan(0, 0, 3);
+
+		final HorizontalPanel horizontalPanel = new HorizontalPanel();
+		horizontalPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+		flexTable.setWidget(2, 1, horizontalPanel);
+
+		timeoutTimeBox = new IntegerBox();
+		horizontalPanel.add(timeoutTimeBox);
+		timeoutTimeBox.setVisibleLength(4);
+
+		final Label lblS = new Label("s");
+		horizontalPanel.add(lblS);
+		lblS.setWidth("100%");
+		timeoutTimeBox.addValueChangeHandler(new ValueChangeHandler<Integer>() {
+			@Override
+			public void onValueChange(final ValueChangeEvent<Integer> event) {
+				if (sink == null)
+					return;
+				sink.setAutoOffTime(event.getValue());
+			}
+		});
+		FlexTableHelper.fixRowSpan(flexTable);
 	}
 
 	@Override
@@ -105,17 +134,18 @@ public class KeyOutputDeviceSinkComposite extends EventSinkConfigPanel<KeyEvent,
 	@Override
 	public void setEventSink(final ActorKeySink sink) {
 		this.sink = sink;
-		updateLabel();
+		updateValues();
 	}
 
 	@Override
 	public void takeOutputDevice(final OutputDevice outputDevice) {
 		sink.setOutputDevice(outputDevice);
-		updateLabel();
+		updateValues();
 	}
 
-	private void updateLabel() {
+	private void updateValues() {
 		outputDeviceLabel.setText(labelGenerator.makeLabelForOutputDevice(sink.getOutputDevice()));
+		timeoutTimeBox.setValue(sink.getAutoOffTime());
 	}
 
 }
