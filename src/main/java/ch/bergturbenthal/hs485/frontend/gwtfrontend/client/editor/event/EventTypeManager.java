@@ -7,70 +7,30 @@ import java.util.HashSet;
 import java.util.Map;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ToggleKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 
-public class PanelBuilder {
+public class EventTypeManager {
+
 	private final Collection<EventSourcePanelBuilder<?, ?>>	inputPanelBuilders	= new ArrayList<EventSourcePanelBuilder<?, ?>>();
 	private final Map<Class, EventSourcePanelBuilder>				builderIndex				= new HashMap<Class, EventSourcePanelBuilder>();
 
 	@SuppressWarnings("unchecked")
-	public PanelBuilder(final LabelGenerator labelGenerator) {
-		inputPanelBuilders.add(new EventSourcePanelBuilder<KeyEvent, ToggleKeyEventSource>() {
-
-			@Override
-			public EventSourceConfigPanel<KeyEvent, ToggleKeyEventSource> buildPanel() {
-				final ToggleInputSourceComposite ret = new ToggleInputSourceComposite();
-				ret.setLabelGenerator(labelGenerator);
-				return ret;
-			}
-
-			@Override
-			public String describeSource(final ToggleKeyEventSource eventSource) {
-				final InputConnector inputConnector = eventSource.getInputConnector();
-				if (inputConnector == null)
-					return "<unset>";
-				return labelGenerator.makeLabelForInputConnector(inputConnector);
-			}
-
-			@Override
-			public Class<ToggleKeyEventSource> getConfigureSourceType() {
-				return ToggleKeyEventSource.class;
-			}
-
-			@Override
-			public Class<KeyEvent> getEventType() {
-				return KeyEvent.class;
-			}
-
-			@Override
-			public String getName() {
-				return "Toggle Key";
-			}
-
-			@Override
-			public Collection<InputConnector> listInputConnectorsForSource(final ToggleKeyEventSource source) {
-				final ArrayList<InputConnector> ret = new ArrayList<InputConnector>();
-				final InputConnector inputConnector = source.getInputConnector();
-				if (inputConnector == null)
-					ret.add(inputConnector);
-				return ret;
-			}
-
-			@Override
-			public ToggleKeyEventSource makeNewEventSource() {
-				return new ToggleKeyEventSource();
-			}
-
-		});
+	public EventTypeManager(final LabelGenerator labelGenerator) {
+		inputPanelBuilders.add(new ToggleInputSourceComposite.PanelBuilder(labelGenerator));
+		inputPanelBuilders.add(new KeyPairInputSourceComposite.PanelBuilder(labelGenerator));
 		for (final EventSourcePanelBuilder<?, ?> builder : inputPanelBuilders)
 			builderIndex.put(builder.getConfigureSourceType(), builder);
 	}
 
 	public String describeEventSource(final EventSource source) {
 		return getBuilderFor(source.getClass()).describeSource(source);
+	}
+
+	public void fixReferences(final EventSource<?> source, final Map<String, InputConnector> inputConnectors,
+			final Map<String, OutputDevice> outputDevices) {
+		getBuilderFor(source.getClass()).fixReferences(source, inputConnectors, outputDevices);
 	}
 
 	@SuppressWarnings("unchecked")

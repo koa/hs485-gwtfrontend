@@ -11,8 +11,8 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.EditDevicesFlo
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.SelectPlanDialog.PlanSelectedHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceConfigPanel;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourcePanelBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.PanelBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
@@ -25,6 +25,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
@@ -130,7 +131,7 @@ public class PlanEditor extends Composite {
 																																													return outputDevice.getName();
 																																											}
 																																										};
-	private PanelBuilder																							actionComponentPanelBuilder;
+	private EventTypeManager																					actionComponentPanelBuilder;
 	private List<String>																							eventTypes;
 	private List<EventSourcePanelBuilder<Event, EventSource<Event>>>	panelsForCurrentEvent;
 	private List<EventSourceConfigPanel>															visibleInputPanels;
@@ -245,7 +246,7 @@ public class PlanEditor extends Composite {
 				});
 			}
 		});
-		actionComponentPanelBuilder = new PanelBuilder(labelGenerator);
+		actionComponentPanelBuilder = new EventTypeManager(labelGenerator);
 		eventTypes = new ArrayList<String>(actionComponentPanelBuilder.listAvailableEvents());
 		for (final String eventClass : eventTypes) {
 			final int lastPt = eventClass.lastIndexOf('.');
@@ -446,6 +447,13 @@ public class PlanEditor extends Composite {
 			if (outputDevice != null && outputDevice.getDeviceId() != null)
 				connection.setOutputDevice(outputDevices.get(outputDevice.getDeviceId()));
 		}
+		for (final Action action : plan.getActions()) {
+			for (final EventSource<?> source : action.getSources())
+				actionComponentPanelBuilder.fixReferences(source, inputConnectors, outputDevices);
+			for (final EventSink sink : action.getSinks()) {
+
+			}
+		}
 	}
 
 	private void highlightSelectedConnection() {
@@ -545,6 +553,7 @@ public class PlanEditor extends Composite {
 			final EventSourceConfigPanel panel = builder.buildPanel();
 			panel.setEventSource(source);
 			final HorizontalPanel horizontalPanel = new HorizontalPanel();
+			horizontalPanel.setWidth("100%");
 			horizontalPanel.add(panel);
 			final Button removeButton = new Button("X");
 			removeButton.addClickHandler(new ClickHandler() {

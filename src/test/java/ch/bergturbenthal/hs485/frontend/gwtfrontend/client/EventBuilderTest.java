@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourcePanelBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.PanelBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
@@ -18,7 +18,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.ValueEvent;
 public class EventBuilderTest {
 	@Test
 	public void testBuilder() {
-		final PanelBuilder panelBuilder = new PanelBuilder(new LabelGenerator() {
+		final EventTypeManager panelBuilder = new EventTypeManager(new LabelGenerator() {
 
 			@Override
 			public String makeLabelForInputConnector(final InputConnector inputConnector) {
