@@ -2,6 +2,9 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.event;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.KeyPairEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
@@ -27,6 +30,8 @@ public class KeyPairSourceImplementation extends AbstractKeySourceImplementation
 
 	}
 
+	private static final Logger	logger	= LoggerFactory.getLogger(KeyPairSourceImplementation.class);
+
 	public KeyPairSourceImplementation(final Registry hs485Registry) {
 		super(hs485Registry);
 	}
@@ -39,6 +44,7 @@ public class KeyPairSourceImplementation extends AbstractKeySourceImplementation
 
 				@Override
 				public void handleMessage(final KeyMessage keyMessage) {
+					logger.info("Receiving Message " + keyMessage + " on " + config + " for keyType on");
 					final KeyEvent event = makeKeyEvent(KeyType.ON, keyMessage);
 					if (event == null)
 						return;
@@ -47,10 +53,11 @@ public class KeyPairSourceImplementation extends AbstractKeySourceImplementation
 			});
 		final InputConnector offInputConnector = config.getOffInputConnector();
 		if (offInputConnector != null)
-			registerHandler(onInputConnector.getAddress(), new MessageHandler() {
+			registerHandler(offInputConnector.getAddress(), new MessageHandler() {
 
 				@Override
 				public void handleMessage(final KeyMessage keyMessage) {
+					logger.info("Receiving Message " + keyMessage + " on " + config + " for keyType off");
 					final KeyEvent event = makeKeyEvent(KeyType.OFF, keyMessage);
 					if (event == null)
 						return;

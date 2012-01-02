@@ -59,6 +59,7 @@ public class ActorKeySinkImplementation implements EventSinkImplementation<KeyEv
 
 	@Override
 	public void takeEvent(final KeyEvent event) {
+		logger.info("Acepting Key:" + event);
 		final KeyMessage keyMessage = new KeyMessage();
 		switch (event.getEventType()) {
 		case DOWN:
@@ -91,6 +92,7 @@ public class ActorKeySinkImplementation implements EventSinkImplementation<KeyEv
 		keyMessage.setHitCount(event.getHitCount());
 		if (keyActor != null)
 			try {
+				logger.info("Sending Message " + keyMessage + " to " + keyActor);
 				keyActor.sendKeyMessage(keyMessage);
 			} catch (final IOException e) {
 				logger.warn("Cannot send Key " + keyMessage + "to Receiver");

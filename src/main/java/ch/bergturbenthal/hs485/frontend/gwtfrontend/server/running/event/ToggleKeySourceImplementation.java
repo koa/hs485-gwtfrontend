@@ -2,6 +2,9 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.event;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ToggleKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
@@ -27,6 +30,8 @@ public class ToggleKeySourceImplementation extends AbstractKeySourceImplementati
 
 	}
 
+	private static final Logger	logger	= LoggerFactory.getLogger(ToggleKeySourceImplementation.class);
+
 	public ToggleKeySourceImplementation(final Registry hs485Registry) {
 		super(hs485Registry);
 	}
@@ -39,6 +44,7 @@ public class ToggleKeySourceImplementation extends AbstractKeySourceImplementati
 
 				@Override
 				public void handleMessage(final KeyMessage keyMessage) {
+					logger.info("Receiving Message " + keyMessage + " on " + config + " for keyType toggle");
 					final KeyEvent event = makeKeyEvent(KeyType.TOGGLE, keyMessage);
 					if (event == null)
 						return;

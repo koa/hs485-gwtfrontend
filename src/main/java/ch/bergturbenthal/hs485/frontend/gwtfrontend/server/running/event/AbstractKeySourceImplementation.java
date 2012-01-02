@@ -61,7 +61,14 @@ public abstract class AbstractKeySourceImplementation<T extends EventSource<KeyE
 		final PhysicallySensor sensor = hs485Registry.getPhysicallySensor(address.getDeviceAddress(), address.getInputAddress());
 		if (sensor instanceof KeySensor) {
 			final KeySensor keySensor = (KeySensor) sensor;
-			keySensor.registerHandler(handler);
+			keySensor.registerHandler(new MessageHandler() {
+
+				@Override
+				public void handleMessage(final KeyMessage keyMessage) {
+					logger.info("Incoming Message " + keyMessage + " from " + sensor);
+					handler.handleMessage(keyMessage);
+				}
+			});
 		} else
 			logger.error("Sensor " + sensor + " is not a KeySensor");
 	}

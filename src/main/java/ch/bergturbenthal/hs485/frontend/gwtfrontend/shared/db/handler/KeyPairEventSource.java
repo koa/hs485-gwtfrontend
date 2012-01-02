@@ -58,4 +58,21 @@ public class KeyPairEventSource implements KeyEventSource, IsSerializable {
 	public void setOnInputConnector(final InputConnector onInputConnector) {
 		this.onInputConnector = onInputConnector;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("KeyPairEventSource [");
+		if (onInputConnector != null) {
+			builder.append("onInputConnector=");
+			builder.append(onInputConnector);
+			builder.append(", ");
+		}
+		if (offInputConnector != null) {
+			builder.append("offInputConnector=");
+			builder.append(offInputConnector);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }

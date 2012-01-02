@@ -42,4 +42,16 @@ public class ToggleKeyEventSource implements KeyEventSource, IsSerializable {
 	public void setInputConnector(final InputConnector inputConnector) {
 		this.inputConnector = inputConnector;
 	}
+
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("ToggleKeyEventSource [");
+		if (inputConnector != null) {
+			builder.append("inputConnector=");
+			builder.append(inputConnector);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
 }

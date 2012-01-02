@@ -1,0 +1,32 @@
+<configuration>
+
+  <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="HS485-TRACE"
+    class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>target/hs485-trace.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>hs485-trace.%d{yyyy-MM-dd}.log.gz
+      </fileNamePattern>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="ch.eleveneye.hs485.protocol" level="TRACE">
+    <appender-ref ref="HS485-TRACE" />
+  </logger>
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

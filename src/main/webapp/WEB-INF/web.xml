@@ -20,6 +20,7 @@
   <servlet>
     <servlet-name>ConfigService</servlet-name>
     <servlet-class>ch.bergturbenthal.hs485.frontend.gwtfrontend.server.ConfigServiceImpl</servlet-class>
+    <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet>
     <servlet-name>FileAccess</servlet-name>
