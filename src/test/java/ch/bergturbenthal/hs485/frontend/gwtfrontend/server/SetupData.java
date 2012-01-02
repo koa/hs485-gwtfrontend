@@ -19,7 +19,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.FileDataRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.IconSetRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconEntry;
@@ -52,7 +51,6 @@ public class SetupData {
 		mongoOps.dropCollection(Plan.class);
 		mongoOps.dropCollection(FileData.class);
 		mongoOps.dropCollection(IconSet.class);
-		mongoOps.dropCollection(Connection.class);
 		mongoOps.dropCollection(InputConnector.class);
 		mongoOps.dropCollection(OutputDevice.class);
 		final Plan plan = new Plan();
@@ -80,10 +78,6 @@ public class SetupData {
 		outputDevice.setType(OutputDeviceType.LIGHT);
 
 		floor.getOutputDevices().add(outputDevice);
-		final Connection connection = new Connection();
-		connection.setInputConnector(inputConnector);
-		connection.setOutputDevice(outputDevice);
-		plan.getConnections().add(connection);
 		configService.savePlan(plan);
 
 		// for (final Connection connection2 : plan.getConnections()) {
@@ -100,7 +94,6 @@ public class SetupData {
 		System.out.println(plan.getIconSet());
 
 		final Plan foundPlan = planRepository.findOne("plan");
-		System.out.println(foundPlan.getConnections());
 	}
 
 	private FileData loadFileFromClasspath(final String filename, final String mimeType) throws UnsupportedEncodingException, IOException {

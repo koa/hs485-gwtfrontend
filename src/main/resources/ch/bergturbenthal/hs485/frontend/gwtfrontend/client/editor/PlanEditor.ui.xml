@@ -28,6 +28,7 @@
           <g:MenuBar vertical="true">
             <g:MenuItem text="load existing Connections"
               ui:field="loadExistingConnctionsMenuItem" />
+            <g:MenuItem text="activate Configuration" ui:field="activatConfigMenuItem"/>
           </g:MenuBar>
         </g:MenuItem>
       </g:MenuBar>

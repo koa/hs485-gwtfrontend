@@ -27,6 +27,8 @@ public interface ConfigService extends RemoteService {
 		}
 	}
 
+	void activatePlan(Plan plan);
+
 	void dummyOperation(SerializationHelperDummy dummyRequest);
 
 	FileData getFile(String filename);

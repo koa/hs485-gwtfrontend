@@ -1,17 +1,21 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.server;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.ConnectionTargetAction;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -39,9 +43,10 @@ import ch.eleveneye.hs485.device.physically.PairableSensor;
 import ch.eleveneye.hs485.device.physically.PairedSensorDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
+import ch.eleveneye.hs485.device.utils.AbstractDevice;
 
 @Service
-public class ConfigurationService {
+public class BuildingService {
 	private static class DummyPhysicallySensor implements PhysicallySensor {
 
 		private final int	moduleAddr;
@@ -65,11 +70,38 @@ public class ConfigurationService {
 	}
 
 	@Autowired
-	private Registry	hs485registry;
+	private Registry			hs485registry;
+	private static Logger	logger	= LoggerFactory.getLogger(BuildingService.class);
 
-	void appendExistingConnections(final Plan plan) {
+	public void activatePlan(final Plan plan) {
 		try {
-			final ArrayList<Action> actions = new ArrayList<Action>(plan.getActions());
+			hs485registry.doInTransaction(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					final EventTypeManager eventTypeManager = new EventTypeManager(hs485registry);
+					hs485registry.resetAllDevices();
+					if (plan != null)
+						for (final Action action : plan.getActions())
+							eventTypeManager.applyAction(action);
+					for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
+						if (device instanceof AbstractDevice) {
+							final AbstractDevice abstractDevice = (AbstractDevice) device;
+							logger.info("Device: " + abstractDevice);
+							abstractDevice.dumpVariables();
+						}
+					return null;
+				}
+			});
+		} catch (final Exception e) {
+			logger.warn("Error while activating plan", e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void appendExistingConnections(final Plan plan) {
+		try {
+			final ArrayList<Action<Event>> actions = new ArrayList<Action<Event>>(plan.getActions());
 
 			for (final PhysicallyDevice device : hs485registry.listPhysicalDevices()) {
 				final Set<Integer> pairedSensors = new HashSet<Integer>();
@@ -115,7 +147,7 @@ public class ConfigurationService {
 		}
 	}
 
-	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action> actions, final KeySensor keySensor,
+	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action<Event>> actions, final KeySensor keySensor,
 			final PhysicallySensor pairableSensor, final ConnectionTargetAction targetAction) throws IOException {
 		final InputConnector foundInputConnector = findInputConnector(plan, pairableSensor);
 		if (foundInputConnector == null)
@@ -128,24 +160,24 @@ public class ConfigurationService {
 		}
 	}
 
-	private ArrayList<Action> compactActions(final ArrayList<Action> actions) {
-		final Map<Set<EventSink<? extends Event>>, Action> actionsBySink = new LinkedHashMap<Set<EventSink<? extends Event>>, Action>();
-		for (final Action action : actions) {
-			final Set<EventSink<? extends Event>> actionKey = new HashSet<EventSink<? extends Event>>(action.getSinks());
-			final Action oldAction = actionsBySink.get(actionKey);
+	private List<Action<Event>> compactActions(final ArrayList<Action<Event>> actions) {
+		final Map<Set<EventSink<Event>>, Action<Event>> actionsBySink = new LinkedHashMap<Set<EventSink<Event>>, Action<Event>>();
+		for (final Action<Event> action : actions) {
+			final Set<EventSink<Event>> actionKey = new HashSet<EventSink<Event>>(action.getSinks());
+			final Action<Event> oldAction = actionsBySink.get(actionKey);
 			if (oldAction == null) {
-				action.setSinks(new ArrayList<EventSink<? extends Event>>(actionKey));
+				action.setSinks(new ArrayList<EventSink<Event>>(actionKey));
 				actionsBySink.put(actionKey, action);
 				continue;
 			}
-			final Collection<EventSource<? extends Event>> oldSources = new HashSet<EventSource<? extends Event>>(oldAction.getSources());
-			for (final EventSource<? extends Event> source : action.getSources())
+			final Collection<EventSource<Event>> oldSources = new HashSet<EventSource<Event>>(oldAction.getSources());
+			for (final EventSource<?> source : action.getSources())
 				if (source instanceof KeyPairEventSource) {
 					final KeyPairEventSource newKeyPairEventSource = (KeyPairEventSource) source;
 					if (newKeyPairEventSource.getOffInputConnector() == null && newKeyPairEventSource.getOnInputConnector() == null)
 						continue;
 					if (newKeyPairEventSource.getOffInputConnector() != null && newKeyPairEventSource.getOnInputConnector() != null) {
-						oldSources.add(newKeyPairEventSource);
+						oldSources.add((EventSource<Event>) (EventSource<?>) newKeyPairEventSource);
 						continue;
 					}
 					boolean found = false;
@@ -164,25 +196,25 @@ public class ConfigurationService {
 								break;
 						}
 					if (!found)
-						oldSources.add(newKeyPairEventSource);
+						oldSources.add((EventSource<Event>) (EventSource<?>) newKeyPairEventSource);
 				} else
-					oldSources.add(source);
-			oldAction.setSources(new ArrayList<EventSource<? extends Event>>(oldSources));
+					oldSources.add((EventSource<Event>) (EventSource<?>) source);
+			oldAction.setSources(new ArrayList<EventSource<Event>>(oldSources));
 		}
-		final Map<Set<EventSource<? extends Event>>, Action> actionsBySource = new LinkedHashMap<Set<EventSource<? extends Event>>, Action>();
-		for (final Action action : actionsBySink.values()) {
-			final Set<EventSource<? extends Event>> actionKey = new HashSet<EventSource<? extends Event>>(action.getSources());
-			final Action oldAction = actionsBySource.get(actionKey);
+		final Map<Set<EventSource<Event>>, Action<Event>> actionsBySource = new LinkedHashMap<Set<EventSource<Event>>, Action<Event>>();
+		for (final Action<Event> action : actionsBySink.values()) {
+			final Set<EventSource<Event>> actionKey = new HashSet<EventSource<Event>>(action.getSources());
+			final Action<Event> oldAction = actionsBySource.get(actionKey);
 			if (oldAction == null) {
-				action.setSources(new ArrayList<EventSource<? extends Event>>(actionKey));
+				action.setSources(new ArrayList<EventSource<Event>>(actionKey));
 				actionsBySource.put(actionKey, action);
 				continue;
 			}
-			final Collection<EventSink<? extends Event>> sinks = new HashSet<EventSink<? extends Event>>(oldAction.getSinks());
+			final Collection<EventSink<Event>> sinks = new HashSet<EventSink<Event>>(oldAction.getSinks());
 			sinks.addAll(action.getSinks());
-			oldAction.setSinks(new ArrayList<EventSink<? extends Event>>(sinks));
+			oldAction.setSinks(new ArrayList<EventSink<Event>>(sinks));
 		}
-		return new ArrayList<Action>(actionsBySource.values());
+		return new ArrayList<Action<Event>>(actionsBySource.values());
 	}
 
 	private InputConnector findInputConnector(final Plan plan, final PhysicallySensor sensor) {
@@ -208,10 +240,10 @@ public class ConfigurationService {
 		return null;
 	}
 
-	private void updateConnection(final ArrayList<Action> actions, final InputConnector foundInputConnector, final OutputDevice foundOutputDevice,
-			final Actor assignedActor, final ConnectionTargetAction targetAction) throws IOException {
+	private void updateConnection(final ArrayList<Action<Event>> actions, final InputConnector foundInputConnector,
+			final OutputDevice foundOutputDevice, final Actor assignedActor, final ConnectionTargetAction targetAction) throws IOException {
 
-		final Action action = new Action();
+		final Action<KeyEvent> action = new Action<KeyEvent>();
 
 		switch (targetAction) {
 		case ON: {
@@ -242,6 +274,6 @@ public class ConfigurationService {
 		}
 		action.getSinks().add(actorKeySink);
 		action.setEventType(KeyEvent.class.getName());
-		actions.add(action);
+		actions.add((Action<Event>) (Action<?>) action);
 	}
 }

@@ -7,11 +7,11 @@ import java.util.List;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
-public class Action implements Serializable {
-	private static final long										serialVersionUID	= 3015587848526088602L;
-	private List<EventSource<? extends Event>>	sources						= new ArrayList<EventSource<? extends Event>>();
-	private String															eventType;
-	private List<EventSink<? extends Event>>		sinks							= new ArrayList<EventSink<? extends Event>>();
+public class Action<E extends Event> implements Serializable {
+	private static final long			serialVersionUID	= 3015587848526088602L;
+	private List<EventSource<E>>	sources						= new ArrayList<EventSource<E>>();
+	private String								eventType;
+	private List<EventSink<E>>		sinks							= new ArrayList<EventSink<E>>();
 
 	public Action() {
 	}
@@ -48,11 +48,11 @@ public class Action implements Serializable {
 		return eventType;
 	}
 
-	public List<EventSink<? extends Event>> getSinks() {
+	public List<EventSink<E>> getSinks() {
 		return sinks;
 	}
 
-	public List<EventSource<? extends Event>> getSources() {
+	public List<EventSource<E>> getSources() {
 		return sources;
 	}
 
@@ -71,11 +71,11 @@ public class Action implements Serializable {
 		this.eventType = eventType;
 	}
 
-	public void setSinks(final List<EventSink<? extends Event>> sinks) {
+	public void setSinks(final List<EventSink<E>> sinks) {
 		this.sinks = sinks;
 	}
 
-	public void setSources(final List<EventSource<? extends Event>> sources) {
+	public void setSources(final List<EventSource<E>> sources) {
 		this.sources = sources;
 	}
 

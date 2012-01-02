@@ -13,15 +13,17 @@ public class KeyEvent implements Event, IsSerializable {
 		OFF, ON, TOGGLE
 	}
 
-	private static final long	serialVersionUID	= 1184146590744072872L;
-
-	private EventType					eventType;
-
-	private InputAddress			keyAddress;
-	private KeyType						keyType;
+	private EventType			eventType;
+	private InputAddress	keyAddress;
+	private KeyType				keyType;
+	private int						hitCount;
 
 	public EventType getEventType() {
 		return eventType;
+	}
+
+	public int getHitCount() {
+		return hitCount;
 	}
 
 	public InputAddress getKeyAddress() {
@@ -36,6 +38,10 @@ public class KeyEvent implements Event, IsSerializable {
 		eventType = type;
 	}
 
+	public void setHitCount(final int hitCount) {
+		this.hitCount = hitCount;
+	}
+
 	public void setKeyAddress(final InputAddress keyAddress) {
 		this.keyAddress = keyAddress;
 	}
@@ -48,15 +54,23 @@ public class KeyEvent implements Event, IsSerializable {
 	public String toString() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("KeyEvent [");
+		if (eventType != null) {
+			builder.append("eventType=");
+			builder.append(eventType);
+			builder.append(", ");
+		}
 		if (keyAddress != null) {
 			builder.append("keyAddress=");
 			builder.append(keyAddress);
 			builder.append(", ");
 		}
-		if (eventType != null) {
-			builder.append("type=");
-			builder.append(eventType);
+		if (keyType != null) {
+			builder.append("keyType=");
+			builder.append(keyType);
+			builder.append(", ");
 		}
+		builder.append("hitCount=");
+		builder.append(hitCount);
 		builder.append("]");
 		return builder.toString();
 	}

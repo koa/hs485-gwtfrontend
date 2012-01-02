@@ -8,7 +8,7 @@
   <import resource="mongodb.xml" />
   <import resource="hs485.xml" />
   <bean
-    class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.ConfigurationService" />
+    class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.BuildingService" />
   <bean
     class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.ConfigServiceImpl" />
   <bean id="envBean" class="java.lang.String">

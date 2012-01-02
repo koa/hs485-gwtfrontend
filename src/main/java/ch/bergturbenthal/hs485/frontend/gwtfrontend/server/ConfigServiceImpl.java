@@ -19,7 +19,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.InputConnectorRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.OutputDeviceRepository;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.PlanRepository;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.BuildingService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.FileData;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
@@ -34,7 +34,7 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	private static final long					serialVersionUID	= 5816537750102063151L;
 
 	@Autowired
-	private ConfigurationService			configurationService;
+	private BuildingService						configurationService;
 	@Autowired
 	private FileDataRepository				fileDataRepository;
 	@Autowired
@@ -45,6 +45,11 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	private OutputDeviceRepository		outputDeviceRepository;
 	@Autowired
 	private PlanRepository						planRepository;
+
+	@Override
+	public void activatePlan(final Plan plan) {
+		configurationService.activatePlan(plan);
+	}
 
 	@Override
 	public void dummyOperation(final SerializationHelperDummy dummyRequest) {
@@ -102,6 +107,7 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 		for (final IconSet iconSet : iconSetRepository.findAll())
 			if (!savedIconSets.contains(iconSet.getIconsetId()))
 				iconSetRepository.delete(iconSet);
+
 	}
 
 	@Override
@@ -122,12 +128,7 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 				}
 			}
 			// clean orphan refs
-			for (final Connection connection : plan.getConnections()) {
-				if (!inputConnectorMap.containsKey(connection.getInputConnector()))
-					connection.setInputConnector(null);
-				if (!outputDeviceMap.containsKey(connection.getOutputDevice()))
-					connection.setOutputDevice(null);
-			}
+
 			return planRepository.save(plan);
 		} catch (final Throwable t) {
 			t.printStackTrace();

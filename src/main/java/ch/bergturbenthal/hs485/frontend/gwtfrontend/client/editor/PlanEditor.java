@@ -19,7 +19,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Connection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.IconSet;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -108,10 +107,12 @@ public class PlanEditor extends Composite {
 	ListBox																											appendOutputDeviceList;
 	@UiField
 	Button																											appendOutputDeviceButton;
+	@UiField
+	MenuItem																										activatConfigMenuItem;
 	private final ConfigServiceAsync														configService		= ConfigServiceAsync.Util.getInstance();
 
 	private Plan																								plan;
-	private Action																							selectedAction;
+	private Action<Event>																				selectedAction;
 	private final LabelGenerator																labelGenerator	= new LabelGenerator() {
 
 																																								@Override
@@ -260,6 +261,26 @@ public class PlanEditor extends Composite {
 				});
 			}
 		});
+		activatConfigMenuItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				WaitIndicator.showWait();
+				configService.activatePlan(plan, new AsyncCallback<Void>() {
+
+					@Override
+					public void onFailure(final Throwable caught) {
+						GWT.log("Cannot activate Plan", caught);
+						WaitIndicator.hideWait();
+					}
+
+					@Override
+					public void onSuccess(final Void result) {
+						WaitIndicator.hideWait();
+					}
+				});
+			}
+		});
 		actionComponentPanelBuilder = new EventTypeManager(labelGenerator);
 		eventTypes = new ArrayList<String>(actionComponentPanelBuilder.listAvailableEvents());
 		for (final String eventClass : eventTypes) {
@@ -305,7 +326,7 @@ public class PlanEditor extends Composite {
 	@UiHandler("actionList")
 	void onActionListChange(final ChangeEvent event) {
 		final int selectedIndex = actionList.getSelectedIndex();
-		final List<Action> actions = plan.getActions();
+		final List<Action<Event>> actions = plan.getActions();
 		if (selectedIndex < 0 || selectedIndex >= actions.size())
 			selectedAction = null;
 		else
@@ -474,15 +495,7 @@ public class PlanEditor extends Composite {
 				if (outputDevice.getDeviceId() != null)
 					outputDevices.put(outputDevice.getDeviceId(), outputDevice);
 		}
-		for (final Connection connection : plan.getConnections()) {
-			final InputConnector inputConnector = connection.getInputConnector();
-			if (inputConnector != null && inputConnector.getConnectorId() != null)
-				connection.setInputConnector(inputConnectors.get(inputConnector.getConnectorId()));
-			final OutputDevice outputDevice = connection.getOutputDevice();
-			if (outputDevice != null && outputDevice.getDeviceId() != null)
-				connection.setOutputDevice(outputDevices.get(outputDevice.getDeviceId()));
-		}
-		for (final Action action : plan.getActions()) {
+		for (final Action<?> action : plan.getActions()) {
 			for (final EventSource<?> source : action.getSources())
 				actionComponentPanelBuilder.fixReferences(source, inputConnectors, outputDevices);
 			for (final EventSink<?> sink : action.getSinks())

@@ -9,27 +9,23 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
 @Document
 public class Plan implements Serializable {
 
-	private static final long	serialVersionUID	= 3176259108886016294L;
-	private List<Connection>	connections				= new ArrayList<Connection>();
-	private List<Action>			actions						= new ArrayList<Action>();
-	private List<Floor>				floors						= new ArrayList<Floor>();
+	private static final long		serialVersionUID	= 3176259108886016294L;
+	private List<Action<Event>>	actions						= new ArrayList<Action<Event>>();
+	private List<Floor>					floors						= new ArrayList<Floor>();
 	@DBRef
-	private IconSet						iconSet;
-	private Integer						maximumOnTime;
-	private String						name;
+	private IconSet							iconSet;
+	private Integer							maximumOnTime;
+	private String							name;
 	@Id
-	private String						planId						= "plan";
+	private String							planId						= "plan";
 
-	public List<Action> getActions() {
+	public List<Action<Event>> getActions() {
 		return actions;
-	}
-
-	public List<Connection> getConnections() {
-		return connections;
 	}
 
 	public List<Floor> getFloors() {
@@ -52,12 +48,8 @@ public class Plan implements Serializable {
 		return planId;
 	}
 
-	public void setActions(final List<Action> actions) {
+	public void setActions(final List<Action<Event>> actions) {
 		this.actions = actions;
-	}
-
-	public void setConnections(final List<Connection> connections) {
-		this.connections = connections;
 	}
 
 	public void setFloors(final List<Floor> floors) {
