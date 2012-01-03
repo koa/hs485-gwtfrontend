@@ -14,22 +14,23 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 
 public class EventTypeManager {
 
-	private final Collection<EventSourceManager<?, ?>>	inputPanelManagers	= new ArrayList<EventSourceManager<?, ?>>();
-	private final Map<Class, EventSourceManager>				sourceIndex					= new HashMap<Class, EventSourceManager>();
-	private final Collection<EventSinkManager<?, ?>>		sinkManagers				= new ArrayList<EventSinkManager<?, ?>>();
-	private final Map<Class, EventSinkManager>					sinkIndex						= new HashMap<Class, EventSinkManager>();
+	private final Collection<EventSourceManager<?, ?>>																																												inputPanelManagers	= new ArrayList<EventSourceManager<?, ?>>();
+	private final Map<Class<? extends EventSourceManager<?, ?>>, EventSourceManager<? extends Event, ? extends EventSource<? extends Event>>>	sourceIndex					= new HashMap<Class<? extends EventSourceManager<?, ?>>, EventSourceManager<? extends Event, ? extends EventSource<? extends Event>>>();
+	private final Collection<EventSinkManager<?, ?>>																																													sinkManagers				= new ArrayList<EventSinkManager<?, ?>>();
+	private final Map<Class<? extends EventSinkManager<?, ?>>, EventSinkManager<? extends Event, ? extends EventSink<? extends Event>>>				sinkIndex						= new HashMap<Class<? extends EventSinkManager<?, ?>>, EventSinkManager<? extends Event, ? extends EventSink<? extends Event>>>();
 
 	@SuppressWarnings("unchecked")
 	public EventTypeManager(final LabelGenerator labelGenerator) {
 		inputPanelManagers.add(new ToggleInputSourceComposite.SourceManager(labelGenerator));
 		inputPanelManagers.add(new KeyPairInputSourceComposite.SourceManager(labelGenerator));
+		inputPanelManagers.add(new PirKeyEventInputSourceComposite.SourceManager(labelGenerator));
 
 		sinkManagers.add(new KeyOutputDeviceSinkComposite.SinkManager(labelGenerator));
 
 		for (final EventSourceManager<?, ?> builder : inputPanelManagers)
-			sourceIndex.put(builder.getConfigureSourceType(), builder);
+			sourceIndex.put((Class<? extends EventSourceManager<?, ?>>) builder.getConfigureSourceType(), builder);
 		for (final EventSinkManager<?, ?> manager : sinkManagers)
-			sinkIndex.put(manager.getConfigureSinkType(), manager);
+			sinkIndex.put((Class<? extends EventSinkManager<?, ?>>) manager.getConfigureSinkType(), manager);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -55,12 +56,12 @@ public class EventTypeManager {
 
 	@SuppressWarnings("unchecked")
 	public <E extends Event, T extends EventSink<E>> EventSinkManager<E, T> getSinkManagerFor(final Class<T> sinkClass) {
-		return sinkIndex.get(sinkClass);
+		return (EventSinkManager<E, T>) sinkIndex.get(sinkClass);
 	}
 
 	@SuppressWarnings("unchecked")
 	public <E extends Event, T extends EventSource<E>> EventSourceManager<E, T> getSourceManagerFor(final Class<T> type) {
-		return sourceIndex.get(type);
+		return (EventSourceManager<E, T>) sourceIndex.get(type);
 	}
 
 	@SuppressWarnings("unchecked")

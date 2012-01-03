@@ -122,8 +122,6 @@ public class KeyPairInputSourceComposite extends EventSourceConfigPanel<KeyEvent
 	public boolean canReceiveInputConnector(final InputConnector inputConnector) {
 		if (onConnectorButton.getValue().booleanValue() || offConnectorButton.getValue().booleanValue())
 			switch (inputConnector.getType()) {
-			case PIR:
-				return true;
 			case PUSH:
 				return true;
 			case SWITCH:

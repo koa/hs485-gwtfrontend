@@ -107,8 +107,6 @@ public class ToggleInputSourceComposite extends EventSourceConfigPanel<KeyEvent,
 	public boolean canReceiveInputConnector(final InputConnector inputConnector) {
 		if (tglbtnAssignConnector.getValue().booleanValue())
 			switch (inputConnector.getType()) {
-			case PIR:
-				return true;
 			case PUSH:
 				return true;
 			case SWITCH:

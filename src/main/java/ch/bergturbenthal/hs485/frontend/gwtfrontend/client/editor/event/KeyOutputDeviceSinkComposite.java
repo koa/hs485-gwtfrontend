@@ -141,6 +141,7 @@ public class KeyOutputDeviceSinkComposite extends EventSinkConfigPanel<KeyEvent,
 	public void takeOutputDevice(final OutputDevice outputDevice) {
 		sink.setOutputDevice(outputDevice);
 		updateValues();
+		assignButton.setValue(Boolean.FALSE);
 	}
 
 	private void updateValues() {
