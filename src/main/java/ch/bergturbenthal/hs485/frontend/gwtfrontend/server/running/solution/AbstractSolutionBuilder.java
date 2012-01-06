@@ -3,7 +3,6 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -31,34 +30,23 @@ import ch.eleveneye.hs485.device.TimedActor;
 import ch.eleveneye.hs485.device.config.PairMode;
 import ch.eleveneye.hs485.device.config.TimeMode;
 import ch.eleveneye.hs485.device.physically.Actor;
+import ch.eleveneye.hs485.device.physically.IndependentConfigurableSensor;
+import ch.eleveneye.hs485.device.physically.IndependentConfigurableSensor.InputMode;
 import ch.eleveneye.hs485.device.physically.PairedSensorDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
 
 public class AbstractSolutionBuilder {
 
-	protected static class DistributingMessageHandler implements MessageHandler {
-		private final ArrayList<MessageHandler>	messageHandlers	= new ArrayList<MessageHandler>();
-
-		public void appendHandler(final MessageHandler handler) {
-			messageHandlers.add(handler);
-			messageHandlers.trimToSize();
-		}
-
-		@Override
-		public void handleMessage(final KeyMessage keyMessage) {
-			for (final MessageHandler handler : messageHandlers)
-				handler.handleMessage(keyMessage);
-		}
-	}
-
-	private final Map<KeySensor, DistributingMessageHandler>	messageHandlers	= new HashMap<KeySensor, HS485SSolutionBuilder.DistributingMessageHandler>();
+	private final Map<KeySensor, DistributingMessageHandler>	messageHandlers;
 	protected final Registry																	registry;
-	private static final Logger																logger					= LoggerFactory.getLogger(HS485SSolutionBuilder.class);
+	private static final Logger																logger	= LoggerFactory.getLogger(HS485SSolutionBuilder.class);
 	protected final ScheduledExecutorService									executorService;
 
-	public AbstractSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService) {
+	public AbstractSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService,
+			final Map<KeySensor, DistributingMessageHandler> messageHandlers) {
 		this.registry = registry;
 		this.executorService = executorService;
+		this.messageHandlers = messageHandlers;
 	}
 
 	protected void appendMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
@@ -109,6 +97,89 @@ public class AbstractSolutionBuilder {
 		return keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE;
 	}
 
+	protected Collection<ConfigSolutionPrimitive> makeIndependentKeyInputSolution(final PrimitiveConnection connection,
+			final PrimitiveKeyEventSource source) {
+		try {
+			final InputAddress inputAddress = source.getInput();
+			final PhysicallySensor sensor = registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress());
+			final KeySensor keySensor = (KeySensor) sensor;
+			final IndependentConfigurableSensor independentSensor = (IndependentConfigurableSensor) sensor;
+			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
+			ret.add(makeSoftwareEventSourceSolution(source, connection, keySensor));
+			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
+			ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
+
+				@Override
+				public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+						final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+					if (phase == ActivationPhase.EXECUTE)
+						try {
+							if (otherEndSolutionPrimitive instanceof HardwareKeyEventTargetSolutionPrimitive) {
+								final HardwareKeyEventTargetSolutionPrimitive keyTarget = (HardwareKeyEventTargetSolutionPrimitive) otherEndSolutionPrimitive;
+								switch (keyType) {
+								case ON:
+									independentSensor.setInputMode(InputMode.UP);
+									break;
+								case OFF:
+									independentSensor.setInputMode(InputMode.DOWN);
+									break;
+								case TOGGLE:
+									independentSensor.setInputMode(InputMode.TOGGLE);
+									break;
+								}
+								keySensor.addActor(registry.getActor(keyTarget.getDeviceAddress(), keyTarget.getOutputAddress()));
+							} else
+								throw new IllegalArgumentException("Cannot send Events to " + otherEndSolutionPrimitive.getClass().getName());
+						} catch (final IOException ex) {
+							throw new RuntimeException(ex);
+						}
+				}
+
+				@Override
+				public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
+					if (connection == otherSolution.getConnection())
+						return otherSolution instanceof HardwareKeyEventTargetSolutionPrimitive;
+					if (otherSolution instanceof HardwareKeyEventSourceSolutionPrimitive) {
+						final HardwareKeyEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareKeyEventSourceSolutionPrimitive) otherSolution;
+						if (otherHardwareEventSource.getDeviceAddress() == getDeviceAddress())
+							if (otherHardwareEventSource.getInputAddress() == getInputAddress())
+								return otherHardwareEventSource.getKeyType() == getKeyType();
+					}
+					return true;
+				}
+
+				@Override
+				public int cost() {
+					return 1;
+				}
+
+				@Override
+				public PrimitiveConnection getConnection() {
+					return connection;
+				}
+
+				@Override
+				public int getDeviceAddress() {
+					return inputAddress.getDeviceAddress();
+				}
+
+				@Override
+				public int getInputAddress() {
+					return inputAddress.getInputAddress();
+				}
+
+				@Override
+				public ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType getKeyType() {
+					return keyType;
+				}
+			});
+
+			return ret;
+		} catch (final IOException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
 	protected KeyEvent makeKeyEvent(final KeyMessage keyMessage,
 			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType) {
 		final KeyEvent event = new KeyEvent();
@@ -134,61 +205,30 @@ public class AbstractSolutionBuilder {
 			final PhysicallySensor sensor = registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress());
 			final KeySensor keySensor = (KeySensor) sensor;
 			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
-			ret.add(new SoftwareEventSourceSolutionPrimitive() {
-
-				@Override
-				public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive) {
-					try {
-						if (otherEndSolutionPrimitive instanceof SoftwareKeyEventTargetSolutionPrimtive) {
-							final SoftwareKeyEventTargetSolutionPrimtive eventTarget = (SoftwareKeyEventTargetSolutionPrimtive) otherEndSolutionPrimitive;
-							appendMessageHandler(keySensor, new MessageHandler() {
-
-								@Override
-								public void handleMessage(final KeyMessage keyMessage) {
-									final KeyEvent event = makeKeyEvent(keyMessage, source.getKeyType());
-									eventTarget.takeEvent(event);
-								}
-							});
-						} else
-							throw new IllegalArgumentException("Cannot send events to type " + otherEndSolutionPrimitive.getClass());
-					} catch (final IOException ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-
-				@Override
-				public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
-					if (connection == otherSolution.getConnection())
-						return otherSolution instanceof SoftwareKeyEventTargetSolutionPrimtive;
-					return true;
-				}
-
-				@Override
-				public int cost() {
-					return 10;
-				}
-
-				@Override
-				public PrimitiveConnection getConnection() {
-					return connection;
-				}
-			});
+			ret.add(makeSoftwareEventSourceSolution(source, connection, keySensor));
 			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
 			if (keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE
 					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON && inputAddress.getInputAddress() == 1
 					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF && inputAddress.getInputAddress() == 0)
-				ret.add(new HardwareEventSourceSolutionPrimitive() {
+				ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
 
 					@Override
-					public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive) {
+					public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+							final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
 						try {
 							if (otherEndSolutionPrimitive instanceof HardwareKeyEventTargetSolutionPrimitive) {
 								final HardwareKeyEventTargetSolutionPrimitive keyTarget = (HardwareKeyEventTargetSolutionPrimitive) otherEndSolutionPrimitive;
 								final PairedSensorDevice pairedDevice = (PairedSensorDevice) registry.getPhysicallyDevice(inputAddress.getDeviceAddress());
 								final PairMode pairMode = keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE ? PairMode.SPLIT
 										: PairMode.JOINT;
-								pairedDevice.setInputPairMode(0, pairMode);
-								keySensor.addActor(registry.getActor(keyTarget.getDeviceAddress(), pairMode == PairMode.SPLIT ? keyTarget.getOutputAddress() : 0));
+								switch (phase) {
+								case PREPARE:
+									pairedDevice.setInputPairMode(0, pairMode);
+									break;
+								case EXECUTE:
+									keySensor.addActor(registry.getActor(keyTarget.getDeviceAddress(), pairMode == PairMode.SPLIT ? keyTarget.getOutputAddress() : 0));
+									break;
+								}
 							} else
 								throw new IllegalArgumentException("Cannot send Events to " + otherEndSolutionPrimitive.getClass().getName());
 						} catch (final IOException ex) {
@@ -200,8 +240,8 @@ public class AbstractSolutionBuilder {
 					public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
 						if (connection == otherSolution.getConnection())
 							return otherSolution instanceof HardwareKeyEventTargetSolutionPrimitive;
-						if (otherSolution instanceof HardwareEventSourceSolutionPrimitive) {
-							final HardwareEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareEventSourceSolutionPrimitive) otherSolution;
+						if (otherSolution instanceof HardwareKeyEventSourceSolutionPrimitive) {
+							final HardwareKeyEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareKeyEventSourceSolutionPrimitive) otherSolution;
 							if (otherHardwareEventSource.getDeviceAddress() == getDeviceAddress())
 								return isKeyTypeToggle(otherHardwareEventSource.getKeyType()) == isKeyTypeToggle(getKeyType());
 						}
@@ -255,7 +295,9 @@ public class AbstractSolutionBuilder {
 			private final AtomicLong	offTime	= new AtomicLong(Long.MAX_VALUE);
 
 			@Override
-			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive) {
+			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+				// no activation task needed
 			}
 
 			@Override
@@ -316,22 +358,24 @@ public class AbstractSolutionBuilder {
 		ret.add(new TimerSettingOutputSolution() {
 
 			@Override
-			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive) {
-				try {
-					if (outputDeviceSink.getOffTime() != null) {
-						timedActor.setTimeMode(TimeMode.AUTO_OFF);
-						timedActor.setTimeValue(outputDeviceSink.getOffTime().intValue());
-					} else
-						timedActor.setTimeMode(TimeMode.NONE);
-				} catch (final IOException e) {
-					throw new RuntimeException(e);
-				}
+			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+				if (phase == ActivationPhase.EXECUTE)
+					try {
+						if (outputDeviceSink.getOffTime() != null) {
+							timedActor.setTimeMode(TimeMode.AUTO_OFF);
+							timedActor.setTimeValue(outputDeviceSink.getOffTime().intValue());
+						} else
+							timedActor.setTimeMode(TimeMode.NONE);
+					} catch (final IOException e) {
+						throw new RuntimeException(e);
+					}
 			}
 
 			@Override
 			public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
 				if (connection == otherSolution.getConnection())
-					return otherSolution instanceof HardwareEventSourceSolutionPrimitive;
+					return otherSolution instanceof HardwareKeyEventSourceSolutionPrimitive;
 				if (otherSolution instanceof TimerSettingOutputSolution) {
 					final TimerSettingOutputSolution timerSolution = (TimerSettingOutputSolution) otherSolution;
 					if (timerSolution.getOutputAddress() == getOutputAddress() && timerSolution.getDeviceAddress() == getDeviceAddress())
@@ -369,6 +413,51 @@ public class AbstractSolutionBuilder {
 			}
 		});
 		return ret;
+	}
+
+	private SoftwareEventSourceSolutionPrimitive makeSoftwareEventSourceSolution(final PrimitiveKeyEventSource source,
+			final PrimitiveConnection connection, final KeySensor keySensor) {
+		return new SoftwareEventSourceSolutionPrimitive() {
+
+			@Override
+			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+				if (phase == ActivationPhase.EXECUTE)
+					try {
+						if (otherEndSolutionPrimitive instanceof SoftwareKeyEventTargetSolutionPrimtive) {
+							final SoftwareKeyEventTargetSolutionPrimtive eventTarget = (SoftwareKeyEventTargetSolutionPrimtive) otherEndSolutionPrimitive;
+							appendMessageHandler(keySensor, new MessageHandler() {
+
+								@Override
+								public void handleMessage(final KeyMessage keyMessage) {
+									final KeyEvent event = makeKeyEvent(keyMessage, source.getKeyType());
+									eventTarget.takeEvent(event);
+								}
+							});
+						} else
+							throw new IllegalArgumentException("Cannot send events to type " + otherEndSolutionPrimitive.getClass());
+					} catch (final IOException ex) {
+						throw new RuntimeException(ex);
+					}
+			}
+
+			@Override
+			public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
+				if (connection == otherSolution.getConnection())
+					return otherSolution instanceof SoftwareKeyEventTargetSolutionPrimtive;
+				return true;
+			}
+
+			@Override
+			public int cost() {
+				return 10;
+			}
+
+			@Override
+			public PrimitiveConnection getConnection() {
+				return connection;
+			}
+		};
 	}
 
 }

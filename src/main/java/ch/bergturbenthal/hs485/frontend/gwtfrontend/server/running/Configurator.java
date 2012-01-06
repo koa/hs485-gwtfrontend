@@ -18,6 +18,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.Pri
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveOutputDeviceKeyEventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.ConfigSolutionPrimitive;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.DistributingMessageHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485DSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485SSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.SolutionBuilder;
@@ -29,6 +30,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.KeyPairEve
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType;
+import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.physically.HS485D;
 import ch.eleveneye.hs485.device.physically.HS485S;
@@ -80,8 +82,9 @@ public class Configurator {
 
 	public Configurator(final Registry registry, final ScheduledExecutorService executorService) {
 		this.registry = registry;
-		solutionBuilders.put(HS485S.class, new HS485SSolutionBuilder(registry, executorService));
-		solutionBuilders.put(HS485D.class, new HS485DSolutionBuilder(registry, executorService));
+		final HashMap<KeySensor, DistributingMessageHandler> messageHandlers = new HashMap<KeySensor, DistributingMessageHandler>();
+		solutionBuilders.put(HS485S.class, new HS485SSolutionBuilder(registry, executorService, messageHandlers));
+		solutionBuilders.put(HS485D.class, new HS485DSolutionBuilder(registry, executorService, messageHandlers));
 	}
 
 	public void appendAction(final Action<? extends Event> action) {
@@ -119,10 +122,17 @@ public class Configurator {
 		findBestSolution(0, 0, currentSolution, availableVariants);
 		if (currentBestSolutionCost == Integer.MAX_VALUE)
 			throw new RuntimeException("No Solution found");
+		final ArrayList<ConfigSolutionPrimitive> allSelectedPrimitives = new ArrayList<ConfigSolutionPrimitive>(currentBestSolution.length * 2);
 		for (final AvailableConnectionConfiguration configuration : currentBestSolution) {
-			configuration.sourceSolution.activateSolution(configuration.targetSolution);
-			configuration.targetSolution.activateSolution(configuration.sourceSolution);
+			allSelectedPrimitives.add(configuration.sourceSolution);
+			allSelectedPrimitives.add(configuration.targetSolution);
 		}
+		for (final ConfigSolutionPrimitive.ActivationPhase phase : new ConfigSolutionPrimitive.ActivationPhase[] {
+				ConfigSolutionPrimitive.ActivationPhase.PREPARE, ConfigSolutionPrimitive.ActivationPhase.EXECUTE })
+			for (final AvailableConnectionConfiguration configuration : currentBestSolution) {
+				configuration.sourceSolution.activateSolution(configuration.targetSolution, phase, allSelectedPrimitives);
+				configuration.targetSolution.activateSolution(configuration.sourceSolution, phase, allSelectedPrimitives);
+			}
 		logger.info("Solution Cost: " + currentBestSolutionCost);
 	}
 

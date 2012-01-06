@@ -11,9 +11,9 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.Pri
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 
-public class HS485DSolutionBuilder extends AbstractSolutionBuilder implements SolutionBuilder {
+public class IO127SolutionBuilder extends AbstractSolutionBuilder implements SolutionBuilder {
 
-	public HS485DSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService,
+	public IO127SolutionBuilder(final Registry registry, final ScheduledExecutorService executorService,
 			final Map<KeySensor, DistributingMessageHandler> messageHandlers) {
 		super(registry, executorService, messageHandlers);
 	}
@@ -33,7 +33,7 @@ public class HS485DSolutionBuilder extends AbstractSolutionBuilder implements So
 	@Override
 	public Collection<ConfigSolutionPrimitive> makeSourceSolutionVariants(final PrimitiveConnection connection) {
 		if (connection.getSource() instanceof PrimitiveKeyEventSource)
-			return makeKeyPairInputSolution(connection, (PrimitiveKeyEventSource) connection.getSource());
+			return makeIndependentKeyInputSolution(connection, (PrimitiveKeyEventSource) connection.getSource());
 		else
 			throw new IllegalArgumentException("Cannot take Event-Source of Type " + connection.getSource().getClass());
 	}

@@ -2,17 +2,20 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveConnection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveOutputDeviceKeyEventSink;
+import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 
 public class HS485SSolutionBuilder extends AbstractSolutionBuilder implements SolutionBuilder {
 
-	public HS485SSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService) {
-		super(registry, executorService);
+	public HS485SSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService,
+			final Map<KeySensor, DistributingMessageHandler> messageHandlers) {
+		super(registry, executorService, messageHandlers);
 	}
 
 	@Override
