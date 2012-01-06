@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -43,7 +42,6 @@ import ch.eleveneye.hs485.device.physically.PairableSensor;
 import ch.eleveneye.hs485.device.physically.PairedSensorDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
-import ch.eleveneye.hs485.device.utils.AbstractDevice;
 
 @Service
 public class BuildingService {
@@ -79,17 +77,20 @@ public class BuildingService {
 
 				@Override
 				public Void call() throws Exception {
-					final EventTypeManager eventTypeManager = new EventTypeManager(hs485registry);
-					hs485registry.resetAllDevices();
-					if (plan != null)
-						for (final Action action : plan.getActions())
-							eventTypeManager.applyAction(action);
-					for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
-						if (device instanceof AbstractDevice) {
-							final AbstractDevice abstractDevice = (AbstractDevice) device;
-							logger.info("Device: " + abstractDevice);
-							abstractDevice.dumpVariables();
-						}
+
+					// final EventTypeManager eventTypeManager = new
+					// EventTypeManager(hs485registry);
+					// hs485registry.resetAllDevices();
+					// if (plan != null)
+					// for (final Action action : plan.getActions())
+					// eventTypeManager.applyAction(action);
+					// for (final PhysicallyDevice device :
+					// hs485registry.listPhysicalDevices())
+					// if (device instanceof AbstractDevice) {
+					// final AbstractDevice abstractDevice = (AbstractDevice) device;
+					// logger.info("Device: " + abstractDevice);
+					// abstractDevice.dumpVariables();
+					// }
 					return null;
 				}
 			});

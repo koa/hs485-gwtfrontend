@@ -59,6 +59,18 @@ public class ActorKeySinkImplementation implements EventSinkImplementation<KeyEv
 
 	@Override
 	public void takeEvent(final KeyEvent event) {
+		final KeyMessage keyMessage = convertEventToMessage(event);
+		if (keyMessage != null && keyActor != null)
+			try {
+				logger.info("Sending Message " + keyMessage + " to " + keyActor);
+				keyActor.sendKeyMessage(keyMessage);
+			} catch (final IOException e) {
+				logger.warn("Cannot send Key " + keyMessage + "to Receiver");
+				throw new RuntimeException("Cannot Send Message " + keyMessage, e);
+			}
+	}
+
+	private KeyMessage convertEventToMessage(final KeyEvent event) {
 		logger.info("Acepting Key:" + event);
 		final KeyMessage keyMessage = new KeyMessage();
 		switch (event.getEventType()) {
@@ -73,7 +85,7 @@ public class ActorKeySinkImplementation implements EventSinkImplementation<KeyEv
 			break;
 		default:
 			logger.error("Unknown EventType: " + event.getEventType());
-			return;
+			return null;
 		}
 		switch (event.getKeyType()) {
 		case ON:
@@ -87,17 +99,10 @@ public class ActorKeySinkImplementation implements EventSinkImplementation<KeyEv
 			break;
 		default:
 			logger.error("Unknown KeyType: " + event.getKeyType());
-			return;
+			return null;
 		}
 		keyMessage.setHitCount(event.getHitCount());
-		if (keyActor != null)
-			try {
-				logger.info("Sending Message " + keyMessage + " to " + keyActor);
-				keyActor.sendKeyMessage(keyMessage);
-			} catch (final IOException e) {
-				logger.warn("Cannot send Key " + keyMessage + "to Receiver");
-				throw new RuntimeException("Cannot Send Message " + keyMessage, e);
-			}
+		return keyMessage;
 	}
 
 }
