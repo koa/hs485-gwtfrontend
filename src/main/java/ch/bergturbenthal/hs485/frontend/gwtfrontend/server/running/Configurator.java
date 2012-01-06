@@ -3,6 +3,8 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -21,12 +23,15 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.Conf
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.DistributingMessageHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485DSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485SSolutionBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.IO127SolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.SolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ActorKeySink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.KeyPairEventSource;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.PirKeyEventSource;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ToggleKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType;
@@ -34,6 +39,7 @@ import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.physically.HS485D;
 import ch.eleveneye.hs485.device.physically.HS485S;
+import ch.eleveneye.hs485.device.physically.IO127;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 
 public class Configurator {
@@ -85,6 +91,7 @@ public class Configurator {
 		final HashMap<KeySensor, DistributingMessageHandler> messageHandlers = new HashMap<KeySensor, DistributingMessageHandler>();
 		solutionBuilders.put(HS485S.class, new HS485SSolutionBuilder(registry, executorService, messageHandlers));
 		solutionBuilders.put(HS485D.class, new HS485DSolutionBuilder(registry, executorService, messageHandlers));
+		solutionBuilders.put(IO127.class, new IO127SolutionBuilder(registry, executorService, messageHandlers));
 	}
 
 	public void appendAction(final Action<? extends Event> action) {
@@ -107,6 +114,22 @@ public class Configurator {
 						offEventSource.setInput(keyPairEventSource.getOffInputConnector().getAddress());
 						appendSinks(action, offEventSource);
 					}
+				} else if (source instanceof ToggleKeyEventSource) {
+					final ToggleKeyEventSource toggleKeyEventSource = (ToggleKeyEventSource) source;
+					if (toggleKeyEventSource.getInputConnector() != null && toggleKeyEventSource.getInputConnector().getAddress() != null) {
+						final PrimitiveKeyEventSource onEventSource = new PrimitiveKeyEventSource();
+						onEventSource.setKeyType(KeyType.TOGGLE);
+						onEventSource.setInput(toggleKeyEventSource.getInputConnector().getAddress());
+						appendSinks(action, onEventSource);
+					}
+				} else if (source instanceof PirKeyEventSource) {
+					final PirKeyEventSource pirKeyEventSource = (PirKeyEventSource) source;
+					if (pirKeyEventSource.getInputConnector() != null && pirKeyEventSource.getInputConnector().getAddress() != null) {
+						final PrimitiveKeyEventSource onEventSource = new PrimitiveKeyEventSource();
+						onEventSource.setKeyType(KeyType.ON);
+						onEventSource.setInput(pirKeyEventSource.getInputConnector().getAddress());
+						appendSinks(action, onEventSource);
+					}
 				} else
 					throw new RuntimeException("Event source type " + source.getClass() + " unknown");
 		} else
@@ -119,6 +142,12 @@ public class Configurator {
 				variantsPerConnection.values());
 		currentBestSolutionCost = Integer.MAX_VALUE;
 		currentBestSolution = new AvailableConnectionConfiguration[variantsPerConnection.size()];
+		logger.info("Connections: " + availableVariants.size());
+		int mutations = 1;
+		for (final Collection<AvailableConnectionConfiguration> variants : availableVariants)
+			if (variants.size() > 0)
+				mutations *= variants.size();
+		logger.info("Mutations: " + mutations);
 		findBestSolution(0, 0, currentSolution, availableVariants);
 		if (currentBestSolutionCost == Integer.MAX_VALUE)
 			throw new RuntimeException("No Solution found");
@@ -169,6 +198,13 @@ public class Configurator {
 				if (availableConnectionConfiguration.checkInternCoexistence())
 					ret.add(availableConnectionConfiguration);
 			}
+		Collections.sort(ret, new Comparator<AvailableConnectionConfiguration>() {
+
+			@Override
+			public int compare(final AvailableConnectionConfiguration o1, final AvailableConnectionConfiguration o2) {
+				return Integer.valueOf(o1.costOfConfiguration()).compareTo(Integer.valueOf(o2.costOfConfiguration()));
+			}
+		});
 		ret.trimToSize();
 		if (ret.isEmpty())
 			throw new RuntimeException("Cannot find any Resolution for Connection " + connection);

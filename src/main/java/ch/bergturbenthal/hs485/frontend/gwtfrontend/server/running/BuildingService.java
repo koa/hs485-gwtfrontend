@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,7 @@ import ch.eleveneye.hs485.device.physically.PairableSensor;
 import ch.eleveneye.hs485.device.physically.PairedSensorDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
+import ch.eleveneye.hs485.device.utils.AbstractDevice;
 
 @Service
 public class BuildingService {
@@ -68,8 +71,9 @@ public class BuildingService {
 	}
 
 	@Autowired
-	private Registry			hs485registry;
-	private static Logger	logger	= LoggerFactory.getLogger(BuildingService.class);
+	private Registry										hs485registry;
+	protected ScheduledExecutorService	executorService	= Executors.newScheduledThreadPool(2);
+	private static Logger								logger					= LoggerFactory.getLogger(BuildingService.class);
 
 	public void activatePlan(final Plan plan) {
 		try {
@@ -77,20 +81,23 @@ public class BuildingService {
 
 				@Override
 				public Void call() throws Exception {
-
+					final Configurator configurator = new Configurator(hs485registry, executorService);
+					for (final Action action : plan.getActions())
+						configurator.appendAction(action);
+					hs485registry.resetAllDevices();
+					configurator.applyConfiguration();
 					// final EventTypeManager eventTypeManager = new
 					// EventTypeManager(hs485registry);
 					// hs485registry.resetAllDevices();
 					// if (plan != null)
 					// for (final Action action : plan.getActions())
 					// eventTypeManager.applyAction(action);
-					// for (final PhysicallyDevice device :
-					// hs485registry.listPhysicalDevices())
-					// if (device instanceof AbstractDevice) {
-					// final AbstractDevice abstractDevice = (AbstractDevice) device;
-					// logger.info("Device: " + abstractDevice);
-					// abstractDevice.dumpVariables();
-					// }
+					for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
+						if (device instanceof AbstractDevice) {
+							final AbstractDevice abstractDevice = (AbstractDevice) device;
+							logger.info("Device: " + abstractDevice);
+							abstractDevice.dumpVariables();
+						}
 					return null;
 				}
 			});

@@ -39,7 +39,7 @@ public class AbstractSolutionBuilder {
 
 	private final Map<KeySensor, DistributingMessageHandler>	messageHandlers;
 	protected final Registry																	registry;
-	private static final Logger																logger	= LoggerFactory.getLogger(HS485SSolutionBuilder.class);
+	private static final Logger																logger	= LoggerFactory.getLogger(AbstractSolutionBuilder.class);
 	protected final ScheduledExecutorService									executorService;
 
 	public AbstractSolutionBuilder(final Registry registry, final ScheduledExecutorService executorService,
@@ -59,7 +59,6 @@ public class AbstractSolutionBuilder {
 	}
 
 	protected KeyMessage convertEventToMessage(final KeyEvent event) {
-		logger.info("Acepting Key:" + event);
 		final KeyMessage keyMessage = new KeyMessage();
 		switch (event.getEventType()) {
 		case DOWN:
@@ -202,11 +201,12 @@ public class AbstractSolutionBuilder {
 	protected Collection<ConfigSolutionPrimitive> makeKeyPairInputSolution(final PrimitiveConnection connection, final PrimitiveKeyEventSource source) {
 		try {
 			final InputAddress inputAddress = source.getInput();
-			final PhysicallySensor sensor = registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress());
+			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
+			final PhysicallySensor sensor = registry.getPhysicallySensor(inputAddress.getDeviceAddress(),
+					isKeyTypeToggle(keyType) ? inputAddress.getInputAddress() : 0);
 			final KeySensor keySensor = (KeySensor) sensor;
 			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
 			ret.add(makeSoftwareEventSourceSolution(source, connection, keySensor));
-			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
 			if (keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE
 					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON && inputAddress.getInputAddress() == 1
 					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF && inputAddress.getInputAddress() == 0)
@@ -226,7 +226,8 @@ public class AbstractSolutionBuilder {
 									pairedDevice.setInputPairMode(0, pairMode);
 									break;
 								case EXECUTE:
-									keySensor.addActor(registry.getActor(keyTarget.getDeviceAddress(), pairMode == PairMode.SPLIT ? keyTarget.getOutputAddress() : 0));
+									final Actor actor = registry.getActor(keyTarget.getDeviceAddress(), keyTarget.getOutputAddress());
+									keySensor.addActor(actor);
 									break;
 								}
 							} else
@@ -318,7 +319,7 @@ public class AbstractSolutionBuilder {
 
 			@Override
 			public int cost() {
-				return 10;
+				return 100;
 			}
 
 			@Override
@@ -347,6 +348,7 @@ public class AbstractSolutionBuilder {
 						}, offDelay, TimeUnit.SECONDS);
 					} else
 						offTime.set(Long.MAX_VALUE);
+					logger.info("Accepting Key:" + event + " for " + keyActor);
 					keyActor.sendKeyMessage(convertEventToMessage(event));
 				} catch (final IOException e) {
 					throw new RuntimeException(e);
@@ -450,7 +452,7 @@ public class AbstractSolutionBuilder {
 
 			@Override
 			public int cost() {
-				return 10;
+				return 100;
 			}
 
 			@Override
