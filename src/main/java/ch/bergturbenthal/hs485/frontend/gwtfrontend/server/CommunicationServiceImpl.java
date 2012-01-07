@@ -39,6 +39,8 @@ import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.SwitchingActor;
 import ch.eleveneye.hs485.device.TFSensor;
 import ch.eleveneye.hs485.device.TimedActor;
+import ch.eleveneye.hs485.device.config.ConfigurableInputDescription;
+import ch.eleveneye.hs485.device.config.ConfigurableOutputDescription;
 import ch.eleveneye.hs485.device.physically.Actor;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
@@ -122,14 +124,16 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	public Map<InputAddress, InputDescription> listInputDevices() {
 		try {
 			final HashMap<InputAddress, InputDescription> ret = new HashMap<InputAddress, InputDescription>();
-			for (final PhysicallySensor sensor : hs485registry.listPhysicallySensors()) {
-				final InputDescription inputDescription = new InputDescription();
-				inputDescription.setKeySensor(sensor instanceof KeySensor);
-				final boolean isTfs = sensor instanceof TFSensor;
-				inputDescription.setHumiditySensor(isTfs);
-				inputDescription.setTemperatureSensor(isTfs);
-				ret.put(new InputAddress(sensor.getModuleAddr(), sensor.getSensorNr()), inputDescription);
-			}
+			for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
+				for (final ConfigurableInputDescription input : device.listConfigurableInputs()) {
+					final InputDescription inputDescription = new InputDescription();
+					inputDescription.setKeySensor(KeySensor.class.isAssignableFrom(input.getImplementionSensor()));
+					final boolean isTfs = TFSensor.class.isAssignableFrom(input.getImplementionSensor());
+					inputDescription.setHumiditySensor(isTfs);
+					inputDescription.setTemperatureSensor(isTfs);
+					inputDescription.setConnectionLabel(input.getLabeledName());
+					ret.put(new InputAddress(device.getAddress(), input.getSensorNr()), inputDescription);
+				}
 			return ret;
 		} catch (final Exception e) {
 			logger.warn("Error listing sensors", e);
@@ -256,17 +260,19 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 				return outputTable;
 			outputTable = new HashMap<OutputAddress, CommunicationServiceImpl.OutputData>();
 			try {
-				for (final Actor actor : hs485registry.listPhysicallyActors()) {
-					final OutputDescription description = new OutputDescription();
-					description.setHasSwitch(Boolean.valueOf(actor instanceof SwitchingActor));
-					description.setHasTimer(Boolean.valueOf(actor instanceof TimedActor));
-					description.setIsDimmer(Boolean.valueOf(actor instanceof Dimmer));
-					final OutputAddress address = new OutputAddress(actor.getModuleAddr(), actor.getActorNr());
-					final OutputData outputData = new OutputData();
-					outputData.actor = actor;
-					outputData.outputDescription = description;
-					outputTable.put(address, outputData);
-				}
+				for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
+					for (final ConfigurableOutputDescription output : device.listConfigurableOutputs()) {
+						final OutputDescription description = new OutputDescription();
+						description.setHasSwitch(Boolean.valueOf(SwitchingActor.class.isAssignableFrom(output.getImplementingActor())));
+						description.setHasTimer(Boolean.valueOf(TimedActor.class.isAssignableFrom(output.getImplementingActor())));
+						description.setIsDimmer(Boolean.valueOf(Dimmer.class.isAssignableFrom(output.getImplementingActor())));
+						description.setConnectionLabel(output.getLabeledName());
+						final OutputAddress address = new OutputAddress(device.getAddress(), output.getActorNr());
+						final OutputData outputData = new OutputData();
+						outputData.actor = hs485registry.getActor(device.getAddress(), output.getActorNr());
+						outputData.outputDescription = description;
+						outputTable.put(address, outputData);
+					}
 				return outputTable;
 			} catch (final Exception e) {
 				outputTable = null;

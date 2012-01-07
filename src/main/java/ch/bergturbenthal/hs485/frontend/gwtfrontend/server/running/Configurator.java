@@ -2,13 +2,17 @@ package ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
@@ -76,15 +80,15 @@ public class Configurator {
 		return solution2.canCoexistWith(solution1);
 	}
 
-	private final Map<PrimitiveConnection, Collection<AvailableConnectionConfiguration>>	variantsPerConnection	= new IdentityHashMap<PrimitiveConnection, Collection<AvailableConnectionConfiguration>>();
+	private final List<Collection<AvailableConnectionConfiguration>>			existingVariants	= new ArrayList<Collection<AvailableConnectionConfiguration>>();
 
-	private final Map<Class<? extends PhysicallyDevice>, SolutionBuilder>									solutionBuilders			= new HashMap<Class<? extends PhysicallyDevice>, SolutionBuilder>();
+	private final Map<Class<? extends PhysicallyDevice>, SolutionBuilder>	solutionBuilders	= new HashMap<Class<? extends PhysicallyDevice>, SolutionBuilder>();
 
-	private final Registry																																registry;
+	private final Registry																								registry;
 
-	private int																																						currentBestSolutionCost;
+	private int																														currentBestSolutionCost;
 
-	private AvailableConnectionConfiguration[]																						currentBestSolution;
+	private AvailableConnectionConfiguration[]														currentBestSolution;
 
 	public Configurator(final Registry registry, final ScheduledExecutorService executorService) {
 		this.registry = registry;
@@ -137,36 +141,72 @@ public class Configurator {
 	}
 
 	public void applyConfiguration() {
-		final AvailableConnectionConfiguration[] currentSolution = new AvailableConnectionConfiguration[variantsPerConnection.size()];
-		final List<Collection<AvailableConnectionConfiguration>> availableVariants = new ArrayList<Collection<AvailableConnectionConfiguration>>(
-				variantsPerConnection.values());
-		currentBestSolutionCost = Integer.MAX_VALUE;
-		currentBestSolution = new AvailableConnectionConfiguration[variantsPerConnection.size()];
-		logger.info("Connections: " + availableVariants.size());
-		int mutations = 1;
-		for (final Collection<AvailableConnectionConfiguration> variants : availableVariants)
-			if (variants.size() > 0)
-				mutations *= variants.size();
-		logger.info("Mutations: " + mutations);
-		findBestSolution(0, 0, currentSolution, availableVariants);
-		if (currentBestSolutionCost == Integer.MAX_VALUE)
-			throw new RuntimeException("No Solution found");
-		final ArrayList<ConfigSolutionPrimitive> allSelectedPrimitives = new ArrayList<ConfigSolutionPrimitive>(currentBestSolution.length * 2);
-		for (final AvailableConnectionConfiguration configuration : currentBestSolution) {
+		final Map<AvailableConnectionConfiguration, Set<AvailableConnectionConfiguration>> coexistanceErrors = new IdentityHashMap<Configurator.AvailableConnectionConfiguration, Set<AvailableConnectionConfiguration>>();
+		final Collection<List<Collection<AvailableConnectionConfiguration>>> variantClusters = new LinkedList<List<Collection<AvailableConnectionConfiguration>>>();
+		for (final Collection<AvailableConnectionConfiguration> variants : existingVariants) {
+			final List<Collection<AvailableConnectionConfiguration>> singletonCluster = new LinkedList<Collection<AvailableConnectionConfiguration>>();
+			singletonCluster.add(variants);
+			variantClusters.add(singletonCluster);
+		}
+		int totalCount = 0;
+		int errorCount = 0;
+		logger.info("Cluster count before: " + variantClusters.size());
+		logger.info("Start checking dependencies");
+		for (int i = 1; i < existingVariants.size(); i++) {
+			final Collection<AvailableConnectionConfiguration> outerVariants = existingVariants.get(i);
+			for (int j = 0; j < i; j++) {
+				final Collection<AvailableConnectionConfiguration> innerVariants = existingVariants.get(j);
+				for (final AvailableConnectionConfiguration outerVariant : outerVariants)
+					for (final AvailableConnectionConfiguration innerVariant : innerVariants) {
+						totalCount += 1;
+						if (!outerVariant.checkCoexistenceTo(innerVariant)) {
+							appendCoexistanceError(coexistanceErrors, outerVariant, innerVariant);
+							appendCoexistanceError(coexistanceErrors, innerVariant, outerVariant);
+							errorCount += 1;
+							mergeClusters(variantClusters, outerVariant, innerVariant);
+						}
+					}
+			}
+		}
+		logger.info("Dependencies checked: " + totalCount + " combinations with " + errorCount + " unavailable denpencies");
+		logger.info("Cluster count after: " + variantClusters.size());
+
+		final Collection<AvailableConnectionConfiguration> solution = new ArrayList<Configurator.AvailableConnectionConfiguration>(
+				existingVariants.size());
+
+		for (final List<Collection<AvailableConnectionConfiguration>> cluster : variantClusters)
+			solution.addAll(findBestClusterSolution(cluster, coexistanceErrors));
+		logger.info("best Solution found");
+		final Collection<ConfigSolutionPrimitive> allSelectedPrimitives = new ArrayList<ConfigSolutionPrimitive>(solution.size() * 2);
+		for (final AvailableConnectionConfiguration configuration : solution) {
 			allSelectedPrimitives.add(configuration.sourceSolution);
 			allSelectedPrimitives.add(configuration.targetSolution);
 		}
 		for (final ConfigSolutionPrimitive.ActivationPhase phase : new ConfigSolutionPrimitive.ActivationPhase[] {
 				ConfigSolutionPrimitive.ActivationPhase.PREPARE, ConfigSolutionPrimitive.ActivationPhase.EXECUTE })
-			for (final AvailableConnectionConfiguration configuration : currentBestSolution) {
+			for (final AvailableConnectionConfiguration configuration : solution) {
 				configuration.sourceSolution.activateSolution(configuration.targetSolution, phase, allSelectedPrimitives);
 				configuration.targetSolution.activateSolution(configuration.sourceSolution, phase, allSelectedPrimitives);
+
 			}
-		logger.info("Solution Cost: " + currentBestSolutionCost);
+
+	}
+
+	private void appendCoexistanceError(final Map<AvailableConnectionConfiguration, Set<AvailableConnectionConfiguration>> coexistanceErrors,
+			final AvailableConnectionConfiguration variant1, final AvailableConnectionConfiguration variant2) {
+		final Set<AvailableConnectionConfiguration> innerSet = coexistanceErrors.get(variant1);
+		if (innerSet == null) {
+			final HashSet<AvailableConnectionConfiguration> newSet = new HashSet<Configurator.AvailableConnectionConfiguration>();
+			newSet.add(variant2);
+			coexistanceErrors.put(variant1, newSet);
+		} else
+			innerSet.add(variant2);
 	}
 
 	private void appendConnection(final PrimitiveConnection connection) {
-		variantsPerConnection.put(connection, buildVariants(connection));
+		final Collection<AvailableConnectionConfiguration> builtVariants = buildVariants(connection);
+		if (builtVariants.size() > 0)
+			existingVariants.add(builtVariants);
 	}
 
 	private void appendSinks(final Action<? extends Event> action, final PrimitiveKeyEventSource eventSource) {
@@ -211,18 +251,30 @@ public class Configurator {
 		return ret;
 	}
 
+	private Collection<AvailableConnectionConfiguration> findBestClusterSolution(final List<Collection<AvailableConnectionConfiguration>> cluster,
+			final Map<AvailableConnectionConfiguration, Set<AvailableConnectionConfiguration>> coexistanceErrors) {
+		final AvailableConnectionConfiguration[] currentSolution = new AvailableConnectionConfiguration[cluster.size()];
+		currentBestSolutionCost = Integer.MAX_VALUE;
+		currentBestSolution = new AvailableConnectionConfiguration[cluster.size()];
+		findBestSolution(0, 0, currentSolution, cluster, coexistanceErrors);
+		return Arrays.asList(currentBestSolution);
+	}
+
 	private void findBestSolution(final int currentIndex, final int costUntilHere, final AvailableConnectionConfiguration[] currentSolution,
-			final List<Collection<AvailableConnectionConfiguration>> availableVariants) {
+			final List<Collection<AvailableConnectionConfiguration>> availableVariants,
+			final Map<AvailableConnectionConfiguration, Set<AvailableConnectionConfiguration>> coexistanceErrors) {
 		configurations: for (final AvailableConnectionConfiguration connectionConfiguration : availableVariants.get(currentIndex)) {
-			for (int i = 0; i < currentIndex; i++)
-				if (!connectionConfiguration.checkCoexistenceTo(currentSolution[i]))
-					continue configurations;
+			final Set<AvailableConnectionConfiguration> errorSetOfConnection = coexistanceErrors.get(connectionConfiguration);
+			if (errorSetOfConnection != null)
+				for (int i = 0; i < currentIndex; i++)
+					if (errorSetOfConnection.contains(currentSolution[i]))
+						continue configurations;
 			currentSolution[currentIndex] = connectionConfiguration;
 			final int nextCost = costUntilHere + connectionConfiguration.costOfConfiguration();
 			if (nextCost >= currentBestSolutionCost)
 				continue configurations;
 			if (currentIndex < currentSolution.length - 1)
-				findBestSolution(currentIndex + 1, nextCost, currentSolution, availableVariants);
+				findBestSolution(currentIndex + 1, nextCost, currentSolution, availableVariants, coexistanceErrors);
 			else {
 				currentBestSolutionCost = nextCost;
 				System.arraycopy(currentSolution, 0, currentBestSolution, 0, currentSolution.length);
@@ -265,5 +317,25 @@ public class Configurator {
 		} catch (final IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void mergeClusters(final Collection<List<Collection<AvailableConnectionConfiguration>>> variantClusters,
+			final AvailableConnectionConfiguration outerVariant, final AvailableConnectionConfiguration innerVariant) {
+		Collection<Collection<AvailableConnectionConfiguration>> innerClusterHit = null;
+		Collection<Collection<AvailableConnectionConfiguration>> outerClusterHit = null;
+		for (final Collection<Collection<AvailableConnectionConfiguration>> cluster : variantClusters)
+			for (final Collection<AvailableConnectionConfiguration> clusterMember : cluster) {
+				if (innerClusterHit == null && clusterMember.contains(innerVariant))
+					innerClusterHit = cluster;
+				if (outerClusterHit == null && clusterMember.contains(outerVariant))
+					outerClusterHit = cluster;
+				if (innerClusterHit != null && outerClusterHit != null) {
+					if (innerClusterHit != outerClusterHit) {
+						variantClusters.remove(innerClusterHit);
+						outerClusterHit.addAll(innerClusterHit);
+					}
+					return;
+				}
+			}
 	}
 }

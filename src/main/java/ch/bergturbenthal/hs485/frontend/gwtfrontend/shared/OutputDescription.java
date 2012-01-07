@@ -6,6 +6,11 @@ public class OutputDescription implements IsSerializable {
 	private Boolean	hasSwitch;
 	private Boolean	hasTimer;
 	private Boolean	isDimmer;
+	private String	connectionLabel;
+
+	public String getConnectionLabel() {
+		return connectionLabel;
+	}
 
 	public Boolean getHasSwitch() {
 		return hasSwitch;
@@ -17,6 +22,10 @@ public class OutputDescription implements IsSerializable {
 
 	public Boolean getIsDimmer() {
 		return isDimmer;
+	}
+
+	public void setConnectionLabel(final String connectionLabel) {
+		this.connectionLabel = connectionLabel;
 	}
 
 	public void setHasSwitch(final Boolean hasSwitch) {

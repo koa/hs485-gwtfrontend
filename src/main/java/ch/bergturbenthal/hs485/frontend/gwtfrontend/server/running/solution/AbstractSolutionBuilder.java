@@ -202,14 +202,12 @@ public class AbstractSolutionBuilder {
 		try {
 			final InputAddress inputAddress = source.getInput();
 			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
-			final PhysicallySensor sensor = registry.getPhysicallySensor(inputAddress.getDeviceAddress(),
-					isKeyTypeToggle(keyType) ? inputAddress.getInputAddress() : 0);
-			final KeySensor keySensor = (KeySensor) sensor;
 			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
-			ret.add(makeSoftwareEventSourceSolution(source, connection, keySensor));
+			ret.add(makeSoftwareEventSourceSolution(source, connection,
+					(KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress())));
 			if (keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE
-					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON && inputAddress.getInputAddress() == 1
-					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF && inputAddress.getInputAddress() == 0)
+					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON && inputAddress.getInputAddress() == 0
+					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF && inputAddress.getInputAddress() == 1)
 				ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
 
 					@Override
@@ -227,7 +225,8 @@ public class AbstractSolutionBuilder {
 									break;
 								case EXECUTE:
 									final Actor actor = registry.getActor(keyTarget.getDeviceAddress(), keyTarget.getOutputAddress());
-									keySensor.addActor(actor);
+									((KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(),
+											isKeyTypeToggle(keyType) ? inputAddress.getInputAddress() : 0)).addActor(actor);
 									break;
 								}
 							} else

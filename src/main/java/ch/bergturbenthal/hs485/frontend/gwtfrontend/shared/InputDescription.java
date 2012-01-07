@@ -6,6 +6,11 @@ public class InputDescription implements IsSerializable {
 	private boolean	humiditySensor;
 	private boolean	keySensor;
 	private boolean	temperatureSensor;
+	private String	connectionLabel;
+
+	public String getConnectionLabel() {
+		return connectionLabel;
+	}
 
 	public boolean isHumiditySensor() {
 		return humiditySensor;
@@ -17,6 +22,10 @@ public class InputDescription implements IsSerializable {
 
 	public boolean isTemperatureSensor() {
 		return temperatureSensor;
+	}
+
+	public void setConnectionLabel(final String connectionLabel) {
+		this.connectionLabel = connectionLabel;
 	}
 
 	public void setHumiditySensor(final boolean humiditySensor) {
