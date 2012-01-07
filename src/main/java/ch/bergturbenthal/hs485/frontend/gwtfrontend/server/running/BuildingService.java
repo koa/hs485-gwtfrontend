@@ -82,10 +82,12 @@ public class BuildingService {
 				@Override
 				public Void call() throws Exception {
 					final Configurator configurator = new Configurator(hs485registry, executorService);
-					for (final Action action : plan.getActions())
-						configurator.appendAction(action);
 					hs485registry.resetAllDevices();
-					configurator.applyConfiguration();
+					if (plan != null) {
+						for (final Action action : plan.getActions())
+							configurator.appendAction(action);
+						configurator.applyConfiguration();
+					}
 					// final EventTypeManager eventTypeManager = new
 					// EventTypeManager(hs485registry);
 					// hs485registry.resetAllDevices();
