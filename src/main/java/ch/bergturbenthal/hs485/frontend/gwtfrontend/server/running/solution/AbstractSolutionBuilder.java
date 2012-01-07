@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveConnection;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveOutputDeviceKeyEventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
@@ -205,9 +206,9 @@ public class AbstractSolutionBuilder {
 			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
 			ret.add(makeSoftwareEventSourceSolution(source, connection,
 					(KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress())));
-			if (keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE
-					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON && inputAddress.getInputAddress() == 0
-					|| keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF && inputAddress.getInputAddress() == 1)
+			if (isKeyTypeToggle(keyType) || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
+					&& inputAddress.getInputAddress() == 0 || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF
+					&& inputAddress.getInputAddress() == 1)
 				ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
 
 					@Override
@@ -217,8 +218,7 @@ public class AbstractSolutionBuilder {
 							if (otherEndSolutionPrimitive instanceof HardwareKeyEventTargetSolutionPrimitive) {
 								final HardwareKeyEventTargetSolutionPrimitive keyTarget = (HardwareKeyEventTargetSolutionPrimitive) otherEndSolutionPrimitive;
 								final PairedSensorDevice pairedDevice = (PairedSensorDevice) registry.getPhysicallyDevice(inputAddress.getDeviceAddress());
-								final PairMode pairMode = keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.TOGGLE ? PairMode.SPLIT
-										: PairMode.JOINT;
+								final PairMode pairMode = isKeyTypeToggle(keyType) ? PairMode.SPLIT : PairMode.JOINT;
 								switch (phase) {
 								case PREPARE:
 									pairedDevice.setInputPairMode(0, pairMode);
@@ -244,6 +244,14 @@ public class AbstractSolutionBuilder {
 							final HardwareKeyEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareKeyEventSourceSolutionPrimitive) otherSolution;
 							if (otherHardwareEventSource.getDeviceAddress() == getDeviceAddress())
 								return isKeyTypeToggle(otherHardwareEventSource.getKeyType()) == isKeyTypeToggle(getKeyType());
+						} else if (otherSolution instanceof SoftwareEventSourceSolutionPrimitive) {
+							final PrimitiveEventSource source2 = otherSolution.getConnection().getSource();
+							if (source2 instanceof PrimitiveKeyEventSource) {
+								final PrimitiveKeyEventSource keyEventSource = (PrimitiveKeyEventSource) source2;
+								final InputAddress address = keyEventSource.getInput();
+								if (address.getDeviceAddress() == getDeviceAddress())
+									return isKeyTypeToggle(keyType);
+							}
 						}
 						return true;
 					}
