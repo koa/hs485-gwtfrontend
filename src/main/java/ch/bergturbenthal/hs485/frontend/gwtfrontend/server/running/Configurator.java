@@ -23,28 +23,36 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.Pri
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveOutputDeviceKeyEventSink;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveSwitchingOutputDeviceValueEventSink;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveValueEventSource;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveValueEventSource.SensorType;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.ConfigSolutionPrimitive;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.DistributingMessageHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485DSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.HS485SSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.IO127SolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.SolutionBuilder;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.solution.TFSSolutionBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ActorKeySink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.KeyPairEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.PirKeyEventSource;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.SwitchingActorValueSink;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.TemperatureValueSensorEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ToggleKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.Event;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.ValueEvent;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.physically.HS485D;
 import ch.eleveneye.hs485.device.physically.HS485S;
 import ch.eleveneye.hs485.device.physically.IO127;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
+import ch.eleveneye.hs485.device.physically.TFS;
 
 public class Configurator {
 	private static class AvailableConnectionConfiguration {
@@ -96,6 +104,7 @@ public class Configurator {
 		solutionBuilders.put(HS485S.class, new HS485SSolutionBuilder(registry, executorService, messageHandlers));
 		solutionBuilders.put(HS485D.class, new HS485DSolutionBuilder(registry, executorService, messageHandlers));
 		solutionBuilders.put(IO127.class, new IO127SolutionBuilder(registry, executorService, messageHandlers));
+		solutionBuilders.put(TFS.class, new TFSSolutionBuilder(registry, executorService));
 	}
 
 	public void appendAction(final Action<? extends Event> action) {
@@ -109,14 +118,14 @@ public class Configurator {
 						final PrimitiveKeyEventSource onEventSource = new PrimitiveKeyEventSource();
 						onEventSource.setKeyType(KeyType.ON);
 						onEventSource.setInput(keyPairEventSource.getOnInputConnector().getAddress());
-						appendSinks(action, onEventSource);
+						appendKeyEventSinks(action, onEventSource);
 					}
 
 					if (keyPairEventSource.getOffInputConnector() != null && keyPairEventSource.getOffInputConnector().getAddress() != null) {
 						final PrimitiveKeyEventSource offEventSource = new PrimitiveKeyEventSource();
 						offEventSource.setKeyType(KeyType.OFF);
 						offEventSource.setInput(keyPairEventSource.getOffInputConnector().getAddress());
-						appendSinks(action, offEventSource);
+						appendKeyEventSinks(action, offEventSource);
 					}
 				} else if (source instanceof ToggleKeyEventSource) {
 					final ToggleKeyEventSource toggleKeyEventSource = (ToggleKeyEventSource) source;
@@ -124,7 +133,7 @@ public class Configurator {
 						final PrimitiveKeyEventSource onEventSource = new PrimitiveKeyEventSource();
 						onEventSource.setKeyType(KeyType.TOGGLE);
 						onEventSource.setInput(toggleKeyEventSource.getInputConnector().getAddress());
-						appendSinks(action, onEventSource);
+						appendKeyEventSinks(action, onEventSource);
 					}
 				} else if (source instanceof PirKeyEventSource) {
 					final PirKeyEventSource pirKeyEventSource = (PirKeyEventSource) source;
@@ -132,7 +141,20 @@ public class Configurator {
 						final PrimitiveKeyEventSource onEventSource = new PrimitiveKeyEventSource();
 						onEventSource.setKeyType(KeyType.ON);
 						onEventSource.setInput(pirKeyEventSource.getInputConnector().getAddress());
-						appendSinks(action, onEventSource);
+						appendKeyEventSinks(action, onEventSource);
+					}
+				} else
+					throw new RuntimeException("Event source type " + source.getClass() + " unknown");
+		} else if (eventType.equals(ValueEvent.class.getName())) {
+			for (final EventSource<? extends Event> source : action.getSources())
+				if (source instanceof TemperatureValueSensorEventSource) {
+					final TemperatureValueSensorEventSource temperatureValueSensorEventSource = (TemperatureValueSensorEventSource) source;
+					if (temperatureValueSensorEventSource.getInputConnector() != null
+							&& temperatureValueSensorEventSource.getInputConnector().getAddress() != null) {
+						final PrimitiveValueEventSource valueEventSource = new PrimitiveValueEventSource();
+						valueEventSource.setInput(temperatureValueSensorEventSource.getInputConnector().getAddress());
+						valueEventSource.setSensorType(SensorType.TEMPERATURE);
+						appendValueEventSinks(action, valueEventSource);
 					}
 				} else
 					throw new RuntimeException("Event source type " + source.getClass() + " unknown");
@@ -209,7 +231,7 @@ public class Configurator {
 			existingVariants.add(builtVariants);
 	}
 
-	private void appendSinks(final Action<? extends Event> action, final PrimitiveKeyEventSource eventSource) {
+	private void appendKeyEventSinks(final Action<? extends Event> action, final PrimitiveKeyEventSource eventSource) {
 		for (final EventSink<? extends Event> sink : action.getSinks())
 			if (sink instanceof ActorKeySink) {
 				final ActorKeySink actorSink = (ActorKeySink) sink;
@@ -224,6 +246,23 @@ public class Configurator {
 				}
 			} else
 				throw new RuntimeException("Event sink type " + sink.getClass() + " unknown");
+	}
+
+	private void appendValueEventSinks(final Action<? extends Event> action, final PrimitiveValueEventSource valueEventSource) {
+		for (final EventSink<? extends Event> sink : action.getSinks())
+			if (sink instanceof SwitchingActorValueSink) {
+				final SwitchingActorValueSink actorSink = (SwitchingActorValueSink) sink;
+				if (actorSink.getOutputDevice() != null && actorSink.getOutputDevice().getAddress() != null) {
+					final PrimitiveSwitchingOutputDeviceValueEventSink eventSink = new PrimitiveSwitchingOutputDeviceValueEventSink();
+					eventSink.setAddress(actorSink.getOutputDevice().getAddress());
+					eventSink.setTriggerValue(actorSink.getTriggerLevel());
+					eventSink.setOnWhenBelow(actorSink.isOnBelow());
+					final PrimitiveConnection connection = new PrimitiveConnection();
+					connection.setSource(valueEventSource);
+					connection.setSink(eventSink);
+					appendConnection(connection);
+				}
+			}
 	}
 
 	private Collection<AvailableConnectionConfiguration> buildVariants(final PrimitiveConnection connection) {
@@ -298,6 +337,10 @@ public class Configurator {
 				final int deviceAddress = keyEventSource.getInput().getDeviceAddress();
 				final SolutionBuilder solutionBuilder = getSolutionBuilderFor(deviceAddress);
 				return solutionBuilder.makeSourceSolutionVariants(connection);
+			} else if (source instanceof PrimitiveValueEventSource) {
+				final PrimitiveValueEventSource valueEventSource = (PrimitiveValueEventSource) source;
+				final int deviceAddress = valueEventSource.getInput().getDeviceAddress();
+				return getSolutionBuilderFor(deviceAddress).makeSourceSolutionVariants(connection);
 			} else
 				throw new IllegalArgumentException("Source-Primitive " + source.getClass() + " not supported");
 		} catch (final IOException e) {
@@ -311,6 +354,10 @@ public class Configurator {
 			if (sink instanceof PrimitiveOutputDeviceKeyEventSink) {
 				final PrimitiveOutputDeviceKeyEventSink outputDeviceSink = (PrimitiveOutputDeviceKeyEventSink) sink;
 				final SolutionBuilder solutionBuilder = getSolutionBuilderFor(outputDeviceSink.getAddress().getDeviceAddress());
+				return solutionBuilder.makeSinkSolutionVariants(connection);
+			} else if (sink instanceof PrimitiveSwitchingOutputDeviceValueEventSink) {
+				final PrimitiveSwitchingOutputDeviceValueEventSink eventSink = (PrimitiveSwitchingOutputDeviceValueEventSink) sink;
+				final SolutionBuilder solutionBuilder = getSolutionBuilderFor(eventSink.getAddress().getDeviceAddress());
 				return solutionBuilder.makeSinkSolutionVariants(connection);
 			} else
 				throw new IllegalArgumentException("Sink-Primitive " + sink.getClass() + " not supported");

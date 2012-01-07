@@ -8,6 +8,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveConnection;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveKeyEventSource;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveOutputDeviceKeyEventSink;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.primitive.PrimitiveSwitchingOutputDeviceValueEventSink;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 
@@ -22,7 +23,9 @@ public class IO127SolutionBuilder extends AbstractSolutionBuilder implements Sol
 	public Collection<ConfigSolutionPrimitive> makeSinkSolutionVariants(final PrimitiveConnection connection) {
 		try {
 			if (connection.getSink() instanceof PrimitiveOutputDeviceKeyEventSink)
-				return makeOutputSolution(connection, (PrimitiveOutputDeviceKeyEventSink) connection.getSink());
+				return makeKeyOutputSolution(connection, (PrimitiveOutputDeviceKeyEventSink) connection.getSink());
+			else if (connection.getSink() instanceof PrimitiveSwitchingOutputDeviceValueEventSink)
+				return makeSwitchingValueSolution(connection, (PrimitiveSwitchingOutputDeviceValueEventSink) connection.getSink());
 			else
 				throw new IllegalArgumentException("Cannot take Event-Sink of Type " + connection.getSink().getClass());
 		} catch (final IOException e) {

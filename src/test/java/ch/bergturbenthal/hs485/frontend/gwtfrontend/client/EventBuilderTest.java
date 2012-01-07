@@ -33,10 +33,9 @@ public class EventBuilderTest {
 		});
 		final Collection<EventSourceManager<ValueEvent, EventSource<ValueEvent>>> valueBuilders = panelBuilder.listInputPanelsForEvent(ValueEvent.class
 				.getName());
-		Assert.assertEquals(0, valueBuilders.size());
+		Assert.assertTrue(valueBuilders.size() > 0);
 		final Collection<EventSourceManager<KeyEvent, EventSource<KeyEvent>>> keyBuilders = panelBuilder
 				.listInputPanelsForEvent(KeyEvent.class.getName());
-		Assert.assertEquals(3, keyBuilders.size());
-
+		Assert.assertTrue(keyBuilders.size() > 0);
 	}
 }
