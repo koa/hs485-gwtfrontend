@@ -15,6 +15,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSou
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventSourceManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTypeManager;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.ConnectionTableDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
@@ -109,6 +110,8 @@ public class PlanEditor extends Composite {
 	Button																											appendOutputDeviceButton;
 	@UiField
 	MenuItem																										activatConfigMenuItem;
+	@UiField
+	MenuItem																										showConnectionListItem;
 	private final ConfigServiceAsync														configService		= ConfigServiceAsync.Util.getInstance();
 
 	private Plan																								plan;
@@ -279,6 +282,13 @@ public class PlanEditor extends Composite {
 						WaitIndicator.hideWait();
 					}
 				});
+			}
+		});
+		showConnectionListItem.setCommand(new Command() {
+
+			@Override
+			public void execute() {
+				new ConnectionTableDialog(labelGenerator, plan).center();
 			}
 		});
 		actionComponentPanelBuilder = new EventTypeManager(labelGenerator);

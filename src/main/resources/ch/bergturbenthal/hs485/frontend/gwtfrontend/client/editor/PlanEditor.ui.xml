@@ -29,6 +29,7 @@
             <g:MenuItem text="load existing Connections"
               ui:field="loadExistingConnctionsMenuItem" />
             <g:MenuItem text="activate Configuration" ui:field="activatConfigMenuItem"/>
+            <g:MenuItem text="Show Connection List" ui:field="showConnectionListItem"/>
           </g:MenuBar>
         </g:MenuItem>
       </g:MenuBar>
