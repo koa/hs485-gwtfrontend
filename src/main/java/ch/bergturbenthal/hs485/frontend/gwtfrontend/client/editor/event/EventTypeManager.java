@@ -25,7 +25,10 @@ public class EventTypeManager {
 		inputPanelManagers.add(new KeyPairInputSourceComposite.SourceManager(labelGenerator));
 		inputPanelManagers.add(new PirKeyEventInputSourceComposite.SourceManager(labelGenerator));
 
+		inputPanelManagers.add(new TemperaturSourceInputSourceComposite.SourceManager(labelGenerator));
+
 		sinkManagers.add(new KeyOutputDeviceSinkComposite.SinkManager(labelGenerator));
+		sinkManagers.add(new ValueSwitchingOutputDeviceSinkComposite.SinkManager(labelGenerator));
 
 		for (final EventSourceManager<?, ?> builder : inputPanelManagers)
 			sourceIndex.put((Class<? extends EventSourceManager<?, ?>>) builder.getConfigureSourceType(), builder);

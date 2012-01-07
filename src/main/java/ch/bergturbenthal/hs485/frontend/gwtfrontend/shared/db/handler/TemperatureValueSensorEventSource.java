@@ -1,11 +1,14 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler;
 
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.ValueEvent;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class ValueSensorEventSource implements EventSource<ValueEvent>, IsSerializable {
+public class TemperatureValueSensorEventSource implements EventSource<ValueEvent>, IsSerializable {
+	@DBRef
 	private InputConnector	inputConnector;
 	private int							pollIntervall;
 
@@ -17,7 +20,7 @@ public class ValueSensorEventSource implements EventSource<ValueEvent>, IsSerial
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		final ValueSensorEventSource other = (ValueSensorEventSource) obj;
+		final TemperatureValueSensorEventSource other = (TemperatureValueSensorEventSource) obj;
 		if (inputConnector == null) {
 			if (other.inputConnector != null)
 				return false;
