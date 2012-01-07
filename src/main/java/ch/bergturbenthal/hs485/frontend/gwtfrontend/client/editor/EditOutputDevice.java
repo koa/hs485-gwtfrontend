@@ -62,8 +62,7 @@ public class EditOutputDevice extends DialogBox {
 
 			@Override
 			public void onFailure(final Throwable caught) {
-				// TODO Auto-generated method stub
-
+				GWT.log("Error reading Output-Devices", caught);
 			}
 
 			@Override
@@ -166,13 +165,7 @@ public class EditOutputDevice extends DialogBox {
 			addressList.add(currentAddress);
 			final OutputDescription description = outputAddressEntry.getValue();
 			final StringBuffer entryText = new StringBuffer();
-			entryText.append(Integer.toHexString(currentAddress.getDeviceAddress().intValue()));
-			entryText.append(":");
-			entryText.append(Integer.toHexString(currentAddress.getOutputAddress().intValue()));
-			// if (description.getHasSwitch())
-			// entryText.append(" Switch");
-			// if (description.getHasTimer())
-			// entryText.append(" Timer");
+			entryText.append(description.getConnectionLabel());
 			if (description.getIsDimmer())
 				entryText.append(" (Dimmer)");
 			if (plan != null)

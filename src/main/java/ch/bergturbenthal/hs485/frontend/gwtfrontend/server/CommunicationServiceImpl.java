@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -260,8 +261,11 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 				return outputTable;
 			outputTable = new HashMap<OutputAddress, CommunicationServiceImpl.OutputData>();
 			try {
-				for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
-					for (final ConfigurableOutputDescription output : device.listConfigurableOutputs()) {
+				for (final PhysicallyDevice device : hs485registry.listPhysicalDevices()) {
+					final List<ConfigurableOutputDescription> listConfigurableOutputs = device.listConfigurableOutputs();
+					logger.info("Device: " + device + ", " + listConfigurableOutputs.size());
+					for (final ConfigurableOutputDescription output : listConfigurableOutputs) {
+						logger.info("Output: " + output.getActorNr() + ", " + output.getLabeledName());
 						final OutputDescription description = new OutputDescription();
 						description.setHasSwitch(Boolean.valueOf(SwitchingActor.class.isAssignableFrom(output.getImplementingActor())));
 						description.setHasTimer(Boolean.valueOf(TimedActor.class.isAssignableFrom(output.getImplementingActor())));
@@ -273,6 +277,7 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 						outputData.outputDescription = description;
 						outputTable.put(address, outputData);
 					}
+				}
 				return outputTable;
 			} catch (final Exception e) {
 				outputTable = null;

@@ -92,15 +92,16 @@ public class SelectInputComposite extends Composite {
 
 	}
 
-	private final CommunicationServiceAsync		communicationService	= CommunicationServiceAsync.Util.getInstance();
-	private final String											groupName;
-	private final EventHandler								handler;
-	private final VerticalPanel								inputListPanel;
+	private final CommunicationServiceAsync			communicationService	= CommunicationServiceAsync.Util.getInstance();
+	private final String												groupName;
+	private final EventHandler									handler;
+	private final VerticalPanel									inputListPanel;
 
-	private Plan															plan;
-	private final Timer												pollTimer;
-	private final NumberFormat								tempFormat						= NumberFormat.getFormat("00.0");
-	private final Map<InputAddress, KeyData>	visibleInputs					= new HashMap<InputAddress, SelectInputComposite.KeyData>();
+	private Plan																plan;
+	private final Timer													pollTimer;
+	private final NumberFormat									tempFormat						= NumberFormat.getFormat("00.0");
+	private final Map<InputAddress, KeyData>		visibleInputs					= new HashMap<InputAddress, SelectInputComposite.KeyData>();
+	private Map<InputAddress, InputDescription>	inputDescriptions			= null;
 
 	public SelectInputComposite() {
 		inputListPanel = new VerticalPanel();
@@ -129,6 +130,7 @@ public class SelectInputComposite extends Composite {
 
 		final ToggleButton enableListenButton = new ToggleButton("Listen");
 		enableListenButton.addValueChangeHandler(new ValueChangeHandler<Boolean>() {
+			@Override
 			public void onValueChange(final ValueChangeEvent<Boolean> event) {
 				if (event.getValue().booleanValue())
 					startRecording();
@@ -140,6 +142,7 @@ public class SelectInputComposite extends Composite {
 
 		final Button resetButton = new Button("Reset");
 		resetButton.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				resetVisibleEntries();
 			}
@@ -151,6 +154,7 @@ public class SelectInputComposite extends Composite {
 			@Override
 			public void run() {
 				communicationService.listInputDevices(new AsyncCallback<Map<InputAddress, InputDescription>>() {
+
 					@Override
 					public void onFailure(final Throwable caught) {
 						// TODO Auto-generated method stub
@@ -158,6 +162,7 @@ public class SelectInputComposite extends Composite {
 
 					@Override
 					public void onSuccess(final Map<InputAddress, InputDescription> result) {
+						inputDescriptions = result;
 						for (final Entry<InputAddress, InputDescription> inputConnectorEntry : result.entrySet()) {
 							final InputDescription inputDescription = inputConnectorEntry.getValue();
 							final InputAddress inputAddress = inputConnectorEntry.getKey();
@@ -284,10 +289,12 @@ public class SelectInputComposite extends Composite {
 
 	private void updateKeyLabel(final InputAddress keyAddress, final KeyData keyData) {
 		final StringBuilder labelStringBuilder = new StringBuilder();
-
-		labelStringBuilder.append(Integer.toHexString(keyAddress.getDeviceAddress()));
-		labelStringBuilder.append(":");
-		labelStringBuilder.append(keyAddress.getInputAddress());
+		if (inputDescriptions == null) {
+			labelStringBuilder.append(Integer.toHexString(keyAddress.getDeviceAddress()));
+			labelStringBuilder.append(":");
+			labelStringBuilder.append(keyAddress.getInputAddress());
+		} else
+			labelStringBuilder.append(inputDescriptions.get(keyAddress).getConnectionLabel());
 		labelStringBuilder.append(": ");
 		if (keyData.isTfsValue()) {
 			labelStringBuilder.append(tempFormat.format(keyData.getCurrentTemp()));
