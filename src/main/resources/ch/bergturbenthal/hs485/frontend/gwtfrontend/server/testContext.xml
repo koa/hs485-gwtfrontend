@@ -14,4 +14,7 @@
   <bean id="envBean" class="java.lang.String">
     <constructor-arg value="test"></constructor-arg>
   </bean>
+  <bean
+    class="ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.StorageService">
+  </bean>
 </beans>

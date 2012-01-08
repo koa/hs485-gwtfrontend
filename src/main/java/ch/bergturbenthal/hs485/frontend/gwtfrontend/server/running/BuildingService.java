@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.repository.mongo.RunningConfigurationRepository;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.data.StorageService;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -28,7 +28,6 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.RunningConfiguration;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.Action;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.ActorKeySink;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.handler.EventSink;
@@ -76,12 +75,12 @@ public class BuildingService {
 	}
 
 	@Autowired
-	private Registry												hs485registry;
+	private Registry										hs485registry;
 	@Autowired
-	private RunningConfigurationRepository	runningConfigurationRepository;
-	protected ScheduledExecutorService			executorService				= Executors.newScheduledThreadPool(2);
-	private static Logger										logger								= LoggerFactory.getLogger(BuildingService.class);
-	private Configurator										currentConfiguration	= null;
+	private StorageService							storageService;
+	protected ScheduledExecutorService	executorService				= Executors.newScheduledThreadPool(2);
+	private static Logger								logger								= LoggerFactory.getLogger(BuildingService.class);
+	private Configurator								currentConfiguration	= null;
 
 	public synchronized void activatePlan(final Plan plan) {
 		logger.info("Load plan " + plan);
@@ -99,10 +98,8 @@ public class BuildingService {
 							currentConfiguration.close();
 						hs485registry.resetAllDevices();
 						currentConfiguration.run();
+						storageService.saveAsRunning(plan);
 					}
-					final RunningConfiguration runningConfiguration = new RunningConfiguration();
-					runningConfiguration.setPlan(plan);
-					runningConfigurationRepository.save(runningConfiguration);
 					for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
 						if (device instanceof AbstractDevice) {
 							final AbstractDevice abstractDevice = (AbstractDevice) device;
@@ -171,9 +168,10 @@ public class BuildingService {
 	@PostConstruct
 	public void init() {
 		logger.info("Init Building-Service");
-		final RunningConfiguration runningConfiguration = runningConfigurationRepository.findOne(new RunningConfiguration().getId());
-		if (runningConfiguration != null) {
-			activatePlan(runningConfiguration.getPlan());
+		final Plan runningPlan = storageService.getRunningPlan();
+		logger.info("Last Config: " + runningPlan);
+		if (runningPlan != null) {
+			activatePlan(runningPlan);
 			logger.info("Default-Config loaded");
 		} else
 			logger.warn("No Default config");
