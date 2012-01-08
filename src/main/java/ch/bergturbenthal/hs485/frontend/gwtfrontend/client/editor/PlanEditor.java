@@ -17,6 +17,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.EventTyp
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor.event.LabelGenerator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.ConnectionTableDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite.IconDecoration;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ui.WaitIndicator;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.uploader.FileUploadDialog;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
@@ -514,17 +515,19 @@ public class PlanEditor extends Composite {
 	}
 
 	private void highlightSelectedConnection() {
-		final List<SelectableIcon> selectedIcons = new ArrayList<SelectableIcon>();
+		final Map<SelectableIcon, IconDecoration> selectedIcons = new HashMap<SelectableIcon, IconDecoration>();
 		if (selectedAction != null) {
 			for (final EventSource<?> source : selectedAction.getSources()) {
 				final Collection<InputConnector> connectors = actionComponentPanelBuilder.inputConnectorsOf(source);
 				for (final InputConnector inputConnector : connectors)
-					selectedIcons.add(findInputDeviceOfConnector(inputConnector));
+					selectedIcons.put(findInputDeviceOfConnector(inputConnector), IconDecoration.CONNECTED);
 			}
-			for (final EventSink<?> sink : selectedAction.getSinks())
-				selectedIcons.addAll(actionComponentPanelBuilder.outputDevicesOf(sink));
+			for (final EventSink<?> sink : selectedAction.getSinks()) {
+				for (final OutputDevice outputDevice : actionComponentPanelBuilder.outputDevicesOf(sink))
+					selectedIcons.put(outputDevice, IconDecoration.CONNECTED);
+			}
 		}
-		showFloorComposite.setSelectedIcons(selectedIcons);
+		showFloorComposite.setIconDecorations(selectedIcons);
 	}
 
 	private void newPlan() {

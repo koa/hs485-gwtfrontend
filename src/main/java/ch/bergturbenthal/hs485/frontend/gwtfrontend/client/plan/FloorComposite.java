@@ -53,19 +53,23 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 
 public class FloorComposite extends Composite {
-	private Floor																currentFloor;
-	private Plan																currentPlan;
-	private final Collection<FloorEventHandler>	eventHandlers	= new ArrayList<FloorEventHandler>();
-	private final Runnable											fullRedrawRunnable;
-	private final OMSVGDefsElement							iconDef;
-	private final OMSVGGElement									iconG;
-	private String															inputIconId;
-	private final Map<OutputDeviceType, String>	outputIconIds	= new HashMap<OutputDeviceType, String>();
-	private final OMSVGGElement									rootG;
-	private float																scale;
-	private final Set<SelectableIcon>						selectedIcons	= new HashSet<SelectableIcon>();
-	private OMSVGSVGElement											svgDrawing;
-	private final SVGImage											svgImage;
+	public static enum IconDecoration {
+		CONNECTED
+	}
+
+	private Floor																			currentFloor;
+	private Plan																			currentPlan;
+	private final Collection<FloorEventHandler>				eventHandlers				= new ArrayList<FloorEventHandler>();
+	private final Runnable														fullRedrawRunnable;
+	private final OMSVGDefsElement										iconDef;
+	private final OMSVGGElement												iconG;
+	private String																		inputIconId;
+	private final Map<OutputDeviceType, String>				outputIconIds				= new HashMap<OutputDeviceType, String>();
+	private final OMSVGGElement												rootG;
+	private float																			scale;
+	private final Map<SelectableIcon, IconDecoration>	selectedDecorations	= new HashMap<SelectableIcon, FloorComposite.IconDecoration>();
+	private OMSVGSVGElement														svgDrawing;
+	private final SVGImage														svgImage;
 
 	public FloorComposite() {
 		currentFloor = new Floor();
@@ -135,18 +139,13 @@ public class FloorComposite extends Composite {
 	}
 
 	public void redrawAllIcons() {
-		while (true) {
-			final OMNode firstChild = iconG.getFirstChild();
-			if (firstChild == null)
-				break;
-			iconG.removeChild(firstChild);
-		}
+		removeAllChildren(iconG);
 		if (currentFloor == null)
 			return;
 		// System.out.println(svgDrawing.getPixelUnitToMillimeterX());
 		final float iconSize = currentFloor.getIconSize().floatValue();
 		for (final InputDevice inputDevice : currentFloor.getInputDevices()) {
-			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
+			final OMSVGGElement currentIcon = OMSVGParser.currentDocument().createSVGGElement();
 			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
 			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
 			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
@@ -155,14 +154,32 @@ public class FloorComposite extends Composite {
 
 				@Override
 				public void run() {
+					removeAllChildren(currentIcon);
 					final PositionXY position = inputDevice.getPosition();
-					final StringBuilder stringBuilder = new StringBuilder();
-					stringBuilder.append('#');
-					stringBuilder.append(inputIconId);
-					if (selectedIcons.contains(inputDevice))
-						stringBuilder.append("-selected");
-					currentIcon.getHref().setBaseVal(stringBuilder.toString());
+					final IconDecoration iconDecoration = selectedDecorations.get(inputDevice);
+					if (iconDecoration != null) {
+
+						final OMSVGDocument document = OMSVGParser.currentDocument();
+						final OMSVGGElement selectedIconG = document.createSVGGElement();
+						final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+						switch (iconDecoration) {
+						case CONNECTED:
+							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+							break;
+						}
+						selectedIconG.appendChild(selectedRect);
+						final OMSVGUseElement useElement = document.createSVGUseElement();
+						useElement.getHref().setBaseVal('#' + inputIconId);
+						selectedIconG.appendChild(useElement);
+						currentIcon.appendChild(selectedIconG);
+
+					} else {
+						final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+						currentIcon.appendChild(svgUseElement);
+						svgUseElement.getHref().setBaseVal('#' + inputIconId);
+					}
 					moveTransform.setTranslate(position.getX(), position.getY());
+
 				}
 			};
 			iconUpdater.run();
@@ -185,7 +202,7 @@ public class FloorComposite extends Composite {
 			});
 		}
 		for (final OutputDevice outputDevice : currentFloor.getOutputDevices()) {
-			final OMSVGUseElement currentIcon = OMSVGParser.currentDocument().createSVGUseElement();
+			final OMSVGGElement currentIcon = OMSVGParser.currentDocument().createSVGGElement();
 			final OMSVGTransformList transformList = currentIcon.getTransform().getBaseVal();
 			final OMSVGTransform scaleTransform = svgDrawing.createSVGTransform();
 			final OMSVGTransform moveTransform = svgDrawing.createSVGTransform();
@@ -195,12 +212,28 @@ public class FloorComposite extends Composite {
 				@Override
 				public void run() {
 					final PositionXY position = outputDevice.getPosition();
-					final StringBuilder stringBuilder = new StringBuilder();
-					stringBuilder.append('#');
-					stringBuilder.append(outputIconIds.get(outputDevice.getType()));
-					if (selectedIcons.contains(outputDevice))
-						stringBuilder.append("-selected");
-					currentIcon.getHref().setBaseVal(stringBuilder.toString());
+					removeAllChildren(currentIcon);
+					final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
+					if (iconDecoration != null) {
+
+						final OMSVGDocument document = OMSVGParser.currentDocument();
+						final OMSVGGElement selectedIconG = document.createSVGGElement();
+						final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+						switch (iconDecoration) {
+						case CONNECTED:
+							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+							break;
+						}
+						selectedIconG.appendChild(selectedRect);
+						final OMSVGUseElement useElement = document.createSVGUseElement();
+						useElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+						selectedIconG.appendChild(useElement);
+						currentIcon.appendChild(selectedIconG);
+					} else {
+						final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+						currentIcon.appendChild(svgUseElement);
+						svgUseElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+					}
 					moveTransform.setTranslate(position.getX(), position.getY());
 				}
 			};
@@ -211,7 +244,6 @@ public class FloorComposite extends Composite {
 			currentIcon.addClickHandler(new ClickHandler() {
 				@Override
 				public void onClick(final ClickEvent event) {
-					event.getX();
 					for (final FloorEventHandler handler : eventHandlers)
 						handler.onOutputDeviceClick(event, outputDevice, scale, iconUpdater);
 				}
@@ -271,9 +303,9 @@ public class FloorComposite extends Composite {
 			setCurrentFloor(null);
 	}
 
-	public void setSelectedIcons(final Collection<SelectableIcon> icons) {
-		selectedIcons.clear();
-		selectedIcons.addAll(icons);
+	public void setIconDecorations(final Map<? extends SelectableIcon, ? extends IconDecoration> icons) {
+		selectedDecorations.clear();
+		selectedDecorations.putAll(icons);
 		redrawAllIcons();
 	}
 
@@ -297,23 +329,9 @@ public class FloorComposite extends Composite {
 		iconDef.appendChild(iconG);
 	}
 
-	private void addSelectedIcon(final String iconId) {
-		final OMSVGDocument document = OMSVGParser.currentDocument();
-		final OMSVGGElement selectedIconG = document.createSVGGElement();
-		final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
-		selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
-		selectedIconG.appendChild(selectedRect);
-		final OMSVGUseElement useElement = document.createSVGUseElement();
-		useElement.getHref().setBaseVal('#' + iconId);
-		selectedIconG.appendChild(useElement);
-		selectedIconG.setId(iconId + "-selected");
-		iconDef.appendChild(selectedIconG);
-	}
-
 	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
 		if (!loadedFiles.contains(image.getFileName())) {
 			addIcon(iconId, image);
-			addSelectedIcon(iconId);
 			loadedFiles.add(image.getFileName());
 		}
 	}
@@ -327,6 +345,15 @@ public class FloorComposite extends Composite {
 		while ((node = svgElement.getFirstChild()) != null)
 			newGElement.appendChild(svgElement.removeChild(node));
 		return newG;
+	}
+
+	private void removeAllChildren(final OMSVGGElement rootElem) {
+		while (true) {
+			final OMNode firstChild = rootElem.getFirstChild();
+			if (firstChild == null)
+				break;
+			rootElem.removeChild(firstChild);
+		}
 	}
 
 	private void scaleToFit() {

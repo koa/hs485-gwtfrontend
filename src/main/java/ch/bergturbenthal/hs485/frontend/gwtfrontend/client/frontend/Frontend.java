@@ -1,4 +1,4 @@
-package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.editor;
+package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.frontend;
 
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.ConfigServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
@@ -7,16 +7,16 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.RootPanel;
 
-public class Editor implements EntryPoint {
+public class Frontend implements EntryPoint {
 	private final ConfigServiceAsync	configService	= ConfigServiceAsync.Util.getInstance();
 
 	@Override
 	public void onModuleLoad() {
-		final RootPanel rootPanel = RootPanel.get("editor");
+		final RootPanel rootPanel = RootPanel.get("main");
 		if (rootPanel == null)
 			return;
-		final PlanEditor planEditor = new PlanEditor();
-		rootPanel.add(planEditor);
+		final FrontendComposite mainComposite = new FrontendComposite();
+		rootPanel.add(mainComposite);
 		configService.loadCurrentPlan(new AsyncCallback<Plan>() {
 
 			@Override
@@ -26,9 +26,8 @@ public class Editor implements EntryPoint {
 
 			@Override
 			public void onSuccess(final Plan result) {
-				planEditor.setCurrentPlan(result);
+				mainComposite.setPlan(result);
 			}
 		});
 	}
-
 }

@@ -83,8 +83,7 @@ public class StorageService {
 	}
 
 	public Plan readPlan(final String planId) {
-		final Plan plan = planRepository.findOne(planId);
-		return plan;
+		return planRepository.findOne(planId);
 	}
 
 	public void saveAsRunning(final Plan plan) {

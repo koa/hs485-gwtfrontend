@@ -49,6 +49,11 @@ public class ConfigServiceImpl extends AutowiringRemoteServiceServlet implements
 	}
 
 	@Override
+	public Plan loadCurrentPlan() {
+		return storageService.getRunningPlan();
+	}
+
+	@Override
 	public List<IconSet> loadIconSets() {
 		return storageService.loadIconSets();
 	}

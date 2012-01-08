@@ -37,6 +37,8 @@ public interface ConfigService extends RemoteService {
 
 	List<String> listFilesByMime(String mime);
 
+	Plan loadCurrentPlan();
+
 	List<IconSet> loadIconSets();
 
 	Plan readExistingConnections(Plan plan);
