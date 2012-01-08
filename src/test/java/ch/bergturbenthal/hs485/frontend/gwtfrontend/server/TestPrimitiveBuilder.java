@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.Configurator;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.server.running.ConfigurationBuilder;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputConnector;
@@ -35,14 +35,14 @@ public class TestPrimitiveBuilder {
 	public void testBuildPrimitive() throws IOException {
 		final Registry registry = new Registry(new HS485Dummy());
 		final Plan plan = makePlan();
-		final Configurator primitiveBuilder = new Configurator(registry, Executors.newScheduledThreadPool(2));
+		final ConfigurationBuilder primitiveBuilder = new ConfigurationBuilder(registry, Executors.newScheduledThreadPool(2));
 		registry.doInTransaction(new Callable<Void>() {
 			@Override
 			public Void call() throws Exception {
 				registry.resetAllDevices();
 				for (final Action<Event> action : plan.getActions())
 					primitiveBuilder.appendAction(action);
-				primitiveBuilder.applyConfiguration();
+				primitiveBuilder.buildConfiguration();
 				return null;
 			}
 		});

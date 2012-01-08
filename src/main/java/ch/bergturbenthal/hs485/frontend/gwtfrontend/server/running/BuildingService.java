@@ -12,6 +12,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.annotation.PreDestroy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,28 +74,26 @@ public class BuildingService {
 
 	@Autowired
 	private Registry										hs485registry;
-	protected ScheduledExecutorService	executorService	= Executors.newScheduledThreadPool(2);
-	private static Logger								logger					= LoggerFactory.getLogger(BuildingService.class);
+	protected ScheduledExecutorService	executorService				= Executors.newScheduledThreadPool(2);
+	private static Logger								logger								= LoggerFactory.getLogger(BuildingService.class);
+	private Configurator								currentConfiguration	= null;
 
-	public void activatePlan(final Plan plan) {
+	public synchronized void activatePlan(final Plan plan) {
 		try {
 			hs485registry.doInTransaction(new Callable<Void>() {
 
 				@Override
 				public Void call() throws Exception {
-					final Configurator configurator = new Configurator(hs485registry, executorService);
-					hs485registry.resetAllDevices();
+					final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(hs485registry, executorService);
 					if (plan != null) {
-						for (final Action action : plan.getActions())
-							configurator.appendAction(action);
-						configurator.applyConfiguration();
+						for (final Action<?> action : plan.getActions())
+							configurationBuilder.appendAction(action);
+						currentConfiguration = configurationBuilder.buildConfiguration();
+						if (currentConfiguration != null)
+							currentConfiguration.close();
+						hs485registry.resetAllDevices();
+						currentConfiguration.run();
 					}
-					// final EventTypeManager eventTypeManager = new
-					// EventTypeManager(hs485registry);
-					// hs485registry.resetAllDevices();
-					// if (plan != null)
-					// for (final Action action : plan.getActions())
-					// eventTypeManager.applyAction(action);
 					for (final PhysicallyDevice device : hs485registry.listPhysicalDevices())
 						if (device instanceof AbstractDevice) {
 							final AbstractDevice abstractDevice = (AbstractDevice) device;
@@ -155,6 +155,25 @@ public class BuildingService {
 		} catch (final IOException e) {
 			throw new RuntimeException("Problem reading existing connections", e);
 		}
+	}
+
+	@PreDestroy
+	public void shutdown() throws IOException {
+		executorService.shutdownNow();
+		hs485registry.doInTransaction(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				try {
+					if (currentConfiguration != null)
+						currentConfiguration.close();
+					logger.info("Shutdown completed");
+				} catch (final Throwable t) {
+					logger.error("Cannot shutdown existing configuration", t);
+				}
+				return null;
+			}
+		});
 	}
 
 	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action<Event>> actions, final KeySensor keySensor,

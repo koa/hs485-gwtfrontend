@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class AbstractSolutionBuilder {
 		this.messageHandlers = messageHandlers;
 	}
 
-	protected void appendMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
+	protected synchronized void appendMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
 		if (!messageHandlers.containsKey(keySensor)) {
 			final DistributingMessageHandler handler = new DistributingMessageHandler();
 			keySensor.registerHandler(handler);
@@ -151,6 +152,10 @@ public class AbstractSolutionBuilder {
 				}
 
 				@Override
+				public void close() throws IOException {
+				}
+
+				@Override
 				public int cost() {
 					return 1;
 				}
@@ -213,7 +218,7 @@ public class AbstractSolutionBuilder {
 		// full software implementation
 		ret.add(new SoftwareKeyEventTargetSolutionPrimtive() {
 
-			private final AtomicLong	offTime	= new AtomicLong(Long.MAX_VALUE);
+			private final AtomicReference<ScheduledFuture<?>>	lastFutureReference	= new AtomicReference<ScheduledFuture<?>>();
 
 			@Override
 			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
@@ -238,6 +243,11 @@ public class AbstractSolutionBuilder {
 			}
 
 			@Override
+			public void close() throws IOException {
+				cancelCurrentFuture();
+			}
+
+			@Override
 			public int cost() {
 				return 100;
 			}
@@ -253,26 +263,31 @@ public class AbstractSolutionBuilder {
 					if (event.getEventType() == EventType.UP
 							&& event.getKeyType() == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
 							&& outputDeviceSink.getOffTime() != null) {
+						cancelCurrentFuture();
 						final int offDelay = outputDeviceSink.getOffTime().intValue();
-						offTime.set(System.currentTimeMillis() + offDelay * 1000 - 1000);
-						executorService.schedule(new Runnable() {
+						lastFutureReference.set(executorService.schedule(new Runnable() {
 							@Override
 							public void run() {
-								if (offTime.get() <= System.currentTimeMillis())
-									try {
-										switchingActor.setOff();
-									} catch (final IOException e) {
-										logger.warn("Cannot switch off actor " + switchingActor, e);
-									}
+								try {
+									switchingActor.setOff();
+								} catch (final IOException e) {
+									logger.warn("Cannot switch off actor " + switchingActor, e);
+								}
 							}
-						}, offDelay, TimeUnit.SECONDS);
+						}, offDelay, TimeUnit.SECONDS));
 					} else
-						offTime.set(Long.MAX_VALUE);
+						cancelCurrentFuture();
 					logger.info("Accepting Key:" + event + " for " + keyActor);
 					keyActor.sendKeyMessage(convertEventToMessage(event));
 				} catch (final IOException e) {
 					throw new RuntimeException(e);
 				}
+			}
+
+			private void cancelCurrentFuture() {
+				final ScheduledFuture<?> future = lastFutureReference.get();
+				if (future != null)
+					future.cancel(false);
 			}
 		});
 
@@ -304,6 +319,10 @@ public class AbstractSolutionBuilder {
 						return timerSolution.getTimerValue() == getTimerValue();
 				}
 				return true;
+			}
+
+			@Override
+			public void close() throws IOException {
 			}
 
 			@Override
@@ -395,6 +414,10 @@ public class AbstractSolutionBuilder {
 					}
 
 					@Override
+					public void close() throws IOException {
+					}
+
+					@Override
 					public int cost() {
 						return 1;
 					}
@@ -442,6 +465,10 @@ public class AbstractSolutionBuilder {
 			}
 
 			@Override
+			public void close() throws IOException {
+			}
+
+			@Override
 			public int cost() {
 				return 100;
 			}
@@ -469,9 +496,23 @@ public class AbstractSolutionBuilder {
 		return ret;
 	}
 
+	protected synchronized void removeMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
+		final DistributingMessageHandler distributingMessageHandler = messageHandlers.get(keySensor);
+		if (distributingMessageHandler != null)
+			synchronized (distributingMessageHandler) {
+				distributingMessageHandler.removeHandler(messageHandler);
+				if (distributingMessageHandler.isEmpty()) {
+					messageHandlers.remove(keySensor);
+					keySensor.registerHandler(null);
+				}
+			}
+	}
+
 	private SoftwareEventSourceSolutionPrimitive makeSoftwareEventSourceSolution(final PrimitiveKeyEventSource source,
 			final PrimitiveConnection connection, final KeySensor keySensor) {
 		return new SoftwareEventSourceSolutionPrimitive() {
+
+			private MessageHandler	messageHandler	= null;
 
 			@Override
 			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
@@ -480,14 +521,15 @@ public class AbstractSolutionBuilder {
 					try {
 						if (otherEndSolutionPrimitive instanceof SoftwareKeyEventTargetSolutionPrimtive) {
 							final SoftwareKeyEventTargetSolutionPrimtive eventTarget = (SoftwareKeyEventTargetSolutionPrimtive) otherEndSolutionPrimitive;
-							appendMessageHandler(keySensor, new MessageHandler() {
+							messageHandler = new MessageHandler() {
 
 								@Override
 								public void handleMessage(final KeyMessage keyMessage) {
 									final KeyEvent event = makeKeyEvent(keyMessage, source.getKeyType());
 									eventTarget.takeEvent(event);
 								}
-							});
+							};
+							appendMessageHandler(keySensor, messageHandler);
 						} else
 							throw new IllegalArgumentException("Cannot send events to type " + otherEndSolutionPrimitive.getClass());
 					} catch (final IOException ex) {
@@ -500,6 +542,12 @@ public class AbstractSolutionBuilder {
 				if (connection == otherSolution.getConnection())
 					return otherSolution instanceof SoftwareKeyEventTargetSolutionPrimtive;
 				return true;
+			}
+
+			@Override
+			public void close() throws IOException {
+				// TODO Auto-generated method stub
+
 			}
 
 			@Override

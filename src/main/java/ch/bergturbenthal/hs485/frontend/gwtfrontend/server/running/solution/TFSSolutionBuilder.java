@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ public class TFSSolutionBuilder implements SolutionBuilder {
 	public Collection<ConfigSolutionPrimitive> makeSourceSolutionVariants(final PrimitiveConnection connection) {
 		return (Collection<ConfigSolutionPrimitive>) (Collection<?>) Collections.singletonList(new ConfigSolutionPrimitive() {
 
+			private ScheduledFuture<?>	scheduledFuture;
+
 			@Override
 			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
 					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
@@ -45,7 +48,7 @@ public class TFSSolutionBuilder implements SolutionBuilder {
 					final PrimitiveValueEventSource valueSource = (PrimitiveValueEventSource) connection.getSource();
 					final SoftwareValueEventTargetSolutionPrimtive eventReceiver = (SoftwareValueEventTargetSolutionPrimtive) otherEndSolutionPrimitive;
 					if (phase == ActivationPhase.EXECUTE)
-						executorService.scheduleWithFixedDelay(new Runnable() {
+						scheduledFuture = executorService.scheduleWithFixedDelay(new Runnable() {
 
 							@Override
 							public void run() {
@@ -81,6 +84,11 @@ public class TFSSolutionBuilder implements SolutionBuilder {
 				if (otherSolution.getConnection() == connection)
 					return otherSolution instanceof SoftwareValueEventTargetSolutionPrimtive;
 				return true;
+			}
+
+			@Override
+			public void close() throws IOException {
+				scheduledFuture.cancel(false);
 			}
 
 			@Override
