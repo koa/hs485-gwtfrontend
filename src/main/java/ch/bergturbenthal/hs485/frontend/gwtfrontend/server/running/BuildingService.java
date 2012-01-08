@@ -12,6 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
@@ -155,6 +156,11 @@ public class BuildingService {
 		} catch (final IOException e) {
 			throw new RuntimeException("Problem reading existing connections", e);
 		}
+	}
+
+	@PostConstruct
+	public void init() {
+		logger.info("Init Building-Service");
 	}
 
 	@PreDestroy

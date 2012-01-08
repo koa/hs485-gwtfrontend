@@ -54,11 +54,19 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	}
 
 	private static final long																			serialVersionUID	= 8948548851433479912L;
+
 	@Autowired
 	private Registry																							hs485registry;
 	private final Collection<WeakReference<BlockingQueue<Event>>>	listeningQueues		= new ArrayList<WeakReference<BlockingQueue<Event>>>();
 	private final Logger																					logger						= LoggerFactory.getLogger(CommunicationServiceImpl.class);
 	private Map<OutputAddress, OutputData>												outputTable				= null;
+	private MessageHandler																				broadcastHandler;
+
+	@Override
+	public void destroy() {
+		hs485registry.getBus().removeBroadcastHandler(broadcastHandler);
+		super.destroy();
+	}
 
 	@Override
 	public Collection<Event> getEvents() {
@@ -97,7 +105,7 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		hs485registry.getBus().addBroadcastHandler(new MessageHandler() {
+		broadcastHandler = new MessageHandler() {
 
 			@Override
 			public void handleMessage(final KeyMessage keyMessage) {
@@ -106,7 +114,8 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 					distributeEvent(event);
 
 			}
-		});
+		};
+		hs485registry.getBus().addBroadcastHandler(broadcastHandler);
 		try {
 			final Collection<PhysicallyDevice> physicalDevices = hs485registry.listPhysicalDevices();
 			for (final PhysicallyDevice physicallyDevice : physicalDevices)
