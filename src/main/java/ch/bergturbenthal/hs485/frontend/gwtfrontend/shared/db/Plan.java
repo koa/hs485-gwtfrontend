@@ -72,4 +72,21 @@ public class Plan implements Serializable {
 		this.planId = planId;
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Plan [");
+		if (name != null) {
+			builder.append("name=");
+			builder.append(name);
+			builder.append(", ");
+		}
+		if (planId != null) {
+			builder.append("planId=");
+			builder.append(planId);
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+
 }

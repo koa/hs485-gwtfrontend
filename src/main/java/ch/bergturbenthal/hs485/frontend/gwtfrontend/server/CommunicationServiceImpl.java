@@ -45,7 +45,6 @@ import ch.eleveneye.hs485.device.config.ConfigurableOutputDescription;
 import ch.eleveneye.hs485.device.physically.Actor;
 import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
-import ch.eleveneye.hs485.device.utils.AbstractDevice;
 
 public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet implements CommunicationService {
 	private static class OutputData {
@@ -116,18 +115,20 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			}
 		};
 		hs485registry.getBus().addBroadcastHandler(broadcastHandler);
-		try {
-			final Collection<PhysicallyDevice> physicalDevices = hs485registry.listPhysicalDevices();
-			for (final PhysicallyDevice physicallyDevice : physicalDevices)
-				if (physicallyDevice instanceof AbstractDevice) {
-					logger.info("Device : " + Integer.toHexString(physicallyDevice.getAddress()));
-					final AbstractDevice abstractDevice = (AbstractDevice) physicallyDevice;
-					abstractDevice.dumpVariables();
-				}
-		} catch (final IOException e) {
-			logger.warn("Cannot read devices ", e);
-		}
-
+		// try {
+		// final Collection<PhysicallyDevice> physicalDevices =
+		// hs485registry.listPhysicalDevices();
+		// for (final PhysicallyDevice physicallyDevice : physicalDevices)
+		// if (physicallyDevice instanceof AbstractDevice) {
+		// logger.info("Device : " +
+		// Integer.toHexString(physicallyDevice.getAddress()));
+		// final AbstractDevice abstractDevice = (AbstractDevice)
+		// physicallyDevice;
+		// abstractDevice.dumpVariables();
+		// }
+		// } catch (final IOException e) {
+		// logger.warn("Cannot read devices ", e);
+		// }
 	}
 
 	@Override
@@ -272,9 +273,7 @@ public class CommunicationServiceImpl extends AutowiringRemoteServiceServlet imp
 			try {
 				for (final PhysicallyDevice device : hs485registry.listPhysicalDevices()) {
 					final List<ConfigurableOutputDescription> listConfigurableOutputs = device.listConfigurableOutputs();
-					logger.info("Device: " + device + ", " + listConfigurableOutputs.size());
 					for (final ConfigurableOutputDescription output : listConfigurableOutputs) {
-						logger.info("Output: " + output.getActorNr() + ", " + output.getLabeledName());
 						final OutputDescription description = new OutputDescription();
 						description.setHasSwitch(Boolean.valueOf(SwitchingActor.class.isAssignableFrom(output.getImplementingActor())));
 						description.setHasTimer(Boolean.valueOf(TimedActor.class.isAssignableFrom(output.getImplementingActor())));

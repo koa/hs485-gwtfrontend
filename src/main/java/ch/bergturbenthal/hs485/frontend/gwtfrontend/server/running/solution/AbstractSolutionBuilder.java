@@ -37,6 +37,7 @@ import ch.eleveneye.hs485.device.physically.Actor;
 import ch.eleveneye.hs485.device.physically.IndependentConfigurableSensor;
 import ch.eleveneye.hs485.device.physically.IndependentConfigurableSensor.InputMode;
 import ch.eleveneye.hs485.device.physically.PairedSensorDevice;
+import ch.eleveneye.hs485.device.physically.PhysicallyDevice;
 import ch.eleveneye.hs485.device.physically.PhysicallySensor;
 
 public class AbstractSolutionBuilder {
@@ -108,7 +109,7 @@ public class AbstractSolutionBuilder {
 			final KeySensor keySensor = (KeySensor) sensor;
 			final IndependentConfigurableSensor independentSensor = (IndependentConfigurableSensor) sensor;
 			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
-			ret.add(makeSoftwareEventSourceSolution(source, connection, keySensor));
+			ret.add(makeSoftwareEventSourceSolution(source, connection, inputAddress));
 			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
 			ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
 
@@ -223,7 +224,8 @@ public class AbstractSolutionBuilder {
 			@Override
 			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
 					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
-				// no activation task needed
+				if (outputDeviceSink.getOffTime() != null)
+					scheduleSwitchOff(outputDeviceSink, switchingActor);
 			}
 
 			@Override
@@ -260,23 +262,11 @@ public class AbstractSolutionBuilder {
 			@Override
 			public void takeEvent(final KeyEvent event) {
 				try {
+					cancelCurrentFuture();
 					if (event.getEventType() == EventType.UP
 							&& event.getKeyType() == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
-							&& outputDeviceSink.getOffTime() != null) {
-						cancelCurrentFuture();
-						final int offDelay = outputDeviceSink.getOffTime().intValue();
-						lastFutureReference.set(executorService.schedule(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									switchingActor.setOff();
-								} catch (final IOException e) {
-									logger.warn("Cannot switch off actor " + switchingActor, e);
-								}
-							}
-						}, offDelay, TimeUnit.SECONDS));
-					} else
-						cancelCurrentFuture();
+							&& outputDeviceSink.getOffTime() != null)
+						scheduleSwitchOff(outputDeviceSink, switchingActor);
 					logger.info("Accepting Key:" + event + " for " + keyActor);
 					keyActor.sendKeyMessage(convertEventToMessage(event));
 				} catch (final IOException e) {
@@ -288,6 +278,20 @@ public class AbstractSolutionBuilder {
 				final ScheduledFuture<?> future = lastFutureReference.get();
 				if (future != null)
 					future.cancel(false);
+			}
+
+			private void scheduleSwitchOff(final PrimitiveOutputDeviceKeyEventSink outputDeviceSink, final SwitchingActor switchingActor) {
+				final int offDelay = outputDeviceSink.getOffTime().intValue();
+				lastFutureReference.set(executorService.schedule(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							switchingActor.setOff();
+						} catch (final IOException e) {
+							logger.warn("Cannot switch off actor " + switchingActor, e);
+						}
+					}
+				}, offDelay, TimeUnit.SECONDS));
 			}
 		});
 
@@ -357,96 +361,91 @@ public class AbstractSolutionBuilder {
 	}
 
 	protected Collection<ConfigSolutionPrimitive> makeKeyPairInputSolution(final PrimitiveConnection connection, final PrimitiveKeyEventSource source) {
-		try {
-			final InputAddress inputAddress = source.getInput();
-			final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
-			final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
-			ret.add(makeSoftwareEventSourceSolution(source, connection,
-					(KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(), inputAddress.getInputAddress())));
-			if (isKeyTypeToggle(keyType) || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
-					&& inputAddress.getInputAddress() == 0 || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF
-					&& inputAddress.getInputAddress() == 1)
-				ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
+		final InputAddress inputAddress = source.getInput();
+		final ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType keyType = source.getKeyType();
+		final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
+		ret.add(makeSoftwareEventSourceSolution(source, connection, inputAddress));
+		if (isKeyTypeToggle(keyType) || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
+				&& inputAddress.getInputAddress() == 0 || keyType == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.OFF
+				&& inputAddress.getInputAddress() == 1)
+			ret.add(new HardwareKeyEventSourceSolutionPrimitive() {
 
-					@Override
-					public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
-							final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
-						try {
-							if (otherEndSolutionPrimitive instanceof HardwareKeyEventTargetSolutionPrimitive) {
-								final HardwareKeyEventTargetSolutionPrimitive keyTarget = (HardwareKeyEventTargetSolutionPrimitive) otherEndSolutionPrimitive;
-								final PairedSensorDevice pairedDevice = (PairedSensorDevice) registry.getPhysicallyDevice(inputAddress.getDeviceAddress());
-								final PairMode pairMode = isKeyTypeToggle(keyType) ? PairMode.SPLIT : PairMode.JOINT;
-								switch (phase) {
-								case PREPARE:
-									pairedDevice.setInputPairMode(0, pairMode);
-									break;
-								case EXECUTE:
-									final Actor actor = registry.getActor(keyTarget.getDeviceAddress(), keyTarget.getOutputAddress());
-									((KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(),
-											isKeyTypeToggle(keyType) ? inputAddress.getInputAddress() : 0)).addActor(actor);
-									break;
-								}
-							} else
-								throw new IllegalArgumentException("Cannot send Events to " + otherEndSolutionPrimitive.getClass().getName());
-						} catch (final IOException ex) {
-							throw new RuntimeException(ex);
-						}
-					}
-
-					@Override
-					public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
-						if (connection == otherSolution.getConnection())
-							return otherSolution instanceof HardwareKeyEventTargetSolutionPrimitive;
-						if (otherSolution instanceof HardwareKeyEventSourceSolutionPrimitive) {
-							final HardwareKeyEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareKeyEventSourceSolutionPrimitive) otherSolution;
-							if (otherHardwareEventSource.getDeviceAddress() == getDeviceAddress())
-								return isKeyTypeToggle(otherHardwareEventSource.getKeyType()) == isKeyTypeToggle(getKeyType());
-						} else if (otherSolution instanceof SoftwareEventSourceSolutionPrimitive) {
-							final PrimitiveEventSource source2 = otherSolution.getConnection().getSource();
-							if (source2 instanceof PrimitiveKeyEventSource) {
-								final PrimitiveKeyEventSource keyEventSource = (PrimitiveKeyEventSource) source2;
-								final InputAddress address = keyEventSource.getInput();
-								if (address.getDeviceAddress() == getDeviceAddress())
-									return isKeyTypeToggle(keyType);
+				@Override
+				public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+						final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+					try {
+						if (otherEndSolutionPrimitive instanceof HardwareKeyEventTargetSolutionPrimitive) {
+							final HardwareKeyEventTargetSolutionPrimitive keyTarget = (HardwareKeyEventTargetSolutionPrimitive) otherEndSolutionPrimitive;
+							final PairedSensorDevice pairedDevice = (PairedSensorDevice) registry.getPhysicallyDevice(inputAddress.getDeviceAddress());
+							final PairMode pairMode = isKeyTypeToggle(keyType) ? PairMode.SPLIT : PairMode.JOINT;
+							switch (phase) {
+							case PREPARE:
+								pairedDevice.setInputPairMode(0, pairMode);
+								break;
+							case EXECUTE:
+								final Actor actor = registry.getActor(keyTarget.getDeviceAddress(), keyTarget.getOutputAddress());
+								((KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(), isKeyTypeToggle(keyType) ? inputAddress.getInputAddress()
+										: 0)).addActor(actor);
+								break;
 							}
+						} else
+							throw new IllegalArgumentException("Cannot send Events to " + otherEndSolutionPrimitive.getClass().getName());
+					} catch (final IOException ex) {
+						throw new RuntimeException(ex);
+					}
+				}
+
+				@Override
+				public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
+					if (connection == otherSolution.getConnection())
+						return otherSolution instanceof HardwareKeyEventTargetSolutionPrimitive;
+					if (otherSolution instanceof HardwareKeyEventSourceSolutionPrimitive) {
+						final HardwareKeyEventSourceSolutionPrimitive otherHardwareEventSource = (HardwareKeyEventSourceSolutionPrimitive) otherSolution;
+						if (otherHardwareEventSource.getDeviceAddress() == getDeviceAddress())
+							return isKeyTypeToggle(otherHardwareEventSource.getKeyType()) == isKeyTypeToggle(getKeyType());
+					} else if (otherSolution instanceof SoftwareEventSourceSolutionPrimitive) {
+						final PrimitiveEventSource source2 = otherSolution.getConnection().getSource();
+						if (source2 instanceof PrimitiveKeyEventSource) {
+							final PrimitiveKeyEventSource keyEventSource = (PrimitiveKeyEventSource) source2;
+							final InputAddress address = keyEventSource.getInput();
+							if (address.getDeviceAddress() == getDeviceAddress())
+								return isKeyTypeToggle(keyType);
 						}
-						return true;
 					}
+					return true;
+				}
 
-					@Override
-					public void close() throws IOException {
-					}
+				@Override
+				public void close() throws IOException {
+				}
 
-					@Override
-					public int cost() {
-						return 1;
-					}
+				@Override
+				public int cost() {
+					return 1;
+				}
 
-					@Override
-					public PrimitiveConnection getConnection() {
-						return connection;
-					}
+				@Override
+				public PrimitiveConnection getConnection() {
+					return connection;
+				}
 
-					@Override
-					public int getDeviceAddress() {
-						return inputAddress.getDeviceAddress();
-					}
+				@Override
+				public int getDeviceAddress() {
+					return inputAddress.getDeviceAddress();
+				}
 
-					@Override
-					public int getInputAddress() {
-						return inputAddress.getInputAddress();
-					}
+				@Override
+				public int getInputAddress() {
+					return inputAddress.getInputAddress();
+				}
 
-					@Override
-					public ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType getKeyType() {
-						return keyType;
-					}
-				});
+				@Override
+				public ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType getKeyType() {
+					return keyType;
+				}
+			});
 
-			return ret;
-		} catch (final IOException ex) {
-			throw new RuntimeException(ex);
-		}
+		return ret;
 	}
 
 	protected Collection<ConfigSolutionPrimitive> makeSwitchingValueSolution(final PrimitiveConnection connection,
@@ -509,7 +508,7 @@ public class AbstractSolutionBuilder {
 	}
 
 	private SoftwareEventSourceSolutionPrimitive makeSoftwareEventSourceSolution(final PrimitiveKeyEventSource source,
-			final PrimitiveConnection connection, final KeySensor keySensor) {
+			final PrimitiveConnection connection, final InputAddress inputAddress) {
 		return new SoftwareEventSourceSolutionPrimitive() {
 
 			private MessageHandler	messageHandler	= null;
@@ -521,6 +520,12 @@ public class AbstractSolutionBuilder {
 					try {
 						if (otherEndSolutionPrimitive instanceof SoftwareKeyEventTargetSolutionPrimtive) {
 							final SoftwareKeyEventTargetSolutionPrimtive eventTarget = (SoftwareKeyEventTargetSolutionPrimtive) otherEndSolutionPrimitive;
+							final PhysicallyDevice device = registry.getPhysicallyDevice(inputAddress.getDeviceAddress());
+							int sensorAddress = inputAddress.getInputAddress();
+							if (device instanceof PairedSensorDevice)
+								if (((PairedSensorDevice) device).getInputPairMode(sensorAddress / 2) == PairMode.JOINT)
+									sensorAddress -= sensorAddress % 2;
+							final KeySensor keySensor = (KeySensor) registry.getPhysicallySensor(inputAddress.getDeviceAddress(), sensorAddress);
 							messageHandler = new MessageHandler() {
 
 								@Override
