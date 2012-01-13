@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
@@ -221,6 +222,8 @@ public class AbstractSolutionBuilder {
 
 			private final AtomicReference<ScheduledFuture<?>>	lastFutureReference	= new AtomicReference<ScheduledFuture<?>>();
 
+			private final AtomicLong													lastOffTime					= new AtomicLong(0);
+
 			@Override
 			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
 					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
@@ -262,6 +265,8 @@ public class AbstractSolutionBuilder {
 			@Override
 			public void takeEvent(final KeyEvent event) {
 				try {
+					if (System.currentTimeMillis() - lastOffTime.get() < 500)
+						return;
 					cancelCurrentFuture();
 					if (event.getEventType() == EventType.UP
 							&& event.getKeyType() == ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.event.KeyEvent.KeyType.ON
@@ -287,6 +292,7 @@ public class AbstractSolutionBuilder {
 					public void run() {
 						try {
 							switchingActor.setOff();
+							lastOffTime.set(System.currentTimeMillis());
 						} catch (final IOException e) {
 							logger.warn("Cannot switch off actor " + switchingActor, e);
 						}
