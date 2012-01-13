@@ -40,7 +40,7 @@
   </servlet-mapping>
   <!-- Default page to serve -->
   <welcome-file-list>
-    <welcome-file>Config.html</welcome-file>
+    <welcome-file>Frontend.html</welcome-file>
   </welcome-file-list>
 
 </web-app>

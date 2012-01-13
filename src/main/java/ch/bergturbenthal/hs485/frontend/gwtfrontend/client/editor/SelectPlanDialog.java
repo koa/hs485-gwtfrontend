@@ -54,6 +54,7 @@ public class SelectPlanDialog extends DialogBox {
 
 		final Button btnOk = new Button("Ok");
 		btnOk.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				hide();
 				if (selectedHandler != null) {

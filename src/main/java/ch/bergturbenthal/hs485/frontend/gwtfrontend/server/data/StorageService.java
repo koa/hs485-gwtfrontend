@@ -83,7 +83,9 @@ public class StorageService {
 	}
 
 	public Plan readPlan(final String planId) {
-		return planRepository.findOne(planId);
+		final Plan plan = planRepository.findOne(planId);
+		logger.info("IconSet: " + plan.getIconSet());
+		return plan;
 	}
 
 	public void saveAsRunning(final Plan plan) {
@@ -121,7 +123,13 @@ public class StorageService {
 					outputDeviceMap.put(outputDevice, true);
 				}
 			}
-			// clean orphan refs
+			logger.info("Save: IconSet: " + plan.getIconSet());
+			if (plan.getIconSet() != null) {
+				logger.info("before save: IconSet: " + plan.getIconSet().getIconsetId());
+				plan.setIconSet(iconSetRepository.save(plan.getIconSet()));
+				logger.info("after save: IconSet: " + plan.getIconSet().getIconsetId());
+				// clean orphan refs
+			}
 
 			return planRepository.save(plan);
 		} catch (final Throwable t) {

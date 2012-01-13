@@ -277,8 +277,8 @@ public class FloorComposite extends Composite {
 		rootG.appendChild(svgDrawingG);
 		// scaleGElement.appendChild(moveSvgToG(svgDrawing).getElement());
 
-		scaleToFit();
 		redrawAllIcons();
+		scaleToFit();
 
 	}
 

@@ -60,6 +60,7 @@ public class EditPlanPropertiesDialog extends DialogBox {
 
 		final Button btnCancel = new Button("Cancel");
 		btnCancel.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				hide();
 			}
@@ -68,6 +69,7 @@ public class EditPlanPropertiesDialog extends DialogBox {
 
 		final Button btnSave = new Button("Save");
 		btnSave.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				if (currentPlan == null) {
 					currentPlan = new Plan();

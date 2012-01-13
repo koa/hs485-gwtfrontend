@@ -1,12 +1,15 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.frontend;
 
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorEventHandler;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Plan;
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -14,40 +17,45 @@ import com.google.gwt.event.dom.client.MouseDownEvent;
 import com.google.gwt.event.dom.client.MouseMoveEvent;
 import com.google.gwt.event.dom.client.MouseOutEvent;
 import com.google.gwt.event.dom.client.MouseUpEvent;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.DeckPanel;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.TabBar;
+import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.view.client.SingleSelectionModel;
 
 public class FrontendComposite extends Composite {
-
-	private final DeckPanel					mainPanel;
-	private final TabBar						tabBar;
-	private final FloorEventHandler	handler;
+	private final FloorComposite						floorComposite;
+	private final CellList<Floor>						floorList;
+	private final CommunicationServiceAsync	communicationService	= CommunicationServiceAsync.Util.getInstance();
 
 	public FrontendComposite() {
 
 		final DockLayoutPanel dockLayoutPanel = new DockLayoutPanel(Unit.EM);
 		initWidget(dockLayoutPanel);
 
-		tabBar = new TabBar();
-		tabBar.addSelectionHandler(new SelectionHandler<Integer>() {
+		floorList = new CellList<Floor>(new AbstractCell<Floor>() {
 			@Override
-			public void onSelection(final SelectionEvent<Integer> event) {
-				mainPanel.showWidget(event.getSelectedItem());
+			public void render(final Context context, final Floor floor, final SafeHtmlBuilder sb) {
+				sb.appendEscaped(floor.getName());
 			}
 		});
-		dockLayoutPanel.addNorth(tabBar, 2.0);
-		tabBar.addTab("One");
-		tabBar.addTab("Two");
-		tabBar.addTab("Three");
+		final SingleSelectionModel<Floor> selectionModel = new SingleSelectionModel<Floor>();
+		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 
-		mainPanel = new DeckPanel();
-		dockLayoutPanel.add(mainPanel);
+			@Override
+			public void onSelectionChange(final SelectionChangeEvent event) {
+				floorComposite.setCurrentFloor(selectionModel.getSelectedObject());
+			}
+		});
+		floorList.setSelectionModel(selectionModel);
+		dockLayoutPanel.addWest(floorList, 7.7);
 
-		handler = new FloorEventHandler() {
+		floorComposite = new FloorComposite();
+		dockLayoutPanel.add(floorComposite);
+
+		floorComposite.addFloorEventHandler(new FloorEventHandler() {
 			@Override
 			public void onInputDeviceClick(final ClickEvent event, final InputDevice inputDevice, final float scale, final Runnable iconUpdater) {
 				// TODO Auto-generated method stub
@@ -80,8 +88,32 @@ public class FrontendComposite extends Composite {
 
 			@Override
 			public void onOutputDeviceClick(final ClickEvent event, final OutputDevice outputDevice, final float scale, final Runnable iconUpdater) {
-				// TODO Auto-generated method stub
+				final OutputAddress address = outputDevice.getAddress();
+				if (address != null)
+					communicationService.getOutputSwitchState(address, new AsyncCallback<Boolean>() {
 
+						@Override
+						public void onFailure(final Throwable caught) {
+							GWT.log("Cannot read switch-State: ", caught);
+						}
+
+						@Override
+						public void onSuccess(final Boolean result) {
+							communicationService.setOutputSwitchState(address, !result.booleanValue(), new AsyncCallback<Void>() {
+
+								@Override
+								public void onFailure(final Throwable caught) {
+									GWT.log("Cannot toggle", caught);
+								}
+
+								@Override
+								public void onSuccess(final Void result) {
+									// TODO Auto-generated method stub
+
+								}
+							});
+						}
+					});
 			}
 
 			@Override
@@ -107,25 +139,13 @@ public class FrontendComposite extends Composite {
 				// TODO Auto-generated method stub
 
 			}
-		};
+		});
 
 	}
 
 	public void setPlan(final Plan plan) {
-		mainPanel.clear();
-		while (tabBar.getTabCount() > 0)
-			tabBar.removeTab(0);
-		// decoratedTabPanel.clear();
-		if (plan != null && plan.getFloors().size() > 0) {
-			for (final Floor floor : plan.getFloors()) {
-				final FloorComposite floorComposite = new FloorComposite();
-				floorComposite.addFloorEventHandler(handler);
-				tabBar.addTab(floor.getName());
-				floorComposite.setCurrentPlan(plan);
-				floorComposite.setCurrentFloor(floor);
-				mainPanel.add(floorComposite);
-			}
-			GWT.log("Selected: " + tabBar.selectTab(0, true));
-		}
+		floorComposite.setCurrentPlan(plan);
+		floorList.setRowData(plan.getFloors());
+		floorList.getSelectionModel().setSelected(plan.getFloors().get(0), true);
 	}
 }

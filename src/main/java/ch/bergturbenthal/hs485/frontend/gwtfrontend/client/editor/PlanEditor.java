@@ -522,10 +522,9 @@ public class PlanEditor extends Composite {
 				for (final InputConnector inputConnector : connectors)
 					selectedIcons.put(findInputDeviceOfConnector(inputConnector), IconDecoration.CONNECTED);
 			}
-			for (final EventSink<?> sink : selectedAction.getSinks()) {
+			for (final EventSink<?> sink : selectedAction.getSinks())
 				for (final OutputDevice outputDevice : actionComponentPanelBuilder.outputDevicesOf(sink))
 					selectedIcons.put(outputDevice, IconDecoration.CONNECTED);
-			}
 		}
 		showFloorComposite.setIconDecorations(selectedIcons);
 	}
@@ -565,6 +564,7 @@ public class PlanEditor extends Composite {
 							WaitIndicator.hideWait();
 						}
 					});
+					GWT.log("No iconset loaded");
 				} else
 					setCurrentPlan(selectedPlan);
 			}

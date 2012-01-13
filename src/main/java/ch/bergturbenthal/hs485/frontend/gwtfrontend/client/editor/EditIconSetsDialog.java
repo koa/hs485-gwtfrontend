@@ -45,6 +45,7 @@ public class EditIconSetsDialog extends DialogBox {
 		selectIconsetListbox = new ListBox();
 		selectIconsetListbox.addChangeHandler(new ChangeHandler() {
 
+			@Override
 			public void onChange(final ChangeEvent event) {
 				if (currentIconSet != null)
 					updateCurrentIconSet();
@@ -52,6 +53,7 @@ public class EditIconSetsDialog extends DialogBox {
 			}
 		});
 		final ChangeHandler updateIconsetChangeHandler = new ChangeHandler() {
+			@Override
 			public void onChange(final ChangeEvent event) {
 				updateCurrentIconSet();
 			}
@@ -112,6 +114,7 @@ public class EditIconSetsDialog extends DialogBox {
 
 		final Button btnAddIconset = new Button("Add iconset");
 		btnAddIconset.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				final IconSet iconSet = new IconSet();
 				iconSet.setName("new Iconset");
@@ -124,6 +127,7 @@ public class EditIconSetsDialog extends DialogBox {
 
 		final Button btnRemoveIconset = new Button("Remove Iconset");
 		btnRemoveIconset.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				final int selectedIndex = selectIconsetListbox.getSelectedIndex();
 				if (selectedIndex < 0 || selectedIndex >= iconSets.size())
@@ -138,6 +142,7 @@ public class EditIconSetsDialog extends DialogBox {
 
 		final Button btnSave = new Button("Save");
 		btnSave.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				configService.saveIconsets(iconSets, new AsyncCallback<Void>() {
 
@@ -159,6 +164,7 @@ public class EditIconSetsDialog extends DialogBox {
 
 		final Button btnCancel = new Button("Cancel");
 		btnCancel.addClickHandler(new ClickHandler() {
+			@Override
 			public void onClick(final ClickEvent event) {
 				hide();
 			}
