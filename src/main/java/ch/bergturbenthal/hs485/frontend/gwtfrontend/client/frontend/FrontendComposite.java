@@ -1,8 +1,14 @@
 package ch.bergturbenthal.hs485.frontend.gwtfrontend.client.frontend;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.CommunicationServiceAsync;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorComposite.IconDecoration;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.client.plan.FloorEventHandler;
+import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.SelectableIcon;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.Floor;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.InputDevice;
 import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.OutputAddress;
@@ -26,9 +32,11 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
 public class FrontendComposite extends Composite {
-	private final FloorComposite						floorComposite;
-	private final CellList<Floor>						floorList;
-	private final CommunicationServiceAsync	communicationService	= CommunicationServiceAsync.Util.getInstance();
+	private final FloorComposite							floorComposite;
+	private final CellList<Floor>							floorList;
+	private final CommunicationServiceAsync		communicationService	= CommunicationServiceAsync.Util.getInstance();
+	private final Map<OutputDevice, Boolean>	switchStates					= new HashMap<OutputDevice, Boolean>();
+	private Floor															visibleFloor;
 
 	public FrontendComposite() {
 
@@ -41,16 +49,18 @@ public class FrontendComposite extends Composite {
 				sb.appendEscaped(floor.getName());
 			}
 		});
+		floorList.setStyleName("selectFloorStyle");
 		final SingleSelectionModel<Floor> selectionModel = new SingleSelectionModel<Floor>();
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 
 			@Override
 			public void onSelectionChange(final SelectionChangeEvent event) {
-				floorComposite.setCurrentFloor(selectionModel.getSelectedObject());
+				final Floor floor = selectionModel.getSelectedObject();
+				showFloor(floor);
 			}
 		});
 		floorList.setSelectionModel(selectionModel);
-		dockLayoutPanel.addWest(floorList, 7.7);
+		dockLayoutPanel.addWest(floorList, 20.0);
 
 		floorComposite = new FloorComposite();
 		dockLayoutPanel.add(floorComposite);
@@ -89,29 +99,21 @@ public class FrontendComposite extends Composite {
 			@Override
 			public void onOutputDeviceClick(final ClickEvent event, final OutputDevice outputDevice, final float scale, final Runnable iconUpdater) {
 				final OutputAddress address = outputDevice.getAddress();
-				if (address != null)
-					communicationService.getOutputSwitchState(address, new AsyncCallback<Boolean>() {
+				final Boolean outputState = switchStates.get(outputDevice);
+
+				if (address != null && outputState != null)
+
+					communicationService.setOutputSwitchState(address, !outputState.booleanValue(), new AsyncCallback<Void>() {
 
 						@Override
 						public void onFailure(final Throwable caught) {
-							GWT.log("Cannot read switch-State: ", caught);
+							GWT.log("Cannot toggle", caught);
 						}
 
 						@Override
-						public void onSuccess(final Boolean result) {
-							communicationService.setOutputSwitchState(address, !result.booleanValue(), new AsyncCallback<Void>() {
-
-								@Override
-								public void onFailure(final Throwable caught) {
-									GWT.log("Cannot toggle", caught);
-								}
-
-								@Override
-								public void onSuccess(final Void result) {
-									// TODO Auto-generated method stub
-
-								}
-							});
+						public void onSuccess(final Void result) {
+							switchStates.put(outputDevice, Boolean.valueOf(!outputState.booleanValue()));
+							updateIcons();
 						}
 					});
 			}
@@ -147,5 +149,46 @@ public class FrontendComposite extends Composite {
 		floorComposite.setCurrentPlan(plan);
 		floorList.setRowData(plan.getFloors());
 		floorList.getSelectionModel().setSelected(plan.getFloors().get(0), true);
+	}
+
+	protected void updateIcons() {
+		final HashMap<SelectableIcon, IconDecoration> decorations = new HashMap<SelectableIcon, IconDecoration>();
+		for (final InputDevice inputDevive : visibleFloor.getInputDevices())
+			decorations.put(inputDevive, IconDecoration.INVISIBLE);
+		for (final Entry<OutputDevice, Boolean> outputDeviceEntry : switchStates.entrySet()) {
+			final Boolean value = outputDeviceEntry.getValue();
+			if (value != null) {
+				if (value.booleanValue())
+					decorations.put(outputDeviceEntry.getKey(), IconDecoration.POWER_ON);
+			} else
+				decorations.put(outputDeviceEntry.getKey(), IconDecoration.INVISIBLE);
+		}
+		floorComposite.setIconDecorations(decorations);
+	}
+
+	private void showFloor(final Floor floor) {
+		this.visibleFloor = floor;
+		final HashMap<SelectableIcon, IconDecoration> decorations = new HashMap<SelectableIcon, IconDecoration>();
+		for (final InputDevice inputDevive : floor.getInputDevices())
+			decorations.put(inputDevive, IconDecoration.INVISIBLE);
+		for (final OutputDevice outputDevice : floor.getOutputDevices())
+			if (outputDevice.getAddress() != null)
+				communicationService.getOutputSwitchState(outputDevice.getAddress(), new AsyncCallback<Boolean>() {
+
+					@Override
+					public void onFailure(final Throwable caught) {
+						GWT.log("Cannot call server", caught);
+					}
+
+					@Override
+					public void onSuccess(final Boolean result) {
+						if (result != null) {
+							switchStates.put(outputDevice, result);
+							updateIcons();
+						}
+					}
+				});
+		updateIcons();
+		floorComposite.setCurrentFloor(floor);
 	}
 }

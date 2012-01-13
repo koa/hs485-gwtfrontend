@@ -37,6 +37,7 @@ import ch.bergturbenthal.hs485.frontend.gwtfrontend.shared.db.PositionXY;
 
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
+import com.google.gwt.dom.client.Style.Visibility;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.MouseDownEvent;
@@ -54,7 +55,7 @@ import com.google.gwt.user.client.ui.Composite;
 
 public class FloorComposite extends Composite {
 	public static enum IconDecoration {
-		CONNECTED
+		CONNECTED, INVISIBLE, POWER_ON
 	}
 
 	private Floor																			currentFloor;
@@ -166,6 +167,9 @@ public class FloorComposite extends Composite {
 						case CONNECTED:
 							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
 							break;
+						case INVISIBLE:
+							currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+							break;
 						}
 						selectedIconG.appendChild(selectedRect);
 						final OMSVGUseElement useElement = document.createSVGUseElement();
@@ -215,13 +219,18 @@ public class FloorComposite extends Composite {
 					removeAllChildren(currentIcon);
 					final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
 					if (iconDecoration != null) {
-
 						final OMSVGDocument document = OMSVGParser.currentDocument();
 						final OMSVGGElement selectedIconG = document.createSVGGElement();
 						final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
 						switch (iconDecoration) {
 						case CONNECTED:
 							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+							break;
+						case INVISIBLE:
+							currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+							break;
+						case POWER_ON:
+							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#FFFFA0");
 							break;
 						}
 						selectedIconG.appendChild(selectedRect);
