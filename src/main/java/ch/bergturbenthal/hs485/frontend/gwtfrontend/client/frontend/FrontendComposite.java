@@ -28,6 +28,8 @@ import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.HasVerticalAlignment;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 
@@ -37,19 +39,13 @@ public class FrontendComposite extends Composite {
 	private final CommunicationServiceAsync		communicationService	= CommunicationServiceAsync.Util.getInstance();
 	private final Map<OutputDevice, Boolean>	switchStates					= new HashMap<OutputDevice, Boolean>();
 	private Floor															visibleFloor;
+	private final VerticalPanel								verticalPanel;
 
 	public FrontendComposite() {
 
 		final DockLayoutPanel dockLayoutPanel = new DockLayoutPanel(Unit.EM);
 		initWidget(dockLayoutPanel);
-
-		floorList = new CellList<Floor>(new AbstractCell<Floor>() {
-			@Override
-			public void render(final Context context, final Floor floor, final SafeHtmlBuilder sb) {
-				sb.appendEscaped(floor.getName());
-			}
-		});
-		floorList.setStyleName("selectFloorStyle");
+		dockLayoutPanel.setHeight("100%");
 		final SingleSelectionModel<Floor> selectionModel = new SingleSelectionModel<Floor>();
 		selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
 
@@ -59,8 +55,22 @@ public class FrontendComposite extends Composite {
 				showFloor(floor);
 			}
 		});
+
+		verticalPanel = new VerticalPanel();
+		verticalPanel.setVerticalAlignment(HasVerticalAlignment.ALIGN_MIDDLE);
+		dockLayoutPanel.addWest(verticalPanel, 15.0);
+		verticalPanel.setHeight("100%");
+
+		floorList = new CellList<Floor>(new AbstractCell<Floor>() {
+			@Override
+			public void render(final Context context, final Floor floor, final SafeHtmlBuilder sb) {
+
+				sb.appendEscaped(floor.getName());
+			}
+		});
+		verticalPanel.add(floorList);
+		floorList.setStyleName("selectFloorStyle");
 		floorList.setSelectionModel(selectionModel);
-		dockLayoutPanel.addWest(floorList, 20.0);
 
 		floorComposite = new FloorComposite();
 		dockLayoutPanel.add(floorComposite);

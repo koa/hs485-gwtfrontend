@@ -40,5 +40,10 @@ html,body,div.fullpage,div.fullpage>div{
 .gwt-TabBar {
 }
 .selectFloorStyle {
-font-size:2em;
+	font-size:2em;
+}
+.selectFloorStyle > div > div{
+	padding: 0.5em;
+	margin-top: 1em;
+	margin-bottom: 1em;	
 }
