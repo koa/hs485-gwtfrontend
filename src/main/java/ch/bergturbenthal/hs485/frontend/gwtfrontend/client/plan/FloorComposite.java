@@ -157,31 +157,7 @@ public class FloorComposite extends Composite {
 				public void run() {
 					removeAllChildren(currentIcon);
 					final PositionXY position = inputDevice.getPosition();
-					final IconDecoration iconDecoration = selectedDecorations.get(inputDevice);
-					if (iconDecoration != null) {
-
-						final OMSVGDocument document = OMSVGParser.currentDocument();
-						final OMSVGGElement selectedIconG = document.createSVGGElement();
-						final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
-						switch (iconDecoration) {
-						case CONNECTED:
-							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
-							break;
-						case INVISIBLE:
-							currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
-							break;
-						}
-						selectedIconG.appendChild(selectedRect);
-						final OMSVGUseElement useElement = document.createSVGUseElement();
-						useElement.getHref().setBaseVal('#' + inputIconId);
-						selectedIconG.appendChild(useElement);
-						currentIcon.appendChild(selectedIconG);
-
-					} else {
-						final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
-						currentIcon.appendChild(svgUseElement);
-						svgUseElement.getHref().setBaseVal('#' + inputIconId);
-					}
+					drawInputIcon(inputDevice, currentIcon);
 					moveTransform.setTranslate(position.getX(), position.getY());
 
 				}
@@ -215,34 +191,8 @@ public class FloorComposite extends Composite {
 
 				@Override
 				public void run() {
-					final PositionXY position = outputDevice.getPosition();
 					removeAllChildren(currentIcon);
-					final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
-					if (iconDecoration != null) {
-						final OMSVGDocument document = OMSVGParser.currentDocument();
-						final OMSVGGElement selectedIconG = document.createSVGGElement();
-						final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
-						switch (iconDecoration) {
-						case CONNECTED:
-							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
-							break;
-						case INVISIBLE:
-							currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
-							break;
-						case POWER_ON:
-							selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#FFFFA0");
-							break;
-						}
-						selectedIconG.appendChild(selectedRect);
-						final OMSVGUseElement useElement = document.createSVGUseElement();
-						useElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
-						selectedIconG.appendChild(useElement);
-						currentIcon.appendChild(selectedIconG);
-					} else {
-						final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
-						currentIcon.appendChild(svgUseElement);
-						svgUseElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
-					}
+					final PositionXY position = drawOutputIcon(outputDevice, currentIcon);
 					moveTransform.setTranslate(position.getX(), position.getY());
 				}
 			};
@@ -336,6 +286,65 @@ public class FloorComposite extends Composite {
 		iconG.setId(iconId);
 
 		iconDef.appendChild(iconG);
+	}
+
+	private void drawInputIcon(final InputDevice inputDevice, final OMSVGGElement currentIcon) {
+		final IconDecoration iconDecoration = selectedDecorations.get(inputDevice);
+		if (iconDecoration != null) {
+
+			final OMSVGDocument document = OMSVGParser.currentDocument();
+			final OMSVGGElement selectedIconG = document.createSVGGElement();
+			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+			switch (iconDecoration) {
+			case CONNECTED:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+				break;
+			case INVISIBLE:
+				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+				break;
+			}
+			selectedIconG.appendChild(selectedRect);
+			final OMSVGUseElement useElement = document.createSVGUseElement();
+			useElement.getHref().setBaseVal('#' + inputIconId);
+			selectedIconG.appendChild(useElement);
+			currentIcon.appendChild(selectedIconG);
+
+		} else {
+			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+			currentIcon.appendChild(svgUseElement);
+			svgUseElement.getHref().setBaseVal('#' + inputIconId);
+		}
+	}
+
+	private PositionXY drawOutputIcon(final OutputDevice outputDevice, final OMSVGGElement currentIcon) {
+		final PositionXY position = outputDevice.getPosition();
+		final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
+		if (iconDecoration != null) {
+			final OMSVGDocument document = OMSVGParser.currentDocument();
+			final OMSVGGElement selectedIconG = document.createSVGGElement();
+			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+			switch (iconDecoration) {
+			case CONNECTED:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+				break;
+			case INVISIBLE:
+				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+				break;
+			case POWER_ON:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#FFFFA0");
+				break;
+			}
+			selectedIconG.appendChild(selectedRect);
+			final OMSVGUseElement useElement = document.createSVGUseElement();
+			useElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+			selectedIconG.appendChild(useElement);
+			currentIcon.appendChild(selectedIconG);
+		} else {
+			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+			currentIcon.appendChild(svgUseElement);
+			svgUseElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+		}
+		return position;
 	}
 
 	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
