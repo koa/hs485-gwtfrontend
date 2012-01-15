@@ -41,8 +41,8 @@ public class TestVM {
 		keyUpDownOperation.setDownInput(downInputVariable);
 		keyUpDownOperation.setOutput(outputVariable);
 		keyUpDownOperation.setIncrementAmount(makeConstVariable(interpreter, new DimmValue(16)));
-		keyUpDownOperation.setIncrementRepeatWaitTime(makeConstVariable(interpreter, new TimeSpanValue(50, TimeUnit.MILLISECONDS)));
-		keyUpDownOperation.setInitialWaitTime(makeConstVariable(interpreter, new TimeSpanValue(200, TimeUnit.MILLISECONDS)));
+		keyUpDownOperation.setIncrementRepeatWaitTime(makeConstVariable(interpreter, new TimeSpanValue(300, TimeUnit.MILLISECONDS)));
+		keyUpDownOperation.setInitialWaitTime(makeConstVariable(interpreter, new TimeSpanValue(900, TimeUnit.MILLISECONDS)));
 		interpreter.appendOperation(keyUpDownOperation);
 
 		final DebugDimmWriter dimmWriter = new DebugDimmWriter();
