@@ -57,7 +57,7 @@ public class StorageService {
 			if (planId != null)
 				return readPlan(planId);
 		}
-		return null;
+		return new Plan();
 	}
 
 	public Map<String, String> listAllPlans() {
@@ -107,6 +107,18 @@ public class StorageService {
 
 	}
 
+	private void saveInputConnector(final InputConnector inputConnector) {
+		if (inputConnector.getConnectorId() == null)
+			inputConnector.setConnectorId(UUID.randomUUID().toString());
+		inputConnectorRepository.save(inputConnector);
+	}
+
+	private void saveOutputDevice(final OutputDevice outputDevice) {
+		if (outputDevice.getDeviceId() == null)
+			outputDevice.setDeviceId(UUID.randomUUID().toString());
+		outputDeviceRepository.save(outputDevice);
+	}
+
 	public Plan savePlan(final Plan plan) {
 		try {
 			final Map<InputConnector, Boolean> inputConnectorMap = new IdentityHashMap<InputConnector, Boolean>();
@@ -136,18 +148,6 @@ public class StorageService {
 			t.printStackTrace();
 			throw new RuntimeException(t);
 		}
-	}
-
-	private void saveInputConnector(final InputConnector inputConnector) {
-		if (inputConnector.getConnectorId() == null)
-			inputConnector.setConnectorId(UUID.randomUUID().toString());
-		inputConnectorRepository.save(inputConnector);
-	}
-
-	private void saveOutputDevice(final OutputDevice outputDevice) {
-		if (outputDevice.getDeviceId() == null)
-			outputDevice.setDeviceId(UUID.randomUUID().toString());
-		outputDeviceRepository.save(outputDevice);
 	}
 
 }

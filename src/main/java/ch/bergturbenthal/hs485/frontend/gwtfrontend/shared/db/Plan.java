@@ -18,7 +18,7 @@ public class Plan implements Serializable {
 	private List<Action<Event>>	actions						= new ArrayList<Action<Event>>();
 	private List<Floor>					floors						= new ArrayList<Floor>();
 	@DBRef
-	private IconSet							iconSet;
+	private IconSet							iconSet						= new IconSet();
 	private Integer							maximumOnTime;
 	private String							name;
 	@Id

@@ -71,6 +71,8 @@ public class FloorComposite extends Composite {
 	private final Map<SelectableIcon, IconDecoration>	selectedDecorations	= new HashMap<SelectableIcon, FloorComposite.IconDecoration>();
 	private OMSVGSVGElement														svgDrawing;
 	private final SVGImage														svgImage;
+	private float																			svgDrawingWidth			= 1;
+	private float																			svgDrawingHeight		= 1;
 
 	public FloorComposite() {
 		currentFloor = new Floor();
@@ -131,12 +133,113 @@ public class FloorComposite extends Composite {
 		handler.setFullRedrawRunnable(fullRedrawRunnable);
 	}
 
+	private void addIcon(final String iconId, final FileData image) {
+		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
+		final OMSVGGElement iconG = moveSvgToG(iconDoc);
+		final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
+		final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
+
+		final String widthString = iconDoc.getAttribute("width");
+		final String heightString = iconDoc.getAttribute("height");
+		final float width = widthString == null ? 1 : Float.parseFloat(widthString);
+		final float height = heightString == null ? 1 : Float.parseFloat(heightString);
+
+		centerTransform.setTranslate(-width / 2, -height / 2);
+		final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
+		final float scaleX = 1 / width;
+		final float scaleY = 1 / height;
+		final float iconScale = Math.min(scaleX, scaleY);
+		baseScaleTransform.setScale(iconScale, iconScale);
+		transformList.appendItem(baseScaleTransform);
+		transformList.appendItem(centerTransform);
+		iconG.setId(iconId);
+
+		iconDef.appendChild(iconG);
+	}
+
+	private void drawInputIcon(final InputDevice inputDevice, final OMSVGGElement currentIcon) {
+		final IconDecoration iconDecoration = selectedDecorations.get(inputDevice);
+		if (iconDecoration != null) {
+
+			final OMSVGDocument document = OMSVGParser.currentDocument();
+			final OMSVGGElement selectedIconG = document.createSVGGElement();
+			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+			switch (iconDecoration) {
+			case CONNECTED:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+				break;
+			case INVISIBLE:
+				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+				break;
+			}
+			selectedIconG.appendChild(selectedRect);
+			final OMSVGUseElement useElement = document.createSVGUseElement();
+			useElement.getHref().setBaseVal('#' + inputIconId);
+			selectedIconG.appendChild(useElement);
+			currentIcon.appendChild(selectedIconG);
+
+		} else {
+			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+			currentIcon.appendChild(svgUseElement);
+			svgUseElement.getHref().setBaseVal('#' + inputIconId);
+		}
+	}
+
+	private PositionXY drawOutputIcon(final OutputDevice outputDevice, final OMSVGGElement currentIcon) {
+		final PositionXY position = outputDevice.getPosition();
+		final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
+		if (iconDecoration != null) {
+			final OMSVGDocument document = OMSVGParser.currentDocument();
+			final OMSVGGElement selectedIconG = document.createSVGGElement();
+			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
+			switch (iconDecoration) {
+			case CONNECTED:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
+				break;
+			case INVISIBLE:
+				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
+				break;
+			case POWER_ON:
+				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#FFFFA0");
+				break;
+			}
+			selectedIconG.appendChild(selectedRect);
+			final OMSVGUseElement useElement = document.createSVGUseElement();
+			useElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+			selectedIconG.appendChild(useElement);
+			currentIcon.appendChild(selectedIconG);
+		} else {
+			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
+			currentIcon.appendChild(svgUseElement);
+			svgUseElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
+		}
+		return position;
+	}
+
 	public Floor getCurrentFloor() {
 		return currentFloor;
 	}
 
 	public Plan getCurrentPlan() {
 		return currentPlan;
+	}
+
+	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
+		if (!loadedFiles.contains(image.getFileName())) {
+			addIcon(iconId, image);
+			loadedFiles.add(image.getFileName());
+		}
+	}
+
+	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
+		// SVGProcessor.normalizeIds(svg);
+		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
+		final Element svgElement = svg.getElement();
+		final Element newGElement = newG.getElement();
+		Node node;
+		while ((node = svgElement.getFirstChild()) != null)
+			newGElement.appendChild(svgElement.removeChild(node));
+		return newG;
 	}
 
 	public void redrawAllIcons() {
@@ -217,6 +320,15 @@ public class FloorComposite extends Composite {
 		}
 	}
 
+	private void removeAllChildren(final OMSVGGElement rootElem) {
+		while (true) {
+			final OMNode firstChild = rootElem.getFirstChild();
+			if (firstChild == null)
+				break;
+			rootElem.removeChild(firstChild);
+		}
+	}
+
 	public void repaintAll() {
 		if (currentFloor != null && currentFloor.getDrawing() != null && currentFloor.getDrawing().getFileDataContent() != null)
 			svgDrawing = OMSVGParser.parse(currentFloor.getDrawing().getFileDataContent());
@@ -227,6 +339,11 @@ public class FloorComposite extends Composite {
 
 		// final OMSVGGElement backgroundG = currentDocument.createSVGGElement();
 		// final Element scaleGElement = rootG.getElement();
+		final String width = svgDrawing.getAttribute("width");
+		final String height = svgDrawing.getAttribute("height");
+		svgDrawingWidth = width == null ? 1 : Float.parseFloat(width);
+		svgDrawingHeight = height == null ? 1 : Float.parseFloat(height);
+
 		final OMNodeList<OMNode> childNodes = rootG.getChildNodes();
 		for (final OMNode childNode : childNodes)
 			if ("svg-floor-drawing-g".equals(((OMElement) childNode).getId()))
@@ -238,6 +355,31 @@ public class FloorComposite extends Composite {
 
 		redrawAllIcons();
 		scaleToFit();
+
+	}
+
+	private void scaleToFit() {
+		if (svgDrawing == null)
+			return;
+		final OMSVGTransformList xformList = rootG.getTransform().getBaseVal();
+		xformList.clear();
+		final OMSVGTransform scaleXForm = rootG.getOwnerSVGElement().createSVGTransform();
+		final OMSVGTransform translateXForm = rootG.getOwnerSVGElement().createSVGTransform();
+		xformList.appendItem(translateXForm);
+		xformList.appendItem(scaleXForm);
+		final OMSVGRect viewport = svgDrawing.getViewport();
+		final int imageWidth = svgImage.getElement().getOffsetWidth();
+		final int imageHeight = svgImage.getElement().getOffsetHeight();
+		final float drawingWidth = svgDrawingWidth;// viewport.getWidth();
+		final float drawingHeight = svgDrawingHeight;// viewport.getHeight();
+		final float yScale = imageHeight / drawingHeight;
+		final float xScale = imageWidth / drawingWidth;
+		scale = Math.min(yScale, xScale);
+
+		scaleXForm.setScale(scale, scale);
+		final float xOffset = (imageWidth - drawingWidth * scale) / 2;
+		final float yOffset = (imageHeight - drawingHeight * scale) / 2;
+		translateXForm.setTranslate(xOffset, yOffset);
 
 	}
 
@@ -266,136 +408,6 @@ public class FloorComposite extends Composite {
 		selectedDecorations.clear();
 		selectedDecorations.putAll(icons);
 		redrawAllIcons();
-	}
-
-	private void addIcon(final String iconId, final FileData image) {
-		final OMSVGSVGElement iconDoc = OMSVGParser.parse(image.getFileDataContent());
-		final OMSVGGElement iconG = moveSvgToG(iconDoc);
-		final OMSVGTransform baseScaleTransform = iconDoc.createSVGTransform();
-		final OMSVGTransform centerTransform = iconDoc.createSVGTransform();
-		final OMSVGRect viewport = iconDoc.getViewport();
-
-		centerTransform.setTranslate(-viewport.getCenterX(), -viewport.getCenterY());
-		final OMSVGTransformList transformList = iconG.getTransform().getBaseVal();
-		final float scaleX = 1 / viewport.getWidth();
-		final float scaleY = 1 / viewport.getHeight();
-		final float iconScale = Math.min(scaleX, scaleY);
-		baseScaleTransform.setScale(iconScale, iconScale);
-		transformList.appendItem(baseScaleTransform);
-		transformList.appendItem(centerTransform);
-		iconG.setId(iconId);
-
-		iconDef.appendChild(iconG);
-	}
-
-	private void drawInputIcon(final InputDevice inputDevice, final OMSVGGElement currentIcon) {
-		final IconDecoration iconDecoration = selectedDecorations.get(inputDevice);
-		if (iconDecoration != null) {
-
-			final OMSVGDocument document = OMSVGParser.currentDocument();
-			final OMSVGGElement selectedIconG = document.createSVGGElement();
-			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
-			switch (iconDecoration) {
-			case CONNECTED:
-				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
-				break;
-			case INVISIBLE:
-				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
-				break;
-			}
-			selectedIconG.appendChild(selectedRect);
-			final OMSVGUseElement useElement = document.createSVGUseElement();
-			useElement.getHref().setBaseVal('#' + inputIconId);
-			selectedIconG.appendChild(useElement);
-			currentIcon.appendChild(selectedIconG);
-
-		} else {
-			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
-			currentIcon.appendChild(svgUseElement);
-			svgUseElement.getHref().setBaseVal('#' + inputIconId);
-		}
-	}
-
-	private PositionXY drawOutputIcon(final OutputDevice outputDevice, final OMSVGGElement currentIcon) {
-		final PositionXY position = outputDevice.getPosition();
-		final IconDecoration iconDecoration = selectedDecorations.get(outputDevice);
-		if (iconDecoration != null) {
-			final OMSVGDocument document = OMSVGParser.currentDocument();
-			final OMSVGGElement selectedIconG = document.createSVGGElement();
-			final OMSVGRectElement selectedRect = document.createSVGRectElement(-0.55f, -0.55f, 1.1f, 1.1f, 0.1f, 0.1f);
-			switch (iconDecoration) {
-			case CONNECTED:
-				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#40d040");
-				break;
-			case INVISIBLE:
-				currentIcon.getStyle().setVisibility(Visibility.HIDDEN);
-				break;
-			case POWER_ON:
-				selectedRect.setAttribute(SVGConstants.SVG_FILL_ATTRIBUTE, "#FFFFA0");
-				break;
-			}
-			selectedIconG.appendChild(selectedRect);
-			final OMSVGUseElement useElement = document.createSVGUseElement();
-			useElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
-			selectedIconG.appendChild(useElement);
-			currentIcon.appendChild(selectedIconG);
-		} else {
-			final OMSVGUseElement svgUseElement = OMSVGParser.currentDocument().createSVGUseElement();
-			currentIcon.appendChild(svgUseElement);
-			svgUseElement.getHref().setBaseVal('#' + outputIconIds.get(outputDevice.getType()));
-		}
-		return position;
-	}
-
-	private void loadIconIfNeeded(final FileData image, final String iconId, final Set<String> loadedFiles) {
-		if (!loadedFiles.contains(image.getFileName())) {
-			addIcon(iconId, image);
-			loadedFiles.add(image.getFileName());
-		}
-	}
-
-	private OMSVGGElement moveSvgToG(final OMSVGSVGElement svg) {
-		// SVGProcessor.normalizeIds(svg);
-		final OMSVGGElement newG = OMSVGParser.currentDocument().createSVGGElement();
-		final Element svgElement = svg.getElement();
-		final Element newGElement = newG.getElement();
-		Node node;
-		while ((node = svgElement.getFirstChild()) != null)
-			newGElement.appendChild(svgElement.removeChild(node));
-		return newG;
-	}
-
-	private void removeAllChildren(final OMSVGGElement rootElem) {
-		while (true) {
-			final OMNode firstChild = rootElem.getFirstChild();
-			if (firstChild == null)
-				break;
-			rootElem.removeChild(firstChild);
-		}
-	}
-
-	private void scaleToFit() {
-		if (svgDrawing == null)
-			return;
-		final OMSVGTransformList xformList = rootG.getTransform().getBaseVal();
-		xformList.clear();
-		final OMSVGTransform scaleXForm = rootG.getOwnerSVGElement().createSVGTransform();
-		final OMSVGTransform translateXForm = rootG.getOwnerSVGElement().createSVGTransform();
-		xformList.appendItem(translateXForm);
-		xformList.appendItem(scaleXForm);
-		final OMSVGRect viewport = svgDrawing.getViewport();
-		final int imageWidth = svgImage.getElement().getOffsetWidth();
-		final int imageHeight = svgImage.getElement().getOffsetHeight();
-		final float drawingWidth = viewport.getWidth();
-		final float drawingHeight = viewport.getHeight();
-		final float yScale = imageHeight / drawingHeight;
-		final float xScale = imageWidth / drawingWidth;
-		scale = Math.min(yScale, xScale);
-		scaleXForm.setScale(scale, scale);
-		final float xOffset = (imageWidth - drawingWidth * scale) / 2;
-		final float yOffset = (imageHeight - drawingHeight * scale) / 2;
-		translateXForm.setTranslate(xOffset, yOffset);
-
 	}
 
 	private void updateIcons() {

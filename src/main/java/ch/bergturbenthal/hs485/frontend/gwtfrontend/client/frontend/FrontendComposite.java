@@ -157,23 +157,10 @@ public class FrontendComposite extends Composite {
 
 	public void setPlan(final Plan plan) {
 		floorComposite.setCurrentPlan(plan);
-		floorList.setRowData(plan.getFloors());
-		floorList.getSelectionModel().setSelected(plan.getFloors().get(0), true);
-	}
-
-	protected void updateIcons() {
-		final HashMap<SelectableIcon, IconDecoration> decorations = new HashMap<SelectableIcon, IconDecoration>();
-		for (final InputDevice inputDevive : visibleFloor.getInputDevices())
-			decorations.put(inputDevive, IconDecoration.INVISIBLE);
-		for (final Entry<OutputDevice, Boolean> outputDeviceEntry : switchStates.entrySet()) {
-			final Boolean value = outputDeviceEntry.getValue();
-			if (value != null) {
-				if (value.booleanValue())
-					decorations.put(outputDeviceEntry.getKey(), IconDecoration.POWER_ON);
-			} else
-				decorations.put(outputDeviceEntry.getKey(), IconDecoration.INVISIBLE);
+		if (plan != null) {
+			floorList.setRowData(plan.getFloors());
+			floorList.getSelectionModel().setSelected(plan.getFloors().get(0), true);
 		}
-		floorComposite.setIconDecorations(decorations);
 	}
 
 	private void showFloor(final Floor floor) {
@@ -200,5 +187,20 @@ public class FrontendComposite extends Composite {
 				});
 		updateIcons();
 		floorComposite.setCurrentFloor(floor);
+	}
+
+	protected void updateIcons() {
+		final HashMap<SelectableIcon, IconDecoration> decorations = new HashMap<SelectableIcon, IconDecoration>();
+		for (final InputDevice inputDevive : visibleFloor.getInputDevices())
+			decorations.put(inputDevive, IconDecoration.INVISIBLE);
+		for (final Entry<OutputDevice, Boolean> outputDeviceEntry : switchStates.entrySet()) {
+			final Boolean value = outputDeviceEntry.getValue();
+			if (value != null) {
+				if (value.booleanValue())
+					decorations.put(outputDeviceEntry.getKey(), IconDecoration.POWER_ON);
+			} else
+				decorations.put(outputDeviceEntry.getKey(), IconDecoration.INVISIBLE);
+		}
+		floorComposite.setIconDecorations(decorations);
 	}
 }

@@ -26,19 +26,10 @@ public class Frontend implements EntryPoint {
 
 			@Override
 			public void onSuccess(final Plan result) {
-				configService.loadCurrentPlan(new AsyncCallback<Plan>() {
-
-					@Override
-					public void onFailure(final Throwable caught) {
-						// TODO Auto-generated method stub
-					}
-
-					@Override
-					public void onSuccess(final Plan result) {
-						mainComposite.setPlan(result);
-					}
-				});
-				mainComposite.setPlan(result);
+				if (result == null)
+					mainComposite.setPlan(new Plan());
+				else
+					mainComposite.setPlan(result);
 			}
 		});
 	}

@@ -12,7 +12,7 @@ public class IconSet implements Serializable {
 	private static final long									serialVersionUID	= -7868682272749448498L;
 	@Id
 	private String														iconsetId;
-	private IconEntry													inputIcon;
+	private IconEntry													inputIcon					= new IconEntry();
 	private String														name;
 	private Map<OutputDeviceType, IconEntry>	outputIcons				= new HashMap<OutputDeviceType, IconEntry>();
 
