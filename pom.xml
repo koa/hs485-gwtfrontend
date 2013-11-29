@@ -6,7 +6,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>ch.berg-turbenthal.parent</groupId>
-    <version>0.0.8</version>
+    <version>0.0.10-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>ch.bergturbenthal.hs485.frontend</groupId>
@@ -237,12 +237,12 @@
     <repository>
       <id>Neptun</id>
       <name>Neptun-releases</name>
-      <url>http://www.berg-turbenthal.ch/artifactory/libs-releases-local</url>
+      <url>http://nexus.berg-turbenthal.ch/content/repositories/releases/</url>
     </repository>
     <repository>
       <id>Neptun-snapshot</id>
       <name>Neptun-snapshots</name>
-      <url>http://www.berg-turbenthal.ch/artifactory/libs-snapshots-local</url>
+      <url>http://nexus.berg-turbenthal.ch/content/repositories/snapshots/</url>
     </repository>
     <repository>
       <id>spring-milestone</id>
