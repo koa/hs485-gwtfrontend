@@ -92,7 +92,11 @@ public class BuildingService {
 					final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(hs485registry, executorService);
 					if (plan != null) {
 						for (final Action<?> action : plan.getActions())
-							configurationBuilder.appendAction(action);
+							try {
+								configurationBuilder.appendAction(action);
+							} catch (final RuntimeException e) {
+								logger.error("Cannot execute action " + action, e);
+							}
 						currentConfiguration = configurationBuilder.buildConfiguration();
 						if (currentConfiguration != null)
 							currentConfiguration.close();
@@ -114,6 +118,19 @@ public class BuildingService {
 		} catch (final Exception e) {
 			logger.warn("Error while activating plan", e);
 			throw new RuntimeException(e);
+		}
+	}
+
+	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action<Event>> actions, final KeySensor keySensor,
+			final PhysicallySensor pairableSensor, final ConnectionTargetAction targetAction) throws IOException {
+		final InputConnector foundInputConnector = findInputConnector(plan, pairableSensor);
+		if (foundInputConnector == null)
+			return;
+		for (final Actor assignedActor : keySensor.listAssignedActors()) {
+			final OutputDevice foundOutputDevice = findOutputDevice(plan, assignedActor);
+			if (foundOutputDevice == null)
+				continue;
+			updateConnection(actions, foundInputConnector, foundOutputDevice, assignedActor, targetAction);
 		}
 	}
 
@@ -162,50 +179,6 @@ public class BuildingService {
 			plan.setActions(compactActions(actions));
 		} catch (final IOException e) {
 			throw new RuntimeException("Problem reading existing connections", e);
-		}
-	}
-
-	@PostConstruct
-	public void init() {
-		logger.info("Init Building-Service");
-		final Plan runningPlan = storageService.getRunningPlan();
-		logger.info("Last Config: " + runningPlan);
-		if (runningPlan != null) {
-			activatePlan(runningPlan);
-			logger.info("Default-Config loaded");
-		} else
-			logger.warn("No Default config");
-	}
-
-	@PreDestroy
-	public void shutdown() throws IOException {
-		executorService.shutdownNow();
-		hs485registry.doInTransaction(new Callable<Void>() {
-
-			@Override
-			public Void call() throws Exception {
-				try {
-					if (currentConfiguration != null)
-						currentConfiguration.close();
-					logger.info("Shutdown completed");
-				} catch (final Throwable t) {
-					logger.error("Cannot shutdown existing configuration", t);
-				}
-				return null;
-			}
-		});
-	}
-
-	private void addAllConnectionsOfSensor(final Plan plan, final ArrayList<Action<Event>> actions, final KeySensor keySensor,
-			final PhysicallySensor pairableSensor, final ConnectionTargetAction targetAction) throws IOException {
-		final InputConnector foundInputConnector = findInputConnector(plan, pairableSensor);
-		if (foundInputConnector == null)
-			return;
-		for (final Actor assignedActor : keySensor.listAssignedActors()) {
-			final OutputDevice foundOutputDevice = findOutputDevice(plan, assignedActor);
-			if (foundOutputDevice == null)
-				continue;
-			updateConnection(actions, foundInputConnector, foundOutputDevice, assignedActor, targetAction);
 		}
 	}
 
@@ -287,6 +260,37 @@ public class BuildingService {
 					return outputDevice;
 			}
 		return null;
+	}
+
+	@PostConstruct
+	public void init() {
+		logger.info("Init Building-Service");
+		final Plan runningPlan = storageService.getRunningPlan();
+		logger.info("Last Config: " + runningPlan);
+		if (runningPlan != null) {
+			activatePlan(runningPlan);
+			logger.info("Default-Config loaded");
+		} else
+			logger.warn("No Default config");
+	}
+
+	@PreDestroy
+	public void shutdown() throws IOException {
+		executorService.shutdownNow();
+		hs485registry.doInTransaction(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				try {
+					if (currentConfiguration != null)
+						currentConfiguration.close();
+					logger.info("Shutdown completed");
+				} catch (final Throwable t) {
+					logger.error("Cannot shutdown existing configuration", t);
+				}
+				return null;
+			}
+		});
 	}
 
 	private void updateConnection(final ArrayList<Action<Event>> actions, final InputConnector foundInputConnector,
