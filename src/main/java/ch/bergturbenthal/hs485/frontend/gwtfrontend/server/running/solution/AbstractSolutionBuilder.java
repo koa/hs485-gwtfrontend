@@ -27,11 +27,13 @@ import ch.eleveneye.hs485.api.MessageHandler;
 import ch.eleveneye.hs485.api.data.KeyEventType;
 import ch.eleveneye.hs485.api.data.KeyMessage;
 import ch.eleveneye.hs485.api.data.KeyType;
+import ch.eleveneye.hs485.device.Dimmer;
 import ch.eleveneye.hs485.device.KeyActor;
 import ch.eleveneye.hs485.device.KeySensor;
 import ch.eleveneye.hs485.device.Registry;
 import ch.eleveneye.hs485.device.SwitchingActor;
 import ch.eleveneye.hs485.device.TimedActor;
+import ch.eleveneye.hs485.device.config.DimmerMode;
 import ch.eleveneye.hs485.device.config.PairMode;
 import ch.eleveneye.hs485.device.config.TimeMode;
 import ch.eleveneye.hs485.device.physically.Actor;
@@ -215,6 +217,7 @@ public class AbstractSolutionBuilder {
 		final KeyActor keyActor = (KeyActor) actor;
 		final SwitchingActor switchingActor = (SwitchingActor) actor;
 		final TimedActor timedActor = (TimedActor) actor;
+		final Dimmer dimmingActor = actor instanceof Dimmer ? (Dimmer) actor : null;
 		final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>();
 
 		// full software implementation
@@ -229,6 +232,18 @@ public class AbstractSolutionBuilder {
 					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
 				if (outputDeviceSink.getOffTime() != null)
 					scheduleSwitchOff(outputDeviceSink, switchingActor);
+				if (dimmingActor != null)
+					try {
+						dimmingActor.setDimmerMode(DimmerMode.OLD_BRIGHTNESS);
+					} catch (final IOException e) {
+						logger.info("Cannot set dimming mode on dimmer " + actor);
+					}
+			}
+
+			private void cancelCurrentFuture() {
+				final ScheduledFuture<?> future = lastFutureReference.get();
+				if (future != null)
+					future.cancel(false);
 			}
 
 			@Override
@@ -262,6 +277,21 @@ public class AbstractSolutionBuilder {
 				return connection;
 			}
 
+			private void scheduleSwitchOff(final PrimitiveOutputDeviceKeyEventSink outputDeviceSink, final SwitchingActor switchingActor) {
+				final int offDelay = outputDeviceSink.getOffTime().intValue();
+				lastFutureReference.set(executorService.schedule(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							switchingActor.setOff();
+							lastOffTime.set(System.currentTimeMillis());
+						} catch (final IOException e) {
+							logger.warn("Cannot switch off actor " + switchingActor, e);
+						}
+					}
+				}, offDelay, TimeUnit.SECONDS));
+			}
+
 			@Override
 			public void takeEvent(final KeyEvent event) {
 				try {
@@ -278,27 +308,6 @@ public class AbstractSolutionBuilder {
 					throw new RuntimeException(e);
 				}
 			}
-
-			private void cancelCurrentFuture() {
-				final ScheduledFuture<?> future = lastFutureReference.get();
-				if (future != null)
-					future.cancel(false);
-			}
-
-			private void scheduleSwitchOff(final PrimitiveOutputDeviceKeyEventSink outputDeviceSink, final SwitchingActor switchingActor) {
-				final int offDelay = outputDeviceSink.getOffTime().intValue();
-				lastFutureReference.set(executorService.schedule(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							switchingActor.setOff();
-							lastOffTime.set(System.currentTimeMillis());
-						} catch (final IOException e) {
-							logger.warn("Cannot switch off actor " + switchingActor, e);
-						}
-					}
-				}, offDelay, TimeUnit.SECONDS));
-			}
 		});
 
 		// full hardware implementation
@@ -314,6 +323,8 @@ public class AbstractSolutionBuilder {
 							timedActor.setTimeValue(outputDeviceSink.getOffTime().intValue());
 						} else
 							timedActor.setTimeMode(TimeMode.NONE);
+						if (dimmingActor != null)
+							dimmingActor.setDimmerMode(DimmerMode.OLD_BRIGHTNESS);
 					} catch (final IOException e) {
 						throw new RuntimeException(e);
 					}
@@ -454,65 +465,6 @@ public class AbstractSolutionBuilder {
 		return ret;
 	}
 
-	protected Collection<ConfigSolutionPrimitive> makeSwitchingValueSolution(final PrimitiveConnection connection,
-			final PrimitiveSwitchingOutputDeviceValueEventSink sink) {
-		final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>(1);
-		ret.add(new SoftwareValueEventTargetSolutionPrimtive() {
-
-			@Override
-			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
-					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
-			}
-
-			@Override
-			public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
-				return true;
-			}
-
-			@Override
-			public void close() throws IOException {
-			}
-
-			@Override
-			public int cost() {
-				return 100;
-			}
-
-			@Override
-			public PrimitiveConnection getConnection() {
-				return connection;
-			}
-
-			@Override
-			public void takeEvent(final ValueEvent event) {
-				try {
-					final SwitchingActor actor = (SwitchingActor) registry.getActor(sink.getAddress().getDeviceAddress(), sink.getAddress().getOutputAddress());
-					final boolean value = event.getValue() > sink.getTriggerValue() ^ sink.isOnWhenBelow();
-					logger.info(" Value: " + event.getValue() + " -> " + actor + ": " + (value ? "on" : "off"));
-					if (value)
-						actor.setOn();
-					else
-						actor.setOff();
-				} catch (final IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		});
-		return ret;
-	}
-
-	protected synchronized void removeMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
-		final DistributingMessageHandler distributingMessageHandler = messageHandlers.get(keySensor);
-		if (distributingMessageHandler != null)
-			synchronized (distributingMessageHandler) {
-				distributingMessageHandler.removeHandler(messageHandler);
-				if (distributingMessageHandler.isEmpty()) {
-					messageHandlers.remove(keySensor);
-					keySensor.registerHandler(null);
-				}
-			}
-	}
-
 	private SoftwareEventSourceSolutionPrimitive makeSoftwareEventSourceSolution(final PrimitiveKeyEventSource source,
 			final PrimitiveConnection connection, final InputAddress inputAddress) {
 		return new SoftwareEventSourceSolutionPrimitive() {
@@ -571,6 +523,65 @@ public class AbstractSolutionBuilder {
 				return connection;
 			}
 		};
+	}
+
+	protected Collection<ConfigSolutionPrimitive> makeSwitchingValueSolution(final PrimitiveConnection connection,
+			final PrimitiveSwitchingOutputDeviceValueEventSink sink) {
+		final ArrayList<ConfigSolutionPrimitive> ret = new ArrayList<ConfigSolutionPrimitive>(1);
+		ret.add(new SoftwareValueEventTargetSolutionPrimtive() {
+
+			@Override
+			public void activateSolution(final ConfigSolutionPrimitive otherEndSolutionPrimitive, final ActivationPhase phase,
+					final Collection<ConfigSolutionPrimitive> allSelectedPrimitives) {
+			}
+
+			@Override
+			public boolean canCoexistWith(final ConfigSolutionPrimitive otherSolution) {
+				return true;
+			}
+
+			@Override
+			public void close() throws IOException {
+			}
+
+			@Override
+			public int cost() {
+				return 100;
+			}
+
+			@Override
+			public PrimitiveConnection getConnection() {
+				return connection;
+			}
+
+			@Override
+			public void takeEvent(final ValueEvent event) {
+				try {
+					final SwitchingActor actor = (SwitchingActor) registry.getActor(sink.getAddress().getDeviceAddress(), sink.getAddress().getOutputAddress());
+					final boolean value = event.getValue() > sink.getTriggerValue() ^ sink.isOnWhenBelow();
+					logger.info(" Value: " + event.getValue() + " -> " + actor + ": " + (value ? "on" : "off"));
+					if (value)
+						actor.setOn();
+					else
+						actor.setOff();
+				} catch (final IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		});
+		return ret;
+	}
+
+	protected synchronized void removeMessageHandler(final KeySensor keySensor, final MessageHandler messageHandler) throws IOException {
+		final DistributingMessageHandler distributingMessageHandler = messageHandlers.get(keySensor);
+		if (distributingMessageHandler != null)
+			synchronized (distributingMessageHandler) {
+				distributingMessageHandler.removeHandler(messageHandler);
+				if (distributingMessageHandler.isEmpty()) {
+					messageHandlers.remove(keySensor);
+					keySensor.registerHandler(null);
+				}
+			}
 	}
 
 }
