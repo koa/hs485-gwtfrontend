@@ -79,4 +79,9 @@ public class Action<E extends Event> implements Serializable {
 		this.sources = sources;
 	}
 
+	@Override
+	public String toString() {
+		return "Action [sources=" + sources + ", eventType=" + eventType + ", sinks=" + sinks + "]";
+	}
+
 }
