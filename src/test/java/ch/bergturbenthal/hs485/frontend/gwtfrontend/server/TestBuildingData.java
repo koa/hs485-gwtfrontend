@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ public class TestBuildingData {
 	private PlanRepository			planRepository;
 
 	@Test
+	@Ignore
 	public void testListFilenames() throws IOException {
 		final FileData file = new FileData();
 		file.setFileName("hello1");

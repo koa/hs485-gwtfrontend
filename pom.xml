@@ -89,7 +89,7 @@
     <dependency>
       <groupId>org.springframework.data</groupId>
       <artifactId>spring-data-mongodb</artifactId>
-      <version>1.0.0.RC1</version>
+      <version>1.0.0.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -142,7 +142,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
-        <version>2.1.1</version>
+        <version>3.3.2</version>
         <executions>
           <execution>
             <id>prepare</id>
@@ -235,19 +235,14 @@
   </build>
   <repositories>
     <repository>
-      <id>Neptun</id>
-      <name>Neptun-releases</name>
-      <url>http://nexus.berg-turbenthal.ch/content/repositories/releases/</url>
+      <id>koa-releases</id>
+      <name>Releases Repository</name>
+      <url>https://nexus.berg-turbenthal.ch/repository/maven-releases/</url>
     </repository>
     <repository>
-      <id>Neptun-snapshot</id>
-      <name>Neptun-snapshots</name>
-      <url>http://nexus.berg-turbenthal.ch/content/repositories/snapshots/</url>
-    </repository>
-    <repository>
-      <id>spring-milestone</id>
-      <name>Spring Maven MILESTONE Repository</name>
-      <url>http://maven.springframework.org/milestone</url>
+      <id>koa-snapshots</id>
+      <name>Snapshots Repository</name>
+      <url>https://nexus.berg-turbenthal.ch/repository/maven-snapshots</url>
     </repository>
   </repositories>
 </project>
